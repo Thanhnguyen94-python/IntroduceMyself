@@ -6,19 +6,21 @@ import { getProjectsData } from "@/lib/content/loaders";
 import { pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
 
-const filters = ["all", "3d-jig", "app-software", "smt-improvement"] as const;
+const filters = ["all", "3d-jig", "app-software", "smt-improvement", "ai-iot"] as const;
 const filterLabels = {
   vi: {
     all: "Tất cả",
     "3d-jig": "Bản vẽ 3D/Jig",
     "app-software": "Ứng dụng/Phần mềm",
-    "smt-improvement": "Cải tiến SMT"
+    "smt-improvement": "Cải tiến SMT",
+    "ai-iot": "AI/IoT"
   },
   en: {
     all: "All",
     "3d-jig": "3D/Jig Drawings",
     "app-software": "Apps/Software",
-    "smt-improvement": "SMT Improvements"
+    "smt-improvement": "SMT Improvements",
+    "ai-iot": "AI/IoT"
   }
 } as const;
 

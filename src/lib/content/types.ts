@@ -60,7 +60,7 @@ export type ProjectItem = {
   id: string;
   slug: string;
   title: LocalizedText;
-  category: "3d-jig" | "app-software" | "smt-improvement";
+  category: "3d-jig" | "app-software" | "smt-improvement"| "ai-iot";
   status: "ongoing" | "completed";
   summary: LocalizedText;
   objective: LocalizedText;

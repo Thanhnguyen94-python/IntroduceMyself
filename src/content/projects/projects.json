@@ -23,7 +23,7 @@
         "en": "Built a 3D pallet design, validated dimensions on real hardware, and standardized operation steps before mass rollout."
       },
       "equipmentTags": ["NPM", "3D sketchup" ],
-      "gallery": ["/assets/images/trayPalet.PNG", "/assets/images/trayPalet-2.PNG"],
+      "gallery": ["/assets/images/3d-jig/trayPalet.PNG", "/assets/images/3d-jig/trayPalet-2.PNG"],
       "attachments": [
         {
           "label": {
@@ -94,6 +94,43 @@
       "lessonsLearned": {
         "vi": ["Dữ liệu nhiệt độ thực tế quan trọng hơn profile mẫu chung."],
         "en": ["Measured thermal data matters more than generic profile templates."]
+      }
+    },
+    {
+      "id": "chatbot-ai",
+      "slug": "chatbot-ai",
+      "title": {
+        "vi": "Chatbot AI kết hợp phần cứng và trí tuệ nhân tạo để hỗ trợ trò chuyện.",
+        "en": "AI Chatbot integrating hardware and artificial intelligence for conversational support."
+      },
+      "category": "ai-iot",
+      "status": "ongoing",
+      "summary": {
+        "vi": "Hệ thống AI Chatbot tương tác bằng giọng nói sử dụng vi điều khiển ESP32-S3 kết hợp với các mô hình trí tuệ nhân tạo (LLM).",
+        "en": "A voice-interactive AI Chatbot system using the ESP32-S3 microcontroller combined with Large Language Models (LLM)."
+      },
+      "objective": {
+        "vi": "Xây dựng thiết bị phần cứng nhỏ gọn có khả năng thu âm, xử lý giọng nói, kết nối API LLM và phản hồi câu trả lời bằng âm thanh theo thời gian thực.\nRotbot có thêm nhiều chức năng: di chuyển, kết nối điều khiển thiết bị trong nhà, phát nhạc, dạy học tiếng Anh, tiếng Trung",
+        "en": "Develop a compact hardware device capable of recording audio, processing speech, connecting to LLM APIs, and providing real-time audio responses. Rotbot also includes additional functionalities: mobility, smart home device control, music playback, and language learning support for English and Chinese."
+      },
+      "description": {
+        "vi": "Dự án nghiên cứu và phát triển thiết bị Chatbot AI nhúng dựa trên dòng chip ESP32-S3. Thiết bị thu âm thanh qua micro I2S, gửi dữ liệu lên cloud để nhận dạng giọng nói (STT), xử lý nội dung bằng mô hình AI và phát lại câu trả lời bằng âm thanh (TTS) qua loa tích hợp.",
+        "en": "An R&D project for an embedded AI Chatbot device powered by the ESP32-S3 chip. The system records audio via an I2S microphone, streams data to cloud services for speech recognition (STT), processes input using AI models, and streams audio responses back via Text-to-Speech (TTS) through an onboard speaker."
+      },
+      "equipmentTags": ["ESP32-S3", "I2S Microphone", "I2S Audio DAC/Amplifier", "Speaker", "SD Card", "OLED Display"],
+      "gallery": ["/assets/images/ai-iot/01.jpg", "/assets/images/ai-iot/02.jpg", "/assets/images/ai-iot/03.mp4"],
+      "attachments": [],
+      "lessonsLearned": {
+        "vi": [
+          "Tìm hiểu lập trình nhúng.",
+          "Tìm hiểu về module ESP32-S3 và các giao tiếp I2S, I2C, SPI.",
+          "Ứng dụng của ESP32-S3 trong các dự án IoT và AI."
+        ],
+        "en": [
+          "Learned embedded programming.",
+          "Explored ESP32-S3 module and its I2S, I2C,",
+          "Applications of ESP32-S3 in IoT and AI projects."
+        ]
       }
     }
   ]
