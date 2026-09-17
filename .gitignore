@@ -1,0 +1,31 @@
+node_modules
+.next
+out
+.env
+.env.local
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build / cache
+.turbo
+.cache
+dist
+coverage
+
+# Local editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+
+# Deployment / secrets
+.vercel
+*.pem
+*.key
+*.p12
+*.crt

@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f5f9ff;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: #cfe1ff;
+}
+
+.dark {
+  --bg: #0a1222;
+  --surface: #111c33;
+  --text: #e5eeff;
+  --muted: #a8b8d8;
+  --border: #23385f;
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(245, 249, 255, 0.82), rgba(245, 249, 255, 0.86)),
+    linear-gradient(120deg, rgba(11, 95, 255, 0.12), rgba(10, 18, 34, 0.08)),
+    radial-gradient(circle at 18% 18%, rgba(11, 95, 255, 0.2) 0 2px, transparent 2px),
+    radial-gradient(circle at 78% 12%, rgba(0, 163, 255, 0.16) 0 1.5px, transparent 1.5px),
+    linear-gradient(rgba(11, 95, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 95, 255, 0.1) 1px, transparent 1px),
+    url("/assets/images/smt-bg.png");
+  background-size: auto, auto, 150px 150px, 190px 190px, 30px 30px, 30px 30px, cover;
+  background-position: center, center, 0 0, 0 0, 0 0, 0 0, center;
+  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed;
+  color: var(--text);
+}
+
+.dark body {
+  background-image:
+    linear-gradient(rgba(8, 18, 40, 0.86), rgba(8, 18, 40, 0.9)),
+    linear-gradient(125deg, rgba(91, 140, 255, 0.18), rgba(56, 189, 248, 0.12)),
+    radial-gradient(circle at 12% 18%, rgba(91, 140, 255, 0.26) 0 2px, transparent 2px),
+    radial-gradient(circle at 78% 10%, rgba(56, 189, 248, 0.2) 0 1.5px, transparent 1.5px),
+    linear-gradient(rgba(91, 140, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 140, 255, 0.14) 1px, transparent 1px),
+    url("/assets/images/smt-bg.png");
+}
+
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll, scroll, scroll, scroll, scroll, scroll, scroll;
+    background-position: center, center, center, center, center, center, center;
+  }
+}
+
+.card {
+  @apply rounded-xl border p-4 shadow-sm;
+  border-color: var(--border);
+  background-color: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(3px);
+}

@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "genbyte-2021",
+      "company": "GENBYTE TECHNOLOGY (VIETNAM) COMPANY LIMITED",
+        "role": {
+            "vi": "Tổ Trưởng Kỹ Sư SMT",
+            "en": "SMT Engineering Team Leader"
+        },
+        "startDate": "2021-04",
+        "endDate": "2026-03",
+        "isCurrent": false,
+        "equipmentTags": [
+            "Printer (GKG-5)",
+            "Panasonic NPM(DX, D3, D3A, TT2)",
+            "AOI & SPI (TRI77xx, Sinictek)",
+            "Reflow (JTR-1000, JTR-1000D, CR2-1003D)",
+            "Hanlaser (QR)",
+            "AI (AV131, RH5)",
+            "DGS", "GerberTool", "GC-2000", "SketchUp 3D"
+        ],
+        "responsibilities": {
+            "vi": [
+            "Quản lý, điều phối đội ngũ Kỹ sư SMT; chịu trách nhiệm chính trong việc lắp đặt, hiệu chuẩn và đưa toàn bộ hệ thống dây chuyền nhà máy mới vào vận hành chính thức.",
+            "Lập trình chuyên sâu toàn bộ thiết bị trên chuyền SMT & AI (Full-line programming: Solder Printer, SPI, Mounter, Reflow, AOI, Laser Marking, AI).",
+            "Lập kế hoạch bảo trì định kỳ, chủ động phối hợp với bộ phận Planner để sắp xếp lịch dừng máy phù hợp, tránh ảnh hưởng đến tiến độ sản xuất.",
+            "Điều phối chạy sản xuất hàng mẫu (NPI/Prototype), kiểm soát nghiêm ngặt các chỉ số năng lực quy trình (Cpk) và tỷ lệ đạt (Yield Rate) để phục vụ báo cáo và phê duyệt từ khách hàng.",
+            "Liên tục cập nhật Cycle time cho bộ phận Kế hoạch (Planner); chủ trì điều tra nguyên nhân gốc rễ (RCA) và thúc đẩy giải pháp cải tiến đối với các mã hàng không đạt sản lượng định mức.",
+            "Làm đầu mối kỹ thuật tiếp đón, giải trình và hỗ trợ các đợt đánh giá (Audit) và tham quan nhà máy từ phía Khách hàng."
+            ],
+            "en": [
+            "Led and managed the SMT Engineering team; played a key role in installation, calibration, and full-line commissioning for the new factory.",
+            "Executed end-to-end full-line programming across SMT & AI equipment (Solder Printer, SPI, Mounter, Reflow, AOI, Laser Marking, and AI insertion).",
+            "Scheduled preventive maintenance timelines in close alignment with Planners to optimize machine uptime without disrupting production targets.",
+            "Spearheaded NPI prototype trials; strictly monitored Process Capability (Cpk) and First Pass Yield (FPY) to comply with customer qualification standards.",
+            "Updated program cycle times for planning; led Root Cause Analysis (RCA) and driven technical corrective actions for low-yield/low-output models.",
+            "Served as the technical point of contact during Customer Audits and factory visits, ensuring full compliance with client requirements."
+            ]
+        },
+        "problemRootCauseAction": {
+            "vi": [
+            "Problem: Tỷ lệ dừng máy cao và tổn thất năng suất do thao tác lặp lại thủ công và thiếu trang thiết bị phụ trợ chuẩn hóa.",
+            "Root Cause: Nhà máy mới chưa tối ưu hóa công cụ làm việc chuyên dụng cho từng công đoạn và các quy trình SOP cũ chưa sát thực tế.",
+            "Action: Tự viết các phần mềm/Tool hỗ trợ tự động hóa các tác vụ lặp lại; đồng thời tự thiết kế 3D các thiết bị/công cụ phụ trợ cơ khí để sản xuất chuẩn hóa cho xưởng."
+            ],
+            "en": [
+            "Problem: Frequent downtime and productivity loss due to repetitive manual tasks and lack of customized line fixtures.",
+            "Root Cause: Factory setup phase lacked specialized auxiliary tools, and existing SOPs were not fully tailored to line operations.",
+            "Action: Developed internal software tools to automate repetitive engineering workflows and designed custom 3D mechanical fixtures to streamline line layout."
+            ]
+        },
+        "trainingActivities": {
+            "vi": [
+            "Cải tiến, chuẩn hóa hệ thống Quy trình thao tác chuẩn (SOP) phù hợp với thực tế vận hành của nhà máy.",
+            "Đào tạo các phương pháp làm việc tối ưu và kỹ năng xử lý sự cố nâng cao cho Công nhân, Kỹ thuật viên và Kỹ sư trong đội ngũ."
+            ],
+            "en": [
+            "Revised and standardized line SOPs to closely fit actual factory operating conditions.",
+            "Conducted advanced technical and troubleshooting training programs for operators, technicians, and junior engineers."
+            ]
+        },
+        "improvements": {
+            "vi": [
+            "Ứng dụng kỹ năng thiết kế 3D (SketchUp) để trực tiếp dựng hình, tính toán và phối hợp mua sắm các trang thiết bị nội bộ: Cổng từ an ninh xưởng, tủ bảo quản stencil/lưới thép, tray IC, xe vận chuyển stencil chuyên dụng, bàn ghế thao tác chuẩn Ergonomics.",
+            "Viết các Tool tự động hóa công việc lặp lại, cắt giảm đáng kể thời gian thao tác kỹ thuật và hạn chế tối đa sai sót do con người."
+            ],
+            "en": [
+            "Utilized 3D design tools (SketchUp) to model and customize in-house workshop equipment: Security gates, stencil storage cabinets, IC trays, stencil transport carts, and ergonomic workstations.",
+            "Developed automated software tools for repetitive programming tasks, significantly reducing manual engineering processing time and human error."
+            ]
+        },
+        "achievements": {
+            "vi": [
+            "Vinh dự nhận bằng khen và danh hiệu 'Kỹ Sư Xuất Sắc' (Excellent Engineer) do Ban Giám đốc trao tặng nhờ những đóng góp vượt trội.",
+            "Duy trì chỉ số Cpk >1.33 và tỷ lệ Yield sản xuất mẫu đạt 100%, giúp các dòng sản phẩm mới pass qua các đợt Audit khó tính từ Khách hàng."
+            ],
+            "en": [
+            "Honored with the 'Excellent Engineer Award' by the Board of Directors in recognition of outstanding technical contributions and innovation.",
+            "Sustained Cpk >1.33 and trial yield rate 100%, achieving a 100% pass rate in customer audits for new product qualifications."
+            ]
+        }
+    },
+    {
+      "id": "novas-2019",
+      "company": "NOVAS EZ VIETNAM COMPANY LIMITED",
+      "role": {
+        "vi": "Tổ Trưởng Kỹ Sư SMT",
+        "en": "SMT Engineering Team Leader"
+      },
+      "startDate": "2019-02",
+      "endDate": "2021-03",
+      "isCurrent": false,
+      "equipmentTags": ["Hanwha(DECAN S2, F2)", "Samsung(SM-451)", "Panasonic(CM402,CM602)", "SPI Pami", "Heller 1810"],
+      "responsibilities": {
+        "vi": [
+        "Đảm nhiệm vai trò Setup chính trong giai đoạn thành lập nhà máy: Đảm bảo lắp đặt, cân chỉnh, lập trình chương trình SMT và đưa dây chuyền vào vận hành đúng tiến độ.",
+        "Kiêm nhiệm quản lý sản xuất và kỹ thuật giai đoạn đầu; sau đó chuyển giao và tập trung quản lý, đào tạo đội ngũ Kỹ sư Kỹ thuật (Line Engineers/Technicians).",
+        "Trực tiếp lập trình máy SMT, tối ưu hóa cân bằng chuyền (Line Balancing), bảo trì định kỳ và sửa chữa chuyên sâu hệ thống thiết bị SMT.",
+        "Chủ trì phối hợp sản xuất hàng mẫu (NPI), phân tích nguyên nhân gốc rễ (RCA) để xử lý lỗi linh kiện/sản phẩm và cải tiến quy trình công nghệ."
+        ],
+        "en": [
+        "Served as Lead Setup Engineer during factory setup: Oversaw installation, calibration, SMT programming, and line commissioning to meet tight timeline targets.",
+        "Dual-managed production and technical operations in the initial phase before transitioning to lead and build the Engineering team.",
+        "Programmed SMT machinery, optimized line balancing, and executed preventive maintenance and advanced troubleshooting for SMT equipment.",
+        "Led New Product Introduction (NPI) sample trials, performed Root Cause Analysis (RCA) for defect reduction, and continuously refined line processes."
+        ]
+        },
+        "problemRootCauseAction": {
+            "vi": [
+            "Problem: Thiếu hụt hệ thống quản lý và công cụ phụ trợ giai đoạn đầu gây nguy cơ sai lỗi nạp liệu và gia tăng cường độ lao động.",
+            "Root Cause: Nhà máy mới thành lập, chưa kịp đầu tư hệ thống MES và trang thiết bị tự động hóa chuyên dụng.",
+            "Action: Tự phát triển giải pháp (Phần mềm Scan nạp liệu, Máy nâng hạ thùng Magazine, Máy đếm liệu cầm tay trên chuyền) giúp số hóa kiểm soát và giảm thao tác thủ công."
+            ],
+            "en": [
+            "Problem: High risk of component loading errors and heavy manual fatigue during early factory setup.",
+            "Root Cause: Absence of an integrated MES system and dedicated automation tools in the newly established facility.",
+            "Action: Developed in-house digital and hardware solutions (Feeder scanning software, Automatic magazine lifter, Portable on-reel component counter) to prevent manual errors."
+            ]
+        },
+        "trainingActivities": {
+            "vi": [
+            "Biên soạn quy trình thao tác chuẩn (SOP) và tài liệu hướng dẫn kỹ thuật từ con số 0.",
+            "Xây dựng chương trình và trực tiếp đào tạo cho nhân viên mới và đội ngũ kỹ thuật viên về vận hành, xử lý sự cố SMT."
+            ],
+            "en": [
+            "Authored standard operating procedures (SOPs) and technical guidelines from scratch.",
+            "Established training modules and conducted technical coaching for new hires and junior line engineers."
+            ]
+        },
+        
+        "achievements": {
+            "vi": [
+            "Được Ban Giám đốc vinh danh và trao tặng 'Giải thưởng Sáng tạo Tuần' (Weekly Innovation Award) cho các giải pháp cải tiến tự phát triển.",
+            "Đưa toàn bộ hệ thống dây chuyền SMT mới vào vận hành ổn định đúng tiến độ."
+            ],
+            "en": [
+            "Recognized by Management with the 'Weekly Innovation Award' for high-impact, self-developed automation and software solutions.",
+            "Successfully commissioned the new SMT lines on schedule."
+            ]
+        },
+        "improvements": {
+            "vi": [
+            "Lập trình và triển khai Phần mềm Scan kiểm soát nối liệu, ngăn ngừa lỗi nhầm linh kiện khi chưa có MES.",
+            "Thiết kế, chế tạo máy nâng hạ thùng Magazine tự động, giảm tải chấn thương lao động và tối ưu thao tác cho công nhân.",
+            "Chế tạo thiết bị đếm linh kiện cầm tay trực tiếp trên chuyền, cắt giảm 100% thời gian tháo gỡ cuộn liệu khi kiểm kê."
+            ],
+            "en": [
+            "Developed and programmed software for material splicing verification via scanning, resolving complex issues in the absence of an MES.",
+            "Designed and built an automated Magazine Lifter to eliminate manual heavy lifting and streamline line material handling.",
+            "Engineered a portable, on-line component counter, eliminating the need to dismount reels during inventory checks."
+            ]
+        }
+    },
+    {
+      "id": "samsung-2016",
+      "company": "SAMSUNG ELECTRONICS HCMC CE COMPLEX CO., LTD.",
+      "role": {
+        "vi": "Lập trình thiết bị dán SMT(Surface Mount Technology) và cắm xuyên lỗ AI(Auto Insertion).",
+        "en": "Programmed SMT placement and AI insertion machines."
+      },
+      "startDate": "2017-03",
+      "endDate": "2019-02",
+      "isCurrent": false,
+      "equipmentTags": ["Panasonic CM402", "Panasonic CM602", "Mirae", "Panasonic NPM", "Yamaha YRM20", "Mirae", "RHU", "RH5", "AV131", "EYELET","MES"],
+      "responsibilities": {
+        "vi": [
+            "Lập trình thiết bị dán SMT(Surface Mount Technology) và cắm xuyên lỗ AI(Auto Insertion).",
+            "Khởi tạo và quản lý dữ liệu scan MES.",
+            "Phối hợp với R&D và các bên liên quan để lập kế hoạch và triển khai sản xuất sản phẩm mới (NPI).",
+            "Lập bảng tiến độ chuẩn bị và thúc đẩy các bộ phận liên quan nhằm hỗ trợ Planner xếp lịch sản xuất hàng mẫu mà không làm ảnh hưởng đến chuyền chính.",
+            "Lập báo cáo đánh giá sản xuất mẫu, đề xuất giải pháp rút ngắn thời gian chuẩn bị và giảm thiểu rủi ro lỗi khi đưa vào sản xuất hàng loạt.",
+            "Thực hiện đo đạc, quản lý thời gian sản xuất (Cycle time) và liên tục cập nhật, tối ưu hóa quy trình vận hành hàng ngày."
+        ],
+        "en": [
+            "Programmed SMT placement and AI insertion machines.",
+            "Configured and managed MES traceability data.",
+            "Coordinated with R&D and cross-functional teams to plan and execute New Product Introduction (NPI) trials.",
+            "Developed readiness tracking timelines and pushed stakeholders to clear bottlenecks, enabling smooth sample scheduling without disrupting core mass production.",
+            "Compiled post-trial reports to analyze trial defects and implement corrective actions, significantly shortening sample lead times and reducing mass-production risks.",
+            "Measured, tracked, and managed daily production cycle times to drive continuous process optimization."
+        ]
+      },
+      "problemRootCauseAction": {
+        "vi": [
+        "Problem: Sai lệch bước nhảy (Pitch) linh kiện trong chương trình SMT.",
+        "Root Cause: Linh kiện cùng thông số nhưng từ nhiều nhà cung cấp (Multi-vendors) có sự chênh lệch về kích thước/đóng gói.",
+        "Action: Chuẩn hóa quy tắc đặt tên mã liệu kèm ghi chú phân biệt; đồng thời khởi tạo mã phụ (Sub-part) trong chương trình SMT để thao tác viên chủ động chuyển đổi linh hoạt khi thay liệu."
+        ],
+        "en": [
+        "Problem: Component pitch mismatch in SMT programming.",
+        "Root Cause: Component size/packaging variations due to sourcing from multiple suppliers (Multi-vendors).",
+        "Action: Standardized part naming conventions with distinctive visual notes, and configured sub-parts in SMT programs for quick operator switching during reel setup."
+        ]
+        },
+        "trainingActivities": {
+            "vi": [
+            "Đào tạo quy trình quét mã vạch nạp liệu (Feeder Setup) và thao tác hệ thống MES nhằm ngăn ngừa triệt để rủi ro nhầm lẫn linh kiện.",
+            "Hướng dẫn người vận hành kỹ năng kiểm soát, đối soát chương trình đang chạy để đảm bảo tuân thủ đúng quy trình công nghệ.",
+            "Huấn luyện kỹ năng vận hành tối ưu nhằm khai thác tối đa hiệu suất thiết bị và giảm thiểu thời gian dừng máy (Downtime)."
+            ],
+            "en": [
+            "Trained operators on component loading/barcode scanning workflows and MES system operation to strictly prevent part mixing errors.",
+            "Guided operators on active program verification techniques to strictly adhere to standard operating procedures (SOP).",
+            "Instructed technicians and operators on optimized operational practices to maximize equipment throughput and minimize machine downtime."
+            ]
+        },
+        "achievements": {
+            "vi": [
+            "Duy trì chỉ số cân bằng chuyền (Line Balancing) trung bình toàn bộ sản phẩm đạt >95% (vượt mục tiêu KPI >90%), trong đó các mã tiêu chuẩn đạt tới >98%.",
+            "Tối ưu hóa cấu hình chuyền (Line configuration) giúp duy trì hiệu suất cao ngay cả với các dòng sản phẩm đặc thù khó cân bằng."
+            ],
+            "en": [
+            "Maintained an average Line Balancing efficiency of >95% across all product lines (exceeding the >90% KPI target), with standard models reaching >98%.",
+            "Optimized SMT line configurations to sustain high balanced efficiency even for complex, non-standard product builds."
+            ]
+        },
+        "improvements": {
+            "vi": [
+            "Thiết kế và triển khai hệ thống Loader tự động cấp PCB/Board vào máy, giúp tự động hóa công đoạn đầu chuyền và giảm thao tác thủ công."
+            ],
+            "en": [
+            "Implemented an automated PCB Loader system for automatic board loading, streamlining front-end line operations and reducing manual handling."
+            ]
+        }                                                                       
+    }
+  ]
+}

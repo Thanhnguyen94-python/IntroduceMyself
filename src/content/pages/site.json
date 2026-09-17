@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "profile": {
+    "fullName": "Nguyễn Văn Thạnh",
+    "displayName": "Mr Jay",
+    "title": {
+      "vi": "SMT Programming & Line Balance Engineer",
+      "en": "SMT Programming & Line Balance Engineer"
+    },
+    "slogan": {
+      "vi": "10 năm tối ưu dây chuyền SMT bằng dữ liệu, kỷ luật và cải tiến liên tục.",
+      "en": "10 years of optimizing SMT lines through data, discipline, and continuous improvement."
+    },
+    "location": "Long Phước, Thủ Đức, TP.HCM",
+    "birthDate": "11/03/1994",
+    "hometown": "Hoài Hảo, Hoài Nhơn, Bình Định",
+    "phone": "0962953260",
+    "email": "nguyenvanthanh110394@gmail.com",
+    "zaloPhone": "0962953260"
+  },
+  "highlights": {
+    "vi": [
+      "10 năm kinh nghiệm thực chiến ngành SMT/AI.",
+      "6 năm kinh nghiệm quản lý đội ngũ kỹ sư.",
+      "Thành thạo Panasonic DGS, GC-2000, GerberTool, SketchUp 3D.",
+      "Mạnh về RCA tại chỗ, đào tạo kỹ thuật viên và công nhân."
+    ],
+    "en": [
+      "10 years of hands-on SMT/AI manufacturing experience.",
+      "6 years of engineering team management.",
+      "Strong command of Panasonic DGS, GC-2000, GerberTool, SketchUp 3D.",
+      "Experienced in on-site RCA and technician/operator training."
+    ]
+  },
+  "skills": [
+    {
+      "group": {
+        "vi": "Phần mềm SMT & Gerber",
+        "en": "SMT & Gerber Software"
+      },
+      "items": ["Panasonic DGS", "GC-2000", "GerberTool", "TRI", "Sinictek", "GKG"]
+    },
+    {
+      "group": {
+        "vi": "Thiết kế 3D & cải tiến",
+        "en": "3D Design & Improvement"
+      },
+      "items": ["SketchUp 3D", "Jig/Tool design", "Line layout simulation"]
+    },
+    {
+      "group": {
+        "vi": "Tiêu chuẩn & hệ thống",
+        "en": "Standards & Systems"
+      },
+      "items": ["IPC-A-610", "ISO 9001", "ISO 14001", "5S", "Kaizen", "MES"]
+    }
+  ]
+}

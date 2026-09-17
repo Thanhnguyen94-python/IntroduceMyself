@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "ipc-a-610-cheatsheet",
+      "slug": "ipc-a-610-cheatsheet",
+      "title": {
+        "vi": "Tóm tắt lỗi thường gặp theo IPC-A-610",
+        "en": "Common Defects Summary by IPC-A-610"
+      },
+      "topic": "Quality",
+      "visibility": "public",
+      "summary": {
+        "vi": "Tài liệu nhanh dùng để đào tạo và review lỗi ngoại quan SMT.",
+        "en": "Quick reference for SMT visual defect training and review."
+      },
+      "fileUrl": "/assets/docs/ipc-a-610-cheatsheet.pdf",
+      "equipmentTags": ["AOI", "SPI", "IPC-A-610"]
+    },
+    {
+      "id": "factory-rca-playbook",
+      "slug": "factory-rca-playbook",
+      "title": {
+        "vi": "Playbook RCA nội bộ dây chuyền SMT",
+        "en": "Internal SMT Line RCA Playbook"
+      },
+      "topic": "Troubleshooting",
+      "visibility": "private",
+      "summary": {
+        "vi": "Quy trình xử lý sự cố tại chỗ theo checklist nội bộ, chỉ chia sẻ khi được phép.",
+        "en": "Internal incident-response checklist and RCA workflow, shared by permission only."
+      },
+      "equipmentTags": ["NPM", "AOI", "Reflow", "MES"]
+    }
+  ]
+}

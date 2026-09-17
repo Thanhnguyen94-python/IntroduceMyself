@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "jig-balance-layout",
+      "slug": "jig-balance-layout",
+      "title": {
+        "vi": "Bộ Jig 3D tối ưu thao tác thay model",
+        "en": "3D Jig Set for Faster Model Changeover"
+      },
+      "category": "3d-jig",
+      "status": "completed",
+      "summary": {
+        "vi": "Thiết kế bộ Jig và mô phỏng layout giúp giảm thao tác chờ và tăng ổn định đầu ca.",
+        "en": "Designed jig sets and line layout simulation to reduce setup waiting time and stabilize startup."
+      },
+      "equipmentTags": ["NPM", "GKG", "Reflow JT"],
+      "gallery": ["/assets/images/project-jig-1.jpg", "/assets/images/project-jig-2.jpg"],
+      "lessonsLearned": {
+        "vi": ["Chuẩn hóa thao tác giúp giảm sai lỗi do con người.", "Thiết kế 3D trước giúp giảm thử-sai tại xưởng."],
+        "en": ["Standardized operations reduce human errors.", "3D pre-design minimizes trial-and-error on production floor."]
+      }
+    },
+    {
+      "id": "smt-helper-app",
+      "slug": "smt-helper-app",
+      "title": {
+        "vi": "Ứng dụng hỗ trợ checklist đầu ca SMT",
+        "en": "SMT Startup Checklist Assistant App"
+      },
+      "category": "app-software",
+      "status": "ongoing",
+      "summary": {
+        "vi": "Công cụ nội bộ giúp kỹ thuật viên xác nhận bước setup theo chuẩn trước khi chạy line.",
+        "en": "Internal tool for technicians to validate standardized setup steps before line run."
+      },
+      "equipmentTags": ["SPI", "AOI", "Mounter", "MES"],
+      "gallery": ["/assets/images/project-app-1.jpg"],
+      "lessonsLearned": {
+        "vi": ["Checklist số hóa giảm phụ thuộc kinh nghiệm cá nhân."],
+        "en": ["Digital checklist reduces dependency on individual memory."]
+      }
+    },
+    {
+      "id": "reflow-optimization",
+      "slug": "reflow-optimization",
+      "title": {
+        "vi": "Cải tiến profile Reflow giảm lỗi hàn",
+        "en": "Reflow Profile Optimization for Solder Defect Reduction"
+      },
+      "category": "smt-improvement",
+      "status": "completed",
+      "summary": {
+        "vi": "Phân tích lỗi bắc cầu/tombstone và hiệu chỉnh profile theo loại board để tăng yield.",
+        "en": "Analyzed bridging/tombstone defects and tuned profiles by board type to improve yield."
+      },
+      "equipmentTags": ["Reflow JT", "Heller", "AOI"],
+      "gallery": ["/assets/images/project-reflow-1.jpg"],
+      "lessonsLearned": {
+        "vi": ["Dữ liệu nhiệt độ thực tế quan trọng hơn profile mẫu chung."],
+        "en": ["Measured thermal data matters more than generic profile templates."]
+      }
+    }
+  ]
+}
