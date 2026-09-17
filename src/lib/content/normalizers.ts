@@ -49,8 +49,23 @@ export function normalizeProjectsData(raw: ProjectsData): ProjectsData {
     schemaVersion: raw.schemaVersion ?? LATEST_SCHEMA,
     items: (raw.items ?? []).map((item) => ({
       ...item,
+      objective: {
+        vi: item.objective?.vi ?? "",
+        en: item.objective?.en ?? ""
+      },
+      description: {
+        vi: item.description?.vi ?? "",
+        en: item.description?.en ?? ""
+      },
       equipmentTags: item.equipmentTags ?? [],
       gallery: item.gallery ?? [],
+      attachments: (item.attachments ?? []).map((file) => ({
+        label: {
+          vi: file.label?.vi ?? "",
+          en: file.label?.en ?? ""
+        },
+        fileUrl: file.fileUrl ?? ""
+      })),
       lessonsLearned: {
         vi: item.lessonsLearned?.vi ?? [],
         en: item.lessonsLearned?.en ?? []

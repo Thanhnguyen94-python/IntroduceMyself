@@ -10,6 +10,11 @@ export type LocalizedList = {
   en: string[];
 };
 
+export type AttachmentItem = {
+  label: LocalizedText;
+  fileUrl: string;
+};
+
 export type SiteData = {
   schemaVersion: number;
   profile: {
@@ -58,8 +63,11 @@ export type ProjectItem = {
   category: "3d-jig" | "app-software" | "smt-improvement";
   status: "ongoing" | "completed";
   summary: LocalizedText;
+  objective: LocalizedText;
+  description: LocalizedText;
   equipmentTags: string[];
   gallery: string[];
+  attachments: AttachmentItem[];
   lessonsLearned: LocalizedList;
 };
 

@@ -5,40 +5,66 @@
       "id": "jig-balance-layout",
       "slug": "jig-balance-layout",
       "title": {
-        "vi": "Bộ Jig 3D tối ưu thao tác thay model",
-        "en": "3D Jig Set for Faster Model Changeover"
+        "vi": "Khay nạp IC",
+        "en": "IC Pallet"
       },
       "category": "3d-jig",
       "status": "completed",
       "summary": {
-        "vi": "Thiết kế bộ Jig và mô phỏng layout giúp giảm thao tác chờ và tăng ổn định đầu ca.",
-        "en": "Designed jig sets and line layout simulation to reduce setup waiting time and stabilize startup."
+        "vi": "Thiết kết trước bảng vẽ kỹ thuật cho khay nạp liệu vào máy NPM-TT2.",
+        "en": "Designed 3D layout for IC loading pallet for NPM-TT2 machine."
       },
-      "equipmentTags": ["NPM", "GKG", "Reflow JT"],
-      "gallery": ["/assets/images/project-jig-1.jpg", "/assets/images/project-jig-2.jpg"],
+      "objective": {
+        "vi": "Giúp máy dán liệu có thêm chọn lựa khi optimization chương trình NPM.",
+        "en": "Provide additional options for NPM program optimization during SMT line setup."
+      },
+      "description": {
+        "vi": "Thiết kế 3D khay nạp, thử nghiệm kích thước thực tế và chuẩn hóa thao tác vận hành trước khi triển khai đại trà.",
+        "en": "Built a 3D pallet design, validated dimensions on real hardware, and standardized operation steps before mass rollout."
+      },
+      "equipmentTags": ["NPM", "3D sketchup" ],
+      "gallery": ["/assets/images/trayPalet.PNG", "/assets/images/trayPalet-2.PNG"],
+      "attachments": [
+        {
+          "label": {
+            "vi": "file đính kèm",
+            "en": "Attachment"
+          },
+          "fileUrl": "/assets/docs/projects/3d_tray.skb"
+        }
+      ],
       "lessonsLearned": {
-        "vi": ["Chuẩn hóa thao tác giúp giảm sai lỗi do con người.", "Thiết kế 3D trước giúp giảm thử-sai tại xưởng."],
-        "en": ["Standardized operations reduce human errors.", "3D pre-design minimizes trial-and-error on production floor."]
+        "vi": ["Giảm rủi ro trong quá trình đặt mẫu", "Có nhiều lựa chọn cho quá trình optimization chương trình NPM", "Tiết kiệm chi phí mua vật tư đóng gói"],
+        "en": ["Reduced risk during sample placement", "Multiple options for NPM program optimization", "Cost saving on packaging material"]
       }
     },
     {
       "id": "smt-helper-app",
       "slug": "smt-helper-app",
       "title": {
-        "vi": "Ứng dụng hỗ trợ checklist đầu ca SMT",
-        "en": "SMT Startup Checklist Assistant App"
+        "vi": "Chickenguitar",
+        "en": "Chickenguitar"
       },
       "category": "app-software",
       "status": "ongoing",
       "summary": {
-        "vi": "Công cụ nội bộ giúp kỹ thuật viên xác nhận bước setup theo chuẩn trước khi chạy line.",
-        "en": "Internal tool for technicians to validate standardized setup steps before line run."
+        "vi": "Ứng dụng hỗ trợ người học đàn guitar.",
+        "en": "An app that assists guitar learners."
       },
-      "equipmentTags": ["SPI", "AOI", "Mounter", "MES"],
-      "gallery": ["/assets/images/project-app-1.jpg"],
+      "objective": {
+        "vi": ["1. Một chiếc app có thể lưu trữ các sheet nhạc và hướng dẫn học đàn guitar.\n2. Đặc biệt nó dễ dàng truy cập trên điện thoại ở bất cứ đâu."],
+        "en": ["1. An app that can store music sheets and guitar learning guides.\n2. It is especially accessible on mobile devices anywhere."]
+      },
+      "description": {
+        "vi": "ChickenGuitar là ứng dụng Android dành cho những người yêu thích và học chơi đàn guitar. Ứng dụng giúp bạn dễ dàng lưu trữ, quản lý và mở các bản sheet nhạc/hợp âm ở bất kỳ đâu. Bên cạnh đó, ChickenGuitar còn tích hợp công cụ hỗ trợ quá trình soạn thảo sheet nhạc một cách nhanh chóng và thuận tiện, giúp việc tập luyện và sáng tạo âm nhạc của bạn trở nên đơn giản hơn bao giờ hết.",
+        "en": "ChickenGuitar is an Android app designed for guitar learners and music enthusiasts. It allows you to easily store, manage, and access your sheet music or chord charts anytime, anywhere. In addition, ChickenGuitar provides helpful tools to simplify the process of editing and creating sheet music, making your practice and music writing seamless."
+      },
+      "equipmentTags": ["Android"],
+      "gallery": ["/assets/images/chickenguitar/C8.jpg","/assets/images/chickenguitar/C9.png","/assets/images/chickenguitar/C10.png"],
+      "attachments": [],
       "lessonsLearned": {
-        "vi": ["Checklist số hóa giảm phụ thuộc kinh nghiệm cá nhân."],
-        "en": ["Digital checklist reduces dependency on individual memory."]
+        "vi": ["Trải nghiệm lập trình app."],
+        "en": ["Experience in app development."]
       }
     },
     {
@@ -54,8 +80,17 @@
         "vi": "Phân tích lỗi bắc cầu/tombstone và hiệu chỉnh profile theo loại board để tăng yield.",
         "en": "Analyzed bridging/tombstone defects and tuned profiles by board type to improve yield."
       },
+      "objective": {
+        "vi": "Giảm tỷ lệ lỗi hàn và tăng First Pass Yield cho line SMT.",
+        "en": "Reduce soldering defects and improve SMT line first-pass yield."
+      },
+      "description": {
+        "vi": "Thu thập dữ liệu nhiệt thực tế, phân nhóm theo mã board và thử nghiệm profile mới theo từng điều kiện vận hành.",
+        "en": "Collected real thermal data, grouped by board model, and validated updated profiles per operating condition."
+      },
       "equipmentTags": ["Reflow JT", "Heller", "AOI"],
       "gallery": ["/assets/images/project-reflow-1.jpg"],
+      "attachments": [],
       "lessonsLearned": {
         "vi": ["Dữ liệu nhiệt độ thực tế quan trọng hơn profile mẫu chung."],
         "en": ["Measured thermal data matters more than generic profile templates."]
