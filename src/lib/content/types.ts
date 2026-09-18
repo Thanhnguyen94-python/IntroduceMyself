@@ -49,6 +49,10 @@ export type ExperienceItem = {
   trainingActivities: LocalizedList;
   achievements: LocalizedList;
   improvements: LocalizedList;
+  images: {
+    src: string;
+    description: LocalizedText;
+  }[];
 };
 
 export type ExperienceData = {

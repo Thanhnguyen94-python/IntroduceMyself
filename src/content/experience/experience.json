@@ -70,6 +70,29 @@
             "Developed automated software tools for repetitive programming tasks, significantly reducing manual engineering processing time and human error."
             ]
         },
+        "images": [
+            {
+                "src": "/assets/images/GBVN/lenHinhNao.png",
+                "description": {
+                    "vi": "Tôi đối đầu với VTV9 trong phóng sự về nhà máy Genbyte.",
+                    "en": "I was featured on VTV9 news report about Genbyte factory."
+                }
+            },
+            {
+                "src": "/assets/images/GBVN/traoGiai.jpg",
+                "description": {
+                    "vi": "Giải thưởng 'Kỹ Sư Xuất Sắc' (Excellent Engineer) do Ban Giám đốc trao tặng.",
+                    "en": "'Excellent Engineer Award' presented by the Board of Directors."
+                }
+            },
+            {
+                "src": "/assets/images/GBVN/phanQuaDangYeeu.jpg",
+                "description": {
+                    "vi": "Niềm vui khi sự đóng góp được ghi nhận.",
+                    "en": "The joy of having my contributions recognized."
+                }
+            }
+        ],
         "achievements": {
             "vi": [
             "Vinh dự nhận bằng khen và danh hiệu 'Kỹ Sư Xuất Sắc' (Excellent Engineer) do Ban Giám đốc trao tặng nhờ những đóng góp vượt trội.",
@@ -152,10 +175,33 @@
             "Designed and built an automated Magazine Lifter to eliminate manual heavy lifting and streamline line material handling.",
             "Engineered a portable, on-line component counter, eliminating the need to dismount reels during inventory checks."
             ]
-        }
+        },
+        "images": [
+            {
+                "src": "/assets/images/novas/sudangiu2.jpg",
+                "description": {
+                    "vi": "Những người đồng nghiệp đáng yêu",
+                    "en": "My lovely colleagues"
+                }
+            },
+            {
+                "src": "/assets/images/novas/sudangiu.jpg",
+                "description": {
+                    "vi": "Những người đồng nghiệp đáng yêu",
+                    "en": "My lovely colleagues"
+                }
+            },
+            {
+                "src": "/assets/images/novas/camonnovas.jpg",
+                "description": {
+                    "vi": "Sinh nhật trùng với sếp Tổng nên có vẻ bên mình hơi vắng :)",
+                    "en": "Birthday coincided with the CEO's, so our team was a bit quiet :)"
+                }
+            }
+        ]
     },
     {
-      "id": "samsung-2016",
+      "id": "samsung-2017",
       "company": "SAMSUNG ELECTRONICS HCMC CE COMPLEX CO., LTD.",
       "role": {
         "vi": "Lập trình thiết bị dán SMT(Surface Mount Technology) và cắm xuyên lỗ AI(Auto Insertion).",
@@ -224,7 +270,154 @@
             "en": [
             "Implemented an automated PCB Loader system for automatic board loading, streamlining front-end line operations and reducing manual handling."
             ]
-        }                                                                       
+        },
+        "images": []                                                                       
+    },
+    {
+      "id": "jabil-2016",
+      "company": "JABIL VIETNAM COMPANY LIMITED",
+      "role": {
+        "vi": "Kỹ thuật(Quản lý và setup máy test và debug board)",
+        "en": "Techical (Test & Debug Board Setup Jig & Fixture)"
+      },
+      "startDate": "2016-10",
+      "endDate": "2017-02",
+      "isCurrent": false,
+      "equipmentTags": ["ICT", "FPT"],
+      "responsibilities": {
+        "vi": [
+            "Setup máy test cho thao tác viên.",
+            "Quản lý bảo dưỡng jig và fixture.",
+            "Debug sản phẩm test lỗi."
+        ],
+        "en": [
+            "Setup test jigs and fixtures for operators.",
+            "Manage and maintain jigs and fixtures.",
+            "Debug and troubleshoot test failures."
+        ]
+      },
+      "problemRootCauseAction": {
+        "vi": [
+        "Mới ra trường chưa có nhiều kinh nghiệm để có thể học nhanh và tự học mọi thứ. Giai đoạn này rất biết ơn các anh chị tiền bối đã hướng dẫn và chia sẻ kinh nghiệm để mình có thể hoàn thành công việc."
+        ],
+        "en": [
+        "As a fresh graduate, I lacked extensive experience and had to quickly learn and self-study various technical aspects. I am grateful to the senior colleagues who guided and shared their knowledge, enabling me to successfully complete my tasks."
+        ]
+        },
+        "trainingActivities": {
+            "vi": [
+            "Thật may mắn vì xuất phát điểm làm việc tại một công ty có nền tảng tốt, tôi đã nhận được các đào tạo bài bản về quy trình, tiêu chuẩn chất lượng IP-610, 5S"
+            ],
+            "en": [
+            "Fortunately, starting my career at a well-established company allowed me to receive structured training on processes, quality standards (IPC-610), and 5S methodology."
+            ]
+        },
+        "achievements": {
+            "vi": [
+            ""
+            ],
+            "en": [
+            ""
+            ]
+        },
+        "improvements": {
+            "vi": [
+            ""
+            ],
+            "en": [
+            ""
+            ]
+                },
+                "images": []                                                                       
+    },
+    {
+      "id": "student-2013",
+      "company": "Trường Cao đẳng GTVT TP.HCM",
+      "role": {
+        "vi": "Chuyên nganh kỹ thuật Điện - Điện tử",
+        "en": "Electrical - Electronics Engineering"
+      },
+      "startDate": "2013",
+      "endDate": "2016",
+      "isCurrent": false,
+      "equipmentTags": [],
+      "responsibilities": {
+        "vi": [
+            "Sinh viên năng động vừa học vừa làm, nhận job làm bảng quảng cáo cho Mobifone."
+        ],
+        "en": [
+            "An active student balancing academics and work, taking on advertising board projects for Mobifone."
+        ]
+      },
+      "problemRootCauseAction": {
+        "vi": [
+        ""
+        ],
+        "en": [
+        ""
+        ]
+        },
+        "trainingActivities": {
+            "vi": [
+            ""
+            ],
+            "en": [
+            ""
+            ]
+        },
+        "achievements": {
+            "vi": [
+            ""
+            ],
+            "en": [
+            ""
+            ]
+        },
+        "improvements": {
+            "vi": [
+            ""
+            ],
+            "en": [
+            ""
+            ]
+                },
+        "images": [
+            {
+                "src": "/assets/images/student/sinhviennangdong.jpg",
+                "description": {
+                    "vi": "Những người bạn đồng hành cùng tôi trong những năm tháng sinh viên năng động.",
+                    "en": "My companions during my active student years."
+                }
+            },
+            {
+                "src": "/assets/images/student/suynghinencanthembaonhieu.jpg",
+                "description": {
+                    "vi": "Thành quả này đáng giá bao nhiêu?",
+                    "en": "How much is this achievement worth?"
+                }
+            },
+            {
+                "src": "/assets/images/student/thanhqualaphaicohinh.jpg",
+                "description": {
+                    "vi": "Yêu tất cả các bạn",
+                    "en": "Love all of you"
+                }
+            },
+            {
+                "src": "/assets/images/student/chaomungbandenvoivanphong.jpg",
+                "description": {
+                    "vi": "Thành quả này đáng giá bao nhiêu?",
+                    "en": "How much is this achievement worth?"
+                }
+            },
+            {
+                "src": "/assets/images/student/duocratruong.jpg",
+                "description": {
+                    "vi": "Bao nhiêu giọt mô hôi của Bố Mẹ",
+                    "en": "How many drops of sweat from my parents"
+                }
+            }
+        ]                                                                       
     }
   ]
 }

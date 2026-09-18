@@ -11,21 +11,54 @@ export default function ProjectDetailPage() {
   const params = useParams<{ slug: string }>();
   const { lang } = useLanguage();
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
-  const [viewerImage, setViewerImage] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
   const project = getProjectsData().items.find((item) => item.slug === params.slug);
+
+  const showPrevImage = () => {
+    if (!project || project.gallery.length === 0) {
+      return;
+    }
+
+    setViewerIndex((prev) => {
+      if (prev === null) return 0;
+      return (prev - 1 + project.gallery.length) % project.gallery.length;
+    });
+    setZoom(1);
+  };
+
+  const showNextImage = () => {
+    if (!project || project.gallery.length === 0) {
+      return;
+    }
+
+    setViewerIndex((prev) => {
+      if (prev === null) return 0;
+      return (prev + 1) % project.gallery.length;
+    });
+    setZoom(1);
+  };
 
   useEffect(() => {
     const onEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setViewerImage(null);
+        setViewerIndex(null);
         setZoom(1);
+      }
+
+      if (viewerIndex !== null && event.key === "ArrowLeft") {
+        showPrevImage();
+      }
+
+      if (viewerIndex !== null && event.key === "ArrowRight") {
+        showNextImage();
       }
     };
 
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
-  }, []);
+  }, [viewerIndex, project]);
 
   if (!project) {
     notFound();
@@ -87,8 +120,11 @@ export default function ProjectDetailPage() {
       <div className="card">
         <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Hình ảnh" : "Image"}</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {project.gallery.map((img: string) => (
-            <figure key={img} className="overflow-hidden rounded border border-dashed" style={{ borderColor: "var(--border)" }}>
+          {project.gallery.map((img: string, index: number) => (
+            <figure
+              key={img}
+              className="overflow-hidden rounded-2xl border border-white/50 bg-white/80 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700/70 dark:bg-slate-800/60"
+            >
               {brokenImages[img] ? (
                 <div className="flex h-36 items-center justify-center px-3 text-center text-xs" style={{ color: "var(--muted)" }}>
                   {lang === "vi" ? "Không tìm thấy ảnh" : "Image not found"}
@@ -98,14 +134,14 @@ export default function ProjectDetailPage() {
                   type="button"
                   className="block w-full"
                   onClick={() => {
-                    setViewerImage(img);
+                    setViewerIndex(index);
                     setZoom(1);
                   }}
                 >
                   <img
                     src={img}
                     alt={`${pickText(project.title, lang)} gallery`}
-                    className="h-36 w-full object-cover"
+                    className="h-40 w-full object-cover transition duration-300 hover:scale-[1.02]"
                     loading="lazy"
                     onError={() => setBrokenImages((prev) => ({ ...prev, [img]: true }))}
                   />
@@ -119,16 +155,48 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {viewerImage ? (
+      {viewerIndex !== null && project.gallery[viewerIndex] ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           onClick={() => {
-            setViewerImage(null);
+            setViewerIndex(null);
             setZoom(1);
           }}
+          onTouchStart={(e) => setTouchStartX(e.changedTouches[0]?.clientX ?? null)}
+          onTouchEnd={(e) => {
+            if (touchStartX === null) {
+              return;
+            }
+
+            const touchEndX = e.changedTouches[0]?.clientX ?? touchStartX;
+            const deltaX = touchEndX - touchStartX;
+            const swipeThreshold = 50;
+
+            if (deltaX > swipeThreshold) {
+              showPrevImage();
+            } else if (deltaX < -swipeThreshold) {
+              showNextImage();
+            }
+
+            setTouchStartX(null);
+          }}
         >
-          <div className="max-h-full w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-end gap-2">
+          <div className="max-h-full w-full max-w-5xl overflow-hidden rounded-3xl border border-white/20 bg-slate-900/90 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-end gap-2 px-3 pt-3">
+              <button
+                type="button"
+                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
+                onClick={showPrevImage}
+              >
+                {lang === "vi" ? "Trước" : "Prev"}
+              </button>
+              <button
+                type="button"
+                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
+                onClick={showNextImage}
+              >
+                {lang === "vi" ? "Tiếp" : "Next"}
+              </button>
               <button
                 type="button"
                 className="rounded bg-white/15 px-3 py-1 text-sm text-white"
@@ -155,7 +223,7 @@ export default function ProjectDetailPage() {
                 type="button"
                 className="rounded bg-white/15 px-3 py-1 text-sm text-white"
                 onClick={() => {
-                  setViewerImage(null);
+                  setViewerIndex(null);
                   setZoom(1);
                 }}
               >
@@ -163,13 +231,20 @@ export default function ProjectDetailPage() {
               </button>
             </div>
 
-            <div className="max-h-[80vh] overflow-auto rounded bg-black/30 p-2">
+            <div className="max-h-[78vh] overflow-auto bg-black/30 p-2">
               <img
-                src={viewerImage}
+                src={project.gallery[viewerIndex]}
                 alt={`${pickText(project.title, lang)} zoom`}
                 className="mx-auto max-w-full origin-center"
                 style={{ transform: `scale(${zoom})`, transition: "transform 150ms ease" }}
               />
+            </div>
+
+            <div className="flex items-center justify-between px-4 py-3 text-sm text-slate-200">
+              <p className="truncate" title={project.gallery[viewerIndex]}>{project.gallery[viewerIndex]}</p>
+              <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs">
+                {viewerIndex + 1}/{project.gallery.length}
+              </span>
             </div>
           </div>
         </div>

@@ -39,7 +39,26 @@ export function normalizeExperienceData(raw: ExperienceData): ExperienceData {
       improvements: {
         vi: item.improvements?.vi ?? [],
         en: item.improvements?.en ?? []
-      }
+      },
+      images: (item.images ?? []).map((img: any) => {
+        if (typeof img === "string") {
+          return {
+            src: img,
+            description: {
+              vi: "",
+              en: ""
+            }
+          };
+        }
+
+        return {
+          src: img?.src ?? "",
+          description: {
+            vi: img?.description?.vi ?? "",
+            en: img?.description?.en ?? ""
+          }
+        };
+      })
     }))
   };
 }
