@@ -39,44 +39,6 @@
       }
     },
     {
-      "id": "sqg-cabinet",
-      "slug": "sqg-cabinet",
-      "title": {
-        "vi": "Tủ dao máy quét kem hàn",
-        "en": "Squeegee Cabinet"
-      },
-      "category": "3d-jig",
-      "status": "completed",
-      "summary": {
-        "vi": "Một chiếc tủ đựng dao máy quét kem hàn chuyên dụng.",
-        "en": "A dedicated cabinet for storing solder paste squeegees."
-      },
-      "objective": {
-        "vi": "1. Bảo quản dao quét.\n2. Thực hiện tiêu chuẩn 5S.\n3. Phân loại dao quét theo từng loại kem hàn.",
-        "en": "1. Protect squeegees.\n2. Implement 5S standards.\n3. Categorize squeegees by solder paste type."
-      },
-      "description": {
-        "vi": "1. Quy hoạch quy mô nhà máy.\n2. Thiết kế dựng hình 3D\n3. Đề xuất dự án\n4. Đặt gia công.\n5. Lắp đặt và hướng dẫn vận hành.",
-        "en": "1. Plan factory layout.\n2. Create 3D model design.\n3. Propose project.\n4. Order fabrication.\n5. Install and provide operation guidance."
-      },
-      "equipmentTags": ["GKG","Soder Paste Printer", "3D sketchup" ],
-      "gallery": ["/assets/images/3d-jig/SGQ-CB.PNG", "/assets/images/3d-jig/SGQ-CB1-2.PNG"],
-      "attachments": [
-        {
-          "label": {
-            "vi": "file đính kèm",
-            "en": "Attachment"
-          },
-          "fileUrl": "/assets/docs/projects/SGQ-CB1.skp"
-        }
-      ],
-      "lessonsLearned": {
-        "vi": [""],
-        "en": [""]
-      }
-    }
-    ,
-    {
       "id": "stencil-cabinet",
       "slug": "stencil-cabinet",
       "title": {
@@ -114,10 +76,62 @@
       }
     },
     {
+      "id": "table-design",
+      "slug": "table-design",
+      "title": {
+        "vi": "Các mẫu bàn thiết kế theo yêu cầu xưởng SMT",
+        "en": "Custom Table Designs for SMT Workshop"
+      },
+      "category": "3d-jig",
+      "status": "completed",
+      "summary": {
+        "vi": "Giải pháp thiết kế và chế tạo các loại bàn thao tác, bàn để feeder/jig chuyên dụng cho xưởng SMT.",
+        "en": "Custom design and fabrication solution for workbenches and feeder/jig tables in SMT workshops."
+      },
+      "objective": {
+        "vi": "1. Tối ưu hóa không gian thao tác cho công nhân và kỹ thuật viên SMT.\n2. Tích hợp chuẩn kết nối ESD (chống tĩnh điện) an toàn cho linh kiện điện tử.\n3. Chuẩn hóa khu vực làm việc theo tiêu chuẩn 5S và Ergonomics (Thao tác học).",
+        "en": "1. Optimize workspace layout for SMT operators and technicians.\n2. Integrate ESD protection standards for electronic components.\n3. Standardize workstations following 5S and Ergonomic standards."
+      },
+      "description": {
+        "vi": "1. Khảo sát luồng công việc (workflow) và quy hoạch vị trí đặt bàn tại xưởng SMT.\n2. Thiết kế dựng hình 3D (kích thước, tải trọng, tính năng chống tĩnh điện ESD).\n3. Lập bản vẽ, trình đề xuất dự án và phê duyệt.\n4. Đặt gia công cơ khí (khung nhôm định hình / thép sơn tĩnh điện).\n5. Lắp đặt hoàn thiện.",
+        "en": "1. Survey workflow and plan table positions in the SMT workshop.\n2. Create 3D designs (dimensions, load capacity, ESD ground connection).\n3. Prepare drawings, submit project proposal, and obtain approval.\n4. Order precision fabrication (aluminum profiles / powder-coated steel).\n5. Install on-site."
+      },
+      "equipmentTags": [
+        "GKG",
+        "3D SketchUp",
+        "ESD Table",
+        "Feeder Table"
+      ],
+      "gallery": [
+        "/assets/images/3d-jig/DGS-table.PNG",
+        "/assets/images/3d-jig/feeder-table.PNG",
+        "/assets/images/3d-jig/GKG-table.PNG"
+      ],
+      "attachments": [
+        {
+          "label": {
+            "vi": "Bản vẽ 3D Bàn SMT (SketchUp)",
+            "en": "SMT Table 3D Model (SketchUp)"
+          },
+          "fileUrl": "/assets/docs/projects/TABLE.skp"
+        }
+      ],
+      "lessonsLearned": {
+        "vi": [
+          "1. Cần tính toán bổ sung các khay/gá treo chuyên dụng (feeder, khay linh kiện) để tránh làm chật diện tích mặt bàn thao tác.",
+          "2. Cần trang bị sẵn điểm nối đất ESD chuẩn và giá treo dụng cụ cờ-lê/tô-vít ngay trên khung bàn để kỹ thuật viên thao tác nhanh hơn."
+        ],
+        "en": [
+          "1. Need to design dedicated brackets/holders (for feeders, component trays) to avoid cluttering the primary tabletop surface.",
+          "2. Should pre-install standard ESD grounding points and tool racks on the table frame for quicker technician access."
+        ]
+      }
+    },
+    {
       "id": "sqg-cabinet",
       "slug": "sqg-cabinet",
       "title": {
-        "vi": "Tủ dao máy quét kem hàn",
+        "vi": "Tủ dao quét kem hàn",
         "en": "Squeegee Cabinet"
       },
       "category": "3d-jig",
@@ -226,7 +240,15 @@
       },
       "equipmentTags": ["Android"],
       "gallery": ["/assets/images/chickenguitar/C8.jpg","/assets/images/chickenguitar/C9.png","/assets/images/chickenguitar/C10.png"],
-      "attachments": [],
+      "attachments": [
+        {
+          "label": {
+            "vi": "Nếu bạn dùng Android và yêu thích âm nhạc, thì đừng bỏ qua app này trên Google Play: Chickenguitar.",
+            "en": "If you are an Android user and love music, don't miss this app on Google Play: Chickenguitar."
+          },
+          "fileUrl": ""
+        }
+      ],
       "lessonsLearned": {
         "vi": ["Trải nghiệm lập trình app."],
         "en": ["Experience in app development."]
@@ -284,7 +306,7 @@
       },
       "equipmentTags": ["ESP32-S3", "I2S Microphone", "I2S Audio DAC/Amplifier", "Speaker", "SD Card", "OLED Display"],
       "gallery": ["/assets/images/ai-iot/01.jpg", "/assets/images/ai-iot/02.jpg", "/assets/images/ai-iot/03.mp4"],
-      "attachments": [],
+      "attachments":[],
       "lessonsLearned": {
         "vi": [
           "Tìm hiểu lập trình nhúng.",

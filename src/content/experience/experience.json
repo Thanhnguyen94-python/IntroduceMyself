@@ -17,7 +17,7 @@
             "AOI & SPI (TRI77xx, Sinictek)",
             "Reflow (JTR-1000, JTR-1000D, CR2-1003D)",
             "Hanlaser (QR)",
-            "AI (AV131, RH5)",
+            "AI (AV131, RG131)",
             "DGS", "GerberTool", "GC-2000", "SketchUp 3D"
         ],
         "responsibilities": {
@@ -334,7 +334,7 @@
       "id": "student-2013",
       "company": "Trường Cao đẳng GTVT TP.HCM",
       "role": {
-        "vi": "Chuyên nganh kỹ thuật Điện - Điện tử",
+        "vi": "Chuyên ngành kỹ thuật Điện - Điện tử",
         "en": "Electrical - Electronics Engineering"
       },
       "startDate": "2013",
