@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "sp-01",
+      "category": "3d",
+      "name": {
+        "vi": "Khay Jig SMT đa năng",
+        "en": "Multi-purpose SMT Jig Tray"
+      },
+      "description": {
+        "vi": "Thiết kế theo yêu cầu line SMT, chịu nhiệt tốt, tối ưu thao tác lấy/đặt linh kiện.",
+        "en": "Custom SMT-line jig tray with good heat resistance and optimized pick/place handling."
+      },
+      "image": "/assets/images/3d-jig/trayPalet.PNG",
+      "gallery": [
+        "/assets/images/3d-jig/trayPalet-2.PNG",
+        "/assets/images/3d-jig/feeder-table.PNG"
+      ],
+      "oldPrice": 1250000,
+      "salePrice": 990000,
+      "stockText": {
+        "vi": "Còn 8 sản phẩm",
+        "en": "8 items left"
+      },
+      "tags": [
+        "3D Print",
+        "SMT",
+        "PETG"
+      ]
+    },
+    {
+      "id": "sp-02",
+      "category": "display",
+      "name": {
+        "vi": "Tủ stencil mini trưng bày",
+        "en": "Mini Stencil Display Cabinet"
+      },
+      "description": {
+        "vi": "Mẫu tủ hoàn thiện dùng trưng bày giải pháp lưu trữ stencil cho xưởng SMT.",
+        "en": "Finished display cabinet showcasing stencil storage solution for SMT workshops."
+      },
+      "image": "/assets/images/3d-jig/stencil cabinet-ver4-2.JPG",
+      "gallery": [
+        "/assets/images/3d-jig/stencil cabinet-ver4-1.JPG",
+        "/assets/images/3d-jig/stencil cabinet-ver4.jpg"
+      ],
+      "oldPrice": 3200000,
+      "salePrice": 2750000,
+      "stockText": {
+        "vi": "Theo đơn đặt trước",
+        "en": "Made to order"
+      },
+      "tags": [
+        "Display",
+        "Storage",
+        "Workshop"
+      ]
+    },
+    {
+      "id": "sp-03",
+      "category": "3d",
+      "name": {
+        "vi": "Bàn feeder setup nhanh",
+        "en": "Quick Feeder Setup Table"
+      },
+      "description": {
+        "vi": "Bàn thao tác feeder in 3D/ghép module, phù hợp khu vực chuẩn bị trước chuyền.",
+        "en": "3D printed/modular feeder setup table for pre-line preparation areas."
+      },
+      "image": "/assets/images/3d-jig/feeder-table-2.PNG",
+      "gallery": [
+        "/assets/images/3d-jig/feeder-table.PNG",
+        "/assets/images/3d-jig/DGS-table.PNG",
+        "/assets/images/3d-jig/GKG-table.PNG"
+      ],
+      "oldPrice": 4500000,
+      "salePrice": 3890000,
+      "stockText": {
+        "vi": "Còn 3 sản phẩm",
+        "en": "3 items left"
+      },
+      "tags": [
+        "3D + CNC",
+        "Feeder",
+        "Line Setup"
+      ]
+    },
+    {
+      "id": "sp-04",
+      "category": "display",
+      "name": {
+        "vi": "Bộ mô hình demo AI/IoT",
+        "en": "AI/IoT Demo Kit"
+      },
+      "description": {
+        "vi": "Bộ sản phẩm hoàn thiện dùng trưng bày giải pháp AI/IoT trong sản xuất.",
+        "en": "Finished showcase kit for presenting AI/IoT solutions in manufacturing."
+      },
+      "image": "/assets/images/ai-iot/01.jpg",
+      "gallery": [
+        "/assets/images/ai-iot/02.jpg"
+      ],
+      "oldPrice": 2900000,
+      "salePrice": 2490000,
+      "stockText": {
+        "vi": "Sẵn 5 bộ",
+        "en": "5 kits available"
+      },
+      "tags": [
+        "AI/IoT",
+        "Showcase",
+        "Demo"
+      ]
+    }
+  ]
+}

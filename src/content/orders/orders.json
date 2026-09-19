@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "ORD-20260919-V30UF",
+      "createdAt": "2026-09-19T10:44:35.957Z",
+      "customerName": "Mr Jay",
+      "contact": "nguyenvanthanh110394@gmail.com",
+      "category": "other",
+      "productId": "sp-01",
+      "quantity": 4,
+      "lineItems": [
+        {
+          "productId": "sp-01",
+          "productName": "Khay Jig SMT đa năng",
+          "quantity": 3,
+          "unitPrice": 990000,
+          "lineTotal": 2970000
+        },
+        {
+          "productId": "sp-02",
+          "productName": "Tủ stencil mini trưng bày",
+          "quantity": 1,
+          "unitPrice": 2750000,
+          "lineTotal": 2750000
+        }
+      ],
+      "totalAmount": 5720000,
+      "address": "10/2 Hồng Lĩnh",
+      "note": "mặc định",
+      "status": "pending"
+    }
+  ]
+}

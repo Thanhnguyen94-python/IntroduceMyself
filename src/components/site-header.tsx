@@ -10,6 +10,7 @@ const menu = [
   { href: "/tong-quan", key: "overview" as const },
   { href: "/hanh-trinh", key: "journey" as const },
   { href: "/du-an", key: "projects" as const },
+  { href: "/san-pham-trung-bay", key: "showcase" as const },
   { href: "/tai-lieu-ky-thuat", key: "docs" as const }
 ];
 

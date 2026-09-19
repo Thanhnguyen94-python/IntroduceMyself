@@ -16,12 +16,14 @@ export const ui = {
       overview: "Tổng Quan",
       journey: "Hành Trình",
       projects: "Dự Án",
+      showcase: "Sản Phẩm Trưng Bày",
       docs: "Tài Liệu Kỹ Thuật"
     },
     en: {
       overview: "Overview",
       journey: "Journey",
       projects: "Projects",
+      showcase: "3D Showcase",
       docs: "Technical Docs"
     }
   },
