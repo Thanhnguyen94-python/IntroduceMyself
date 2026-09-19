@@ -14,3 +14,13 @@
 ## Quy tắc
 - `slug` duy nhất, immutable sau khi public.
 - `category` dùng enum cố định để filter ổn định.
+## guilde
+Bạn có thể copy 1 item cũ rồi đổi các trường sau:
+
+id → giá trị mới, duy nhất
+slug → giá trị mới, duy nhất
+title.vi, title.en
+summary, objective, description
+equipmentTags, gallery, attachments, lessonsLearned
+Giữ category: "3d-jig" để nó nằm trong nhóm 3D/Jig
+Chọn status phù hợp (completed/ongoing)
