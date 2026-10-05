@@ -17,7 +17,7 @@ export function FloatingContact() {
           <a className="rounded bg-brand-600 px-3 py-2 text-center text-sm text-white" href={`tel:${site.profile.phone}`}>Call</a>
           <a className="rounded bg-brand-500 px-3 py-2 text-center text-sm text-white" href={`https://zalo.me/${site.profile.zaloPhone}`} target="_blank">Zalo</a>
           <a className="rounded bg-brand-400 px-3 py-2 text-center text-sm text-white" href={`mailto:${site.profile.email}`}>Email</a>
-          <a className="rounded bg-brand-700 px-3 py-2 text-center text-sm text-white" href="/cv?print=1">{ui.common[lang].downloadCv}</a>
+          <a className="rounded bg-brand-700 px-3 py-2 text-center text-sm text-white" href="/cv">{ui.common[lang].downloadCv}</a>
         </div>
       )}
       <button

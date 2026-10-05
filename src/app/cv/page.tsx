@@ -1,48 +1,516 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getExperienceData, getSiteData } from "@/lib/content/loaders";
+import { pickList, pickText } from "@/lib/content/i18n";
+import { useLanguage } from "@/components/providers/language-provider";
+import type { Lang } from "@/lib/content/types";
+
+type CvTemplate = "midnight" | "mint" | "sunrise" | "clean";
+type CvPalette = "blue" | "amber" | "emerald" | "violet";
+type AvatarShape = "circle" | "rounded" | "square";
+
+type SectionConfig = {
+  summary: boolean;
+  highlights: boolean;
+  work: boolean;
+  education: boolean;
+  skills: boolean;
+  tools: boolean;
+};
+
+type CustomSection = { id: string; title: string; content: string };
+
+const EXPORT_PASSWORD = "Thanh94@@";
+
+const templateOptions: { value: CvTemplate; labelVi: string; labelEn: string }[] = [
+  { value: "midnight", labelVi: "Sidebar Tối", labelEn: "Midnight Sidebar" },
+  { value: "mint", labelVi: "Xanh Mint", labelEn: "Mint Professional" },
+  { value: "sunrise", labelVi: "Sunrise Nổi bật", labelEn: "Sunrise Executive" },
+  { value: "clean", labelVi: "Tối giản ATS", labelEn: "ATS Clean" }
+];
+
+const paletteOptions: { value: CvPalette; labelVi: string; labelEn: string; color: string }[] = [
+  { value: "blue", labelVi: "Xanh dương", labelEn: "Blue", color: "#2563eb" },
+  { value: "amber", labelVi: "Cam vàng", labelEn: "Amber", color: "#f59e0b" },
+  { value: "emerald", labelVi: "Xanh lá", labelEn: "Emerald", color: "#10b981" },
+  { value: "violet", labelVi: "Tím", labelEn: "Violet", color: "#7c3aed" }
+];
+
+const paletteMap: Record<CvPalette, { accent: string; accentSoft: string; accentDeep: string }> = {
+  blue: { accent: "#2563eb", accentSoft: "#dbeafe", accentDeep: "#1e40af" },
+  amber: { accent: "#f59e0b", accentSoft: "#fef3c7", accentDeep: "#b45309" },
+  emerald: { accent: "#10b981", accentSoft: "#d1fae5", accentDeep: "#065f46" },
+  violet: { accent: "#7c3aed", accentSoft: "#ede9fe", accentDeep: "#5b21b6" }
+};
+
+const templateMap: Record<CvTemplate, { shell: string; sidebar: string; main: string; heading: string; divider: string; chip: string; twoColumn: boolean }> = {
+  midnight: {
+    shell: "bg-white border-slate-200",
+    sidebar: "bg-slate-800 text-slate-100",
+    main: "bg-white text-slate-900",
+    heading: "text-slate-900",
+    divider: "border-slate-200",
+    chip: "bg-slate-100 text-slate-800",
+    twoColumn: true
+  },
+  mint: {
+    shell: "bg-[#f7fbf8] border-emerald-200",
+    sidebar: "bg-[#e9f7ef] text-slate-900",
+    main: "bg-[#fdfefd] text-slate-900",
+    heading: "text-slate-900",
+    divider: "border-emerald-200",
+    chip: "bg-emerald-100 text-emerald-900",
+    twoColumn: true
+  },
+  sunrise: {
+    shell: "bg-white border-amber-200",
+    sidebar: "bg-[#1f2937] text-white",
+    main: "bg-white text-slate-900",
+    heading: "text-slate-900",
+    divider: "border-amber-200",
+    chip: "bg-amber-100 text-amber-900",
+    twoColumn: true
+  },
+  clean: {
+    shell: "bg-white border-slate-200",
+    sidebar: "bg-slate-50 text-slate-900",
+    main: "bg-white text-slate-900",
+    heading: "text-slate-900",
+    divider: "border-slate-200",
+    chip: "bg-slate-100 text-slate-800",
+    twoColumn: false
+  }
+};
+
+function isAcademicStage(company: string, roleVi: string, roleEn: string, id: string) {
+  const text = `${company} ${roleVi} ${roleEn} ${id}`.toLowerCase();
+  return text.includes("trường") || text.includes("college") || text.includes("university") || text.includes("sinh viên") || text.includes("student");
+}
+
+function normalizeTemplate(value: string | null): CvTemplate {
+  if (value === "mint" || value === "sunrise" || value === "midnight" || value === "clean") return value;
+  return "midnight";
+}
+
+function normalizePalette(value: string | null): CvPalette {
+  if (value === "amber" || value === "emerald" || value === "violet" || value === "blue") return value;
+  return "blue";
+}
+
+function normalizeLang(value: string | null): Lang | null {
+  if (value === "vi" || value === "en") return value;
+  return null;
+}
 
 function CvInner() {
+  const router = useRouter();
+  const pathname = usePathname();
   const search = useSearchParams();
+  const { lang: uiLang } = useLanguage();
   const site = getSiteData();
   const exp = getExperienceData();
+  const queryLang = normalizeLang(search.get("lang"));
+  const dataLang = queryLang ?? uiLang;
+  const template = normalizeTemplate(search.get("template"));
+  const palette = normalizePalette(search.get("palette"));
+  const isPrintMode = search.get("print") === "1";
+
+  const templateStyle = templateMap[template];
+  const paletteStyle = paletteMap[palette];
+
+  const [avatarUrl, setAvatarUrl] = useState("/assets/images/profile-mr-jay.jpg");
+  const [avatarX, setAvatarX] = useState(50);
+  const [avatarY, setAvatarY] = useState(50);
+  const [avatarSize, setAvatarSize] = useState(100);
+  const [avatarShape, setAvatarShape] = useState<AvatarShape>("circle");
+
+  const [customName, setCustomName] = useState(site.profile.fullName);
+  const [customTitle, setCustomTitle] = useState(pickText(site.profile.title, dataLang));
+  const [customSlogan, setCustomSlogan] = useState(pickText(site.profile.slogan, dataLang));
+  const [customEmail, setCustomEmail] = useState(site.profile.email);
+  const [customPhone, setCustomPhone] = useState(site.profile.phone);
+  const [customLocation, setCustomLocation] = useState(site.profile.location);
+
+  const [sections, setSections] = useState<SectionConfig>({
+    summary: true,
+    highlights: true,
+    work: true,
+    education: true,
+    skills: true,
+    tools: true
+  });
+  const [customSections, setCustomSections] = useState<CustomSection[]>([]);
+  const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [newSectionContent, setNewSectionContent] = useState("");
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [exportPassword, setExportPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    if (search.get("print") === "1") {
-      const timer = setTimeout(() => window.print(), 500);
+    setCustomTitle(pickText(site.profile.title, dataLang));
+    setCustomSlogan(pickText(site.profile.slogan, dataLang));
+  }, [dataLang, site.profile.title, site.profile.slogan]);
+
+  const workItems = useMemo(() => exp.items
+    .filter((item) => !isAcademicStage(item.company, item.role.vi, item.role.en, item.id))
+    .sort((a, b) => b.startDate.localeCompare(a.startDate)), [exp.items]);
+  const educationItems = useMemo(() => exp.items
+    .filter((item) => isAcademicStage(item.company, item.role.vi, item.role.en, item.id))
+    .sort((a, b) => b.startDate.localeCompare(a.startDate)), [exp.items]);
+
+  const topTools = useMemo(() => Array.from(new Set(workItems.flatMap((item) => item.equipmentTags))).slice(0, 14), [workItems]);
+
+  useEffect(() => {
+    if (isPrintMode) {
+      const timer = setTimeout(() => window.print(), 650);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [search]);
+  }, [isPrintMode]);
+
+  const updateQuery = (key: "template" | "palette" | "lang", value: string) => {
+    const params = new URLSearchParams(search.toString());
+    params.set(key, value);
+    params.delete("print");
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  const onAvatarUpload = (file: File | null) => {
+    if (!file) return;
+    const nextUrl = URL.createObjectURL(file);
+    setAvatarUrl(nextUrl);
+  };
+
+  const addCustomSection = () => {
+    if (!newSectionTitle.trim() || !newSectionContent.trim()) return;
+    setCustomSections((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), title: newSectionTitle.trim(), content: newSectionContent.trim() }
+    ]);
+    setNewSectionTitle("");
+    setNewSectionContent("");
+  };
+
+  const removeCustomSection = (id: string) => {
+    setCustomSections((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const openExportModal = () => {
+    setPasswordError("");
+    setExportPassword("");
+    setIsPasswordModalOpen(true);
+  };
+
+  const confirmExportPdf = () => {
+    if (exportPassword !== EXPORT_PASSWORD) {
+      setPasswordError(dataLang === "vi" ? "Sai mật khẩu xuất file." : "Incorrect export password.");
+      return;
+    }
+    const params = new URLSearchParams(search.toString());
+    params.set("template", template);
+    params.set("palette", palette);
+    params.set("lang", dataLang);
+    params.set("print", "1");
+    router.replace(`${pathname}?${params.toString()}`);
+    setIsPasswordModalOpen(false);
+  };
+
+  const avatarRoundedClass = avatarShape === "circle" ? "rounded-full" : avatarShape === "rounded" ? "rounded-2xl" : "rounded-none";
 
   return (
-    <section className="mx-auto max-w-4xl rounded-xl border bg-white p-8 text-slate-900" style={{ borderColor: "#cbd5e1" }}>
-      <h1 className="text-3xl font-bold">{site.profile.fullName} ({site.profile.displayName})</h1>
-      <p className="mt-1 text-lg text-brand-700">{site.profile.title.vi}</p>
-      <p className="mt-1 text-sm">📱 {site.profile.phone} | ✉ {site.profile.email}</p>
-      <hr className="my-6" />
-      <h2 className="text-xl font-semibold text-brand-700">Tóm tắt kinh nghiệm</h2>
-      <ul className="mt-2 list-disc pl-5">
-        {site.highlights.vi.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
-      <h2 className="mt-6 text-xl font-semibold text-brand-700">Kinh nghiệm làm việc</h2>
-      <div className="mt-3 space-y-4">
-        {exp.items.map((item) => (
-          <div key={item.id}>
-            <p className="font-semibold">{item.company} - {item.role.vi}</p>
-            <p className="text-sm text-slate-600">{item.startDate} - {item.endDate}</p>
-            <ul className="mt-1 list-disc pl-5 text-sm">
-              {item.responsibilities.vi.map((task) => (
-                <li key={task}>{task}</li>
-              ))}
-            </ul>
+    <section className="mx-auto max-w-[1150px] space-y-4">
+      {!isPrintMode && (
+        <div className="card print:hidden space-y-4">
+          <div className="grid gap-3 lg:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Mẫu CV" : "Template"}</label>
+              <select
+                value={template}
+                onChange={(e) => updateQuery("template", e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ borderColor: "var(--border)" }}
+              >
+                {templateOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Màu chủ đạo" : "Accent color"}</label>
+              <select
+                value={palette}
+                onChange={(e) => updateQuery("palette", e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ borderColor: "var(--border)" }}
+              >
+                {paletteOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold">Language</label>
+              <select
+                value={dataLang}
+                onChange={(e) => updateQuery("lang", e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={openExportModal}
+              className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
+              style={{ backgroundColor: paletteStyle.accent }}
+            >
+              {dataLang === "vi" ? "Xuất PDF (có mật khẩu)" : "Export PDF (password)"}
+            </button>
           </div>
-        ))}
-      </div>
+
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+              <p className="text-sm font-semibold">{dataLang === "vi" ? "Tùy chỉnh nhanh nội dung" : "Quick content edits"}</p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <input value={customName} onChange={(e) => setCustomName(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Họ tên" : "Full name"} />
+                <input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Chức danh" : "Title"} />
+                <input value={customEmail} onChange={(e) => setCustomEmail(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder="Email" />
+                <input value={customPhone} onChange={(e) => setCustomPhone(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Điện thoại" : "Phone"} />
+                <input value={customLocation} onChange={(e) => setCustomLocation(e.target.value)} className="rounded border px-2 py-1.5 text-sm sm:col-span-2" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Địa chỉ" : "Location"} />
+                <textarea value={customSlogan} onChange={(e) => setCustomSlogan(e.target.value)} className="rounded border px-2 py-1.5 text-sm sm:col-span-2" style={{ borderColor: "var(--border)" }} rows={3} placeholder={dataLang === "vi" ? "Mục tiêu nghề nghiệp" : "Career objective"} />
+              </div>
+            </div>
+
+            <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+              <p className="text-sm font-semibold">{dataLang === "vi" ? "Avatar & bố cục" : "Avatar & layout"}</p>
+              <div className="mt-2 grid gap-2">
+                <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "URL ảnh avatar" : "Avatar URL"} />
+                <input type="file" accept="image/*" onChange={(e) => onAvatarUpload(e.target.files?.[0] ?? null)} className="text-sm" />
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <label className="text-xs">X <input type="range" min={0} max={100} value={avatarX} onChange={(e) => setAvatarX(Number(e.target.value))} className="w-full" /></label>
+                  <label className="text-xs">Y <input type="range" min={0} max={100} value={avatarY} onChange={(e) => setAvatarY(Number(e.target.value))} className="w-full" /></label>
+                  <label className="text-xs">Size <input type="range" min={80} max={130} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" /></label>
+                </div>
+                <select value={avatarShape} onChange={(e) => setAvatarShape(e.target.value as AvatarShape)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }}>
+                  <option value="circle">{dataLang === "vi" ? "Bo tròn (Circle)" : "Circle"}</option>
+                  <option value="rounded">{dataLang === "vi" ? "Bo góc (Rounded)" : "Rounded"}</option>
+                  <option value="square">{dataLang === "vi" ? "Vuông (Square)" : "Square"}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+            <p className="text-sm font-semibold">{dataLang === "vi" ? "Bật/Tắt khối nội dung" : "Toggle content blocks"}</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              {([
+                ["summary", dataLang === "vi" ? "Mục tiêu" : "Summary"],
+                ["highlights", dataLang === "vi" ? "Điểm mạnh" : "Highlights"],
+                ["work", dataLang === "vi" ? "Kinh nghiệm" : "Work"],
+                ["education", dataLang === "vi" ? "Học vấn" : "Education"],
+                ["skills", dataLang === "vi" ? "Kỹ năng" : "Skills"],
+                ["tools", dataLang === "vi" ? "Thiết bị" : "Tools"]
+              ] as const).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 rounded border px-2 py-1 text-sm" style={{ borderColor: "var(--border)" }}>
+                  <input
+                    type="checkbox"
+                    checked={sections[key]}
+                    onChange={(e) => setSections((prev) => ({ ...prev, [key]: e.target.checked }))}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+            <p className="text-sm font-semibold">{dataLang === "vi" ? "Thêm bố cục mới (custom section)" : "Add custom section"}</p>
+            <div className="mt-2 grid gap-2">
+              <input value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Tiêu đề khối" : "Section title"} />
+              <textarea value={newSectionContent} onChange={(e) => setNewSectionContent(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} rows={3} placeholder={dataLang === "vi" ? "Nội dung" : "Content"} />
+              <button type="button" onClick={addCustomSection} className="w-fit rounded bg-slate-800 px-3 py-1.5 text-sm text-white">
+                {dataLang === "vi" ? "Thêm khối" : "Add section"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <article
+        className={`overflow-hidden rounded-2xl border shadow-sm print:shadow-none ${templateStyle.shell}`}
+        style={{ borderColor: paletteStyle.accentSoft }}
+      >
+        <div className={templateStyle.twoColumn ? "grid min-h-[1120px] md:grid-cols-[280px_1fr]" : "grid min-h-[1120px] md:grid-cols-1"}>
+          <aside className={`p-6 ${templateStyle.sidebar}`}>
+            <div className={`mx-auto overflow-hidden border-4 ${avatarRoundedClass}`} style={{ borderColor: paletteStyle.accent, width: `${avatarSize}px`, height: `${avatarSize}px` }}>
+              <img src={avatarUrl} alt={`${customName} profile`} className="h-full w-full object-cover" style={{ objectPosition: `${avatarX}% ${avatarY}%` }} />
+            </div>
+
+            <h1 className="mt-5 text-2xl font-bold leading-tight">{customName}</h1>
+            <p className="mt-1 text-sm font-semibold" style={{ color: template === "midnight" ? "#e2e8f0" : paletteStyle.accentDeep }}>
+              {customTitle}
+            </p>
+
+            <div className="mt-5 space-y-2 text-sm">
+              <p>📧 {customEmail}</p>
+              <p>📱 {customPhone}</p>
+              <p>📍 {customLocation}</p>
+              <p>🎂 {site.profile.birthDate}</p>
+            </div>
+
+            {sections.skills && (
+              <div className="mt-6">
+                <h2 className="text-base font-bold" style={{ color: paletteStyle.accent }}>{dataLang === "vi" ? "Kỹ năng chính" : "Core skills"}</h2>
+                <div className="mt-2 space-y-2">
+                  {site.skills.slice(0, 3).map((skillGroup) => (
+                    <div key={skillGroup.group.vi}>
+                      <p className="text-xs font-semibold uppercase tracking-wide">{pickText(skillGroup.group, dataLang)}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {skillGroup.items.slice(0, 4).map((item) => (
+                          <span
+                            key={`${skillGroup.group.vi}-${item}`}
+                            className="rounded-full px-2 py-0.5 text-[11px]"
+                            style={{ backgroundColor: template === "midnight" ? "rgba(255,255,255,0.16)" : paletteStyle.accentSoft, color: template === "midnight" ? "#fff" : "#0f172a" }}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {sections.tools && (
+              <div className="mt-6">
+                <h2 className="text-base font-bold" style={{ color: paletteStyle.accent }}>{dataLang === "vi" ? "Công cụ/Thiết bị" : "Tools/Equipment"}</h2>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {topTools.map((tool) => (
+                    <span
+                      key={tool}
+                      className="rounded-full px-2 py-0.5 text-[11px]"
+                      style={{ backgroundColor: template === "midnight" ? "rgba(255,255,255,0.16)" : paletteStyle.accentSoft, color: template === "midnight" ? "#fff" : "#0f172a" }}
+                    >
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
+
+          <main className={`p-6 ${templateStyle.main}`}>
+            {sections.summary && (
+              <section>
+                <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{dataLang === "vi" ? "Mục tiêu nghề nghiệp" : "Career objective"}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-700">{customSlogan}</p>
+              </section>
+            )}
+
+            {sections.highlights && (
+              <section className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
+                <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{dataLang === "vi" ? "Tóm tắt điểm mạnh" : "Highlights"}</h2>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                  {pickList(site.highlights, dataLang).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {sections.work && (
+              <section className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
+                <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{dataLang === "vi" ? "Kinh nghiệm làm việc" : "Work experience"}</h2>
+                <div className="mt-3 space-y-4">
+                  {workItems.map((item) => (
+                    <article key={item.id}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-semibold text-slate-900">{item.company}</p>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${templateStyle.chip}`}>{item.startDate} - {item.endDate}</span>
+                      </div>
+                      <p className="text-sm font-medium" style={{ color: paletteStyle.accentDeep }}>{pickText(item.role, dataLang)}</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                        {pickList(item.responsibilities, dataLang).slice(0, 4).map((task) => (
+                          <li key={task}>{task}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {sections.education && educationItems.length > 0 && (
+              <section className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
+                <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{dataLang === "vi" ? "Học vấn" : "Education"}</h2>
+                <div className="mt-2 space-y-2">
+                  {educationItems.map((item) => (
+                    <div key={item.id} className="rounded-lg border p-3" style={{ borderColor: paletteStyle.accentSoft }}>
+                      <p className="font-semibold">{item.company}</p>
+                      <p className="text-sm" style={{ color: paletteStyle.accentDeep }}>{pickText(item.role, dataLang)}</p>
+                      <p className="text-xs text-slate-600">{item.startDate} - {item.endDate}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {customSections.map((section) => (
+              <section key={section.id} className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
+                <div className="mb-2 flex items-center justify-between gap-2 print:block">
+                  <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{section.title}</h2>
+                  {!isPrintMode && (
+                    <button type="button" onClick={() => removeCustomSection(section.id)} className="rounded border px-2 py-1 text-xs" style={{ borderColor: "var(--border)" }}>
+                      {dataLang === "vi" ? "Xóa" : "Remove"}
+                    </button>
+                  )}
+                </div>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{section.content}</p>
+              </section>
+            ))}
+          </main>
+        </div>
+      </article>
+
+      {!isPrintMode && (
+        <p className="text-center text-xs text-slate-500 print:hidden">
+          {dataLang === "vi"
+            ? "V3: Có thể chỉnh avatar, text, bố cục, ngôn ngữ và xác nhận mật khẩu trước khi xuất PDF."
+            : "V3: You can edit avatar, text, layout, language, and confirm password before exporting PDF."}
+        </p>
+      )}
+
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:hidden">
+          <div className="w-full max-w-sm rounded-xl bg-white p-4">
+            <h3 className="text-base font-semibold text-slate-900">{dataLang === "vi" ? "Xác nhận xuất PDF" : "Confirm PDF export"}</h3>
+            <p className="mt-1 text-sm text-slate-600">{dataLang === "vi" ? "Nhập mật khẩu để xuất file cuối cùng." : "Enter password for final export."}</p>
+            <input
+              type="password"
+              value={exportPassword}
+              onChange={(e) => setExportPassword(e.target.value)}
+              className="mt-3 w-full rounded border px-3 py-2 text-sm"
+              style={{ borderColor: "#cbd5e1" }}
+              placeholder={dataLang === "vi" ? "Mật khẩu" : "Password"}
+            />
+            {passwordError && <p className="mt-2 text-sm text-red-600">{passwordError}</p>}
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="rounded border px-3 py-1.5 text-sm" style={{ borderColor: "#cbd5e1" }}>
+                {dataLang === "vi" ? "Hủy" : "Cancel"}
+              </button>
+              <button type="button" onClick={confirmExportPdf} className="rounded px-3 py-1.5 text-sm text-white" style={{ backgroundColor: paletteStyle.accent }}>
+                {dataLang === "vi" ? "Xác nhận xuất" : "Confirm export"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

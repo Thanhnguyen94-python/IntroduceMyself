@@ -94,8 +94,8 @@ export default function TongQuanPage() {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link className="rounded-lg bg-brand-600 px-4 py-2 font-semibold text-white" href="/cv?print=1">
-                {lang === "vi" ? "Tải CV PDF" : "Download CV PDF"}
+              <Link className="rounded-lg bg-brand-600 px-4 py-2 font-semibold text-white" href="/cv">
+                {lang === "vi" ? "Mở CV & Xuất PDF" : "Open CV & Export PDF"}
               </Link>
               <a className="rounded-lg border border-brand-300 bg-white/70 px-4 py-2 text-slate-900 dark:border-slate-500 dark:bg-slate-800 dark:text-white" href={`mailto:${site.profile.email}`}>
                 {lang === "vi" ? "Liên hệ nhanh" : "Quick contact"}
