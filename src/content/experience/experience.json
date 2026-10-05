@@ -25,7 +25,7 @@
             "Quản lý, điều phối đội ngũ Kỹ sư SMT; chịu trách nhiệm chính trong việc lắp đặt, hiệu chuẩn và đưa toàn bộ hệ thống dây chuyền nhà máy mới vào vận hành chính thức.",
             "Lập trình chuyên sâu toàn bộ thiết bị trên chuyền SMT & AI (Full-line programming: Solder Printer, SPI, Mounter, Reflow, AOI, Laser Marking, AI).",
             "Lập kế hoạch bảo trì định kỳ, chủ động phối hợp với bộ phận Planner để sắp xếp lịch dừng máy phù hợp, tránh ảnh hưởng đến tiến độ sản xuất.",
-            "Điều phối chạy sản xuất hàng mẫu (NPI/Prototype), kiểm soát nghiêm ngặt các chỉ số năng lực quy trình (Cpk) và tỷ lệ đạt (Yield Rate) để phục vụ báo cáo và phê duyệt từ khách hàng.",
+            "Điều phối chạy sản xuất hàng mẫu (NPI), kiểm soát nghiêm ngặt các chỉ số năng lực quy trình (Cpk) và tỷ lệ đạt (Yield Rate) để phục vụ báo cáo và phê duyệt từ khách hàng.",
             "Liên tục cập nhật Cycle time cho bộ phận Kế hoạch (Planner); chủ trì điều tra nguyên nhân gốc rễ (RCA) và thúc đẩy giải pháp cải tiến đối với các mã hàng không đạt sản lượng định mức.",
             "Làm đầu mối kỹ thuật tiếp đón, giải trình và hỗ trợ các đợt đánh giá (Audit) và tham quan nhà máy từ phía Khách hàng."
             ],
@@ -40,14 +40,9 @@
         },
         "problemRootCauseAction": {
             "vi": [
-            "Problem: Tỷ lệ dừng máy cao và tổn thất năng suất do thao tác lặp lại thủ công và thiếu trang thiết bị phụ trợ chuẩn hóa.",
-            "Root Cause: Nhà máy mới chưa tối ưu hóa công cụ làm việc chuyên dụng cho từng công đoạn và các quy trình SOP cũ chưa sát thực tế.",
-            "Action: Tự viết các phần mềm/Tool hỗ trợ tự động hóa các tác vụ lặp lại; đồng thời tự thiết kế 3D các thiết bị/công cụ phụ trợ cơ khí để sản xuất chuẩn hóa cho xưởng."
             ],
             "en": [
-            "Problem: Frequent downtime and productivity loss due to repetitive manual tasks and lack of customized line fixtures.",
-            "Root Cause: Factory setup phase lacked specialized auxiliary tools, and existing SOPs were not fully tailored to line operations.",
-            "Action: Developed internal software tools to automate repetitive engineering workflows and designed custom 3D mechanical fixtures to streamline line layout."
+            
             ]
         },
         "trainingActivities": {
@@ -62,12 +57,12 @@
         },
         "improvements": {
             "vi": [
-            "Ứng dụng kỹ năng thiết kế 3D (SketchUp) để trực tiếp dựng hình, tính toán và phối hợp mua sắm các trang thiết bị nội bộ: Cổng từ an ninh xưởng, tủ bảo quản stencil/lưới thép, tray IC, xe vận chuyển stencil chuyên dụng, bàn ghế thao tác chuẩn Ergonomics.",
+            "Ứng dụng kỹ năng thiết kế 3D để trực tiếp dựng hình, tính toán và phối hợp mua sắm các trang thiết bị nội bộ: Cổng từ an ninh xưởng, tủ bảo quản stencil/lưới thép, tray IC, xe vận chuyển stencil chuyên dụng, bàn ghế thao tác.",
             "Viết các Tool tự động hóa công việc lặp lại, cắt giảm đáng kể thời gian thao tác kỹ thuật và hạn chế tối đa sai sót do con người."
             ],
             "en": [
-            "Utilized 3D design tools (SketchUp) to model and customize in-house workshop equipment: Security gates, stencil storage cabinets, IC trays, stencil transport carts, and ergonomic workstations.",
-            "Developed automated software tools for repetitive programming tasks, significantly reducing manual engineering processing time and human error."
+            "Applied 3D design skills to model, calculate, and coordinate procurement of in-house equipment: Security gates, stencil storage cabinets, IC trays, specialized stencil transport carts, and operator workstations.",
+            "Developed automation tools to streamline repetitive technical tasks, significantly reducing manual labor time and minimizing human error."
             ]
         },
         "images": [
@@ -120,7 +115,7 @@
       "responsibilities": {
         "vi": [
         "Đảm nhiệm vai trò Setup chính trong giai đoạn thành lập nhà máy: Đảm bảo lắp đặt, cân chỉnh, lập trình chương trình SMT và đưa dây chuyền vào vận hành đúng tiến độ.",
-        "Kiêm nhiệm quản lý sản xuất và kỹ thuật giai đoạn đầu; sau đó chuyển giao và tập trung quản lý, đào tạo đội ngũ Kỹ sư Kỹ thuật (Line Engineers/Technicians).",
+        "Kiêm nhiệm quản lý sản xuất và kỹ thuật giai đoạn đầu; sau đó chuyển giao và tập trung quản lý, đào tạo đội ngũ Kỹ sư Kỹ thuật (Engineers/Technicians).",
         "Trực tiếp lập trình máy SMT, tối ưu hóa cân bằng chuyền (Line Balancing), bảo trì định kỳ và sửa chữa chuyên sâu hệ thống thiết bị SMT.",
         "Chủ trì phối hợp sản xuất hàng mẫu (NPI), phân tích nguyên nhân gốc rễ (RCA) để xử lý lỗi linh kiện/sản phẩm và cải tiến quy trình công nghệ."
         ],
@@ -135,22 +130,22 @@
             "vi": [
             "Problem: Thiếu hụt hệ thống quản lý và công cụ phụ trợ giai đoạn đầu gây nguy cơ sai lỗi nạp liệu và gia tăng cường độ lao động.",
             "Root Cause: Nhà máy mới thành lập, chưa kịp đầu tư hệ thống MES và trang thiết bị tự động hóa chuyên dụng.",
-            "Action: Tự phát triển giải pháp (Phần mềm Scan nạp liệu, Máy nâng hạ thùng Magazine, Máy đếm liệu cầm tay trên chuyền) giúp số hóa kiểm soát và giảm thao tác thủ công."
+            "Action: Tự phát triển giải pháp (Phần mềm Scan nạp liệu, Máy nâng hạ thùng Magazine, Máy đếm liệu cầm tay trên chuyền) giúp kiểm soát và giảm thao tác thủ công."
             ],
             "en": [
-            "Problem: High risk of component loading errors and heavy manual fatigue during early factory setup.",
-            "Root Cause: Absence of an integrated MES system and dedicated automation tools in the newly established facility.",
-            "Action: Developed in-house digital and hardware solutions (Feeder scanning software, Automatic magazine lifter, Portable on-reel component counter) to prevent manual errors."
+            "Problem: Early-stage lack of management systems and auxiliary tools increased the risk of material misfeeds and operator fatigue.",
+            "Root Cause: Newly established factory had not yet implemented MES or specialized automation equipment.",
+            "Action: Developed in-house solutions (Material Scan Software, Automated Magazine Lifter, On-line Handheld Component Counter) to enhance material control and reduce manual handling."
             ]
         },
         "trainingActivities": {
             "vi": [
-            "Biên soạn quy trình thao tác chuẩn (SOP) và tài liệu hướng dẫn kỹ thuật từ con số 0.",
+            "Biên soạn quy trình thao tác chuẩn (SOP) và tài liệu hướng dẫn kỹ thuật/ thao tác viên xưởng SMT.",
             "Xây dựng chương trình và trực tiếp đào tạo cho nhân viên mới và đội ngũ kỹ thuật viên về vận hành, xử lý sự cố SMT."
             ],
             "en": [
-            "Authored standard operating procedures (SOPs) and technical guidelines from scratch.",
-            "Established training modules and conducted technical coaching for new hires and junior line engineers."
+            "Authored Standard Operating Procedures (SOPs) and technical guides for SMT line operators.",
+            "Developed and delivered training programs for new hires and technicians on SMT operations and troubleshooting."
             ]
         },
         
@@ -283,7 +278,7 @@
       "startDate": "2016-10",
       "endDate": "2017-02",
       "isCurrent": false,
-      "equipmentTags": ["ICT", "FPT"],
+      "equipmentTags": ["ICT", "FCT"],
       "responsibilities": {
         "vi": [
             "Setup máy test cho thao tác viên.",
@@ -313,22 +308,14 @@
             ]
         },
         "achievements": {
-            "vi": [
-            ""
-            ],
-            "en": [
-            ""
-            ]
+            "vi": [],
+            "en": []
         },
         "improvements": {
-            "vi": [
-            ""
-            ],
-            "en": [
-            ""
-            ]
-                },
-                "images": []                                                                       
+            "vi": [],
+            "en": []
+        },
+        "images": []                                                                       
     },
     {
       "id": "student-2013",
@@ -349,38 +336,24 @@
             "An active student balancing academics and work, taking on advertising board projects for Mobifone."
         ]
       },
-      "problemRootCauseAction": {
-        "vi": [
-        ""
-        ],
-        "en": [
-        ""
-        ]
+    
+        "problemRootCauseAction": {
+        "vi": [],
+        "en": []
         },
         "trainingActivities": {
-            "vi": [
-            ""
-            ],
-            "en": [
-            ""
-            ]
+        "vi": [],
+        "en": []
         },
         "achievements": {
-            "vi": [
-            ""
-            ],
-            "en": [
-            ""
-            ]
+        "vi": [],
+        "en": []
         },
         "improvements": {
-            "vi": [
-            ""
-            ],
-            "en": [
-            ""
-            ]
-                },
+        "vi": [],
+        "en": []
+        },
+       
         "images": [
             {
                 "src": "/assets/images/student/sinhviennangdong.jpg",
@@ -392,8 +365,8 @@
             {
                 "src": "/assets/images/student/suynghinencanthembaonhieu.jpg",
                 "description": {
-                    "vi": "Tan học là đi kiếm tiền luôn, không cần thay đồng phục trường luôn mà :). Chắc mê công việc từ trong trứng rồi.",
-                    "en": "After class, I went straight to work, no need to change out of my school uniform :). I guess I was passionate about work from the start."
+                    "vi": "Tan học là đi kiếm tiền luôn, không cần thay đồng phục trường luôn mà :). Trộm vía với nghề.",
+                    "en": "After class, I went straight to work, no need to change out of my school uniform :)."
                 }
             },
             {

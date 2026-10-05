@@ -76,3 +76,11 @@ Lưu ý quan trọng:
 - Floating contact widget.
 - Password gate cho tài liệu private.
 - Build kiểm tra thành công.
+## 9) Cách chạy dự án local
+- Cài dependencies từ package.json:
+   npm install
+- Chạy dev server bằng script scripts.dev 
+   npm run dev
+- Tuỳ chọn chạy từ thiết bị khác trong LAN
+ npm run dev:mobile
+ 
