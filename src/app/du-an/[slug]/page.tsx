@@ -181,22 +181,24 @@ export default function ProjectDetailPage() {
             setTouchStartX(null);
           }}
         >
-          <div className="max-h-full w-full max-w-5xl overflow-hidden rounded-3xl border border-white/20 bg-slate-900/90 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative max-h-full w-full max-w-5xl overflow-hidden rounded-3xl border border-white/20 bg-slate-900/90 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-white"
+              onClick={showPrevImage}
+            >
+              {lang === "vi" ? "Trước" : "Prev"}
+            </button>
+
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-white"
+              onClick={showNextImage}
+            >
+              {lang === "vi" ? "Tiếp" : "Next"}
+            </button>
+
             <div className="mb-3 flex items-center justify-end gap-2 px-3 pt-3">
-              <button
-                type="button"
-                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
-                onClick={showPrevImage}
-              >
-                {lang === "vi" ? "Trước" : "Prev"}
-              </button>
-              <button
-                type="button"
-                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
-                onClick={showNextImage}
-              >
-                {lang === "vi" ? "Tiếp" : "Next"}
-              </button>
               <button
                 type="button"
                 className="rounded bg-white/15 px-3 py-1 text-sm text-white"

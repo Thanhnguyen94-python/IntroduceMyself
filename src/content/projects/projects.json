@@ -164,14 +164,14 @@
       "id": "prepare-stencil-cabinet",
       "slug": "prepare-stencil-cabinet",
       "title": {
-        "vi": "Xe chuẩn bị lưới thép và kem hàn cho dây chuyền SMT",
-        "en": "Stencil and Solder Paste Preparation Cart for SMT Line"
+        "vi": "Dự án: Xe chuẩn bị lưới thép và kem hàn cho dây chuyền SMT",
+        "en": "Project: Stencil and Solder Paste Preparation Cart for SMT Line"
       },
       "category": "3d-jig",
       "status": "completed",
       "summary": {
-        "vi": "Giải pháp xe lưu trữ và chuẩn bị lưới thép, kem hàn phục vụ đổi mã sản phẩm nhanh chóng, ngăn nắp trên dây chuyền SMT.",
-        "en": "A cart solution for storing and preparing stencils and solder paste for quick, neat model changeovers on SMT lines."
+        "vi": [],
+        "en": []
       },
       "objective": {
         "vi": "1. Hỗ trợ bộ phận chuẩn bị sẵn lưới thép và kem hàn cho quá trình đổi mã sản phẩm (changeover) trên dây chuyền SMT.\n2. Cung cấp vị trí lưu trữ gọn gàng cho lưới thép vừa tháo xuống sau khi hoàn thành sản xuất.\n3. Chủ động tối ưu thời gian đổi mã, giữ khu vực sản xuất ngăn nắp, chuẩn 5S.\n4. Phân loại, cố định vị trí slot và tích hợp mã QR để truy vấn, quản lý qua hệ thống MES.",
@@ -186,13 +186,14 @@
         "Solder Paste Printer",
         "3D SketchUp",
         "QR Code",
-        "MES",
-        "SMT Changeover"
+        "MES"
+        
       ],
       "gallery": [
         "/assets/images/3d-jig/prepareStencilAndSolderTrolly.jpg",
         "/assets/images/3d-jig/prepareStencilAndSolderTrolly-1.jpg",
-        "/assets/images/3d-jig/prepareStencilAndSolderTrolly-3.jpg"
+        "/assets/images/3d-jig/prepareStencilAndSolderTrolly-3.jpg",
+        "/assets/images/3d-jig/xe_chuan_bi_luoi_thep.jpg"
       ],
       "attachments": [
         {
@@ -216,22 +217,23 @@
       "id": "smt-helper-app",
       "slug": "smt-helper-app",
       "title": {
-        "vi": "Chickenguitar",
-        "en": "Chickenguitar"
+        "vi": "Ứng dụng: Chickenguitar",
+        "en": "App: Chickenguitar"
       },
       "category": "app-software",
       "status": "ongoing",
       "summary": {
-        "vi": "Ứng dụng hỗ trợ người học đàn guitar.",
-        "en": "An app that assists guitar learners."
+        "vi": [],
+        "en": []
       },
       "objective": {
-        "vi": ["1. Một chiếc app có thể lưu trữ các sheet nhạc và hướng dẫn học đàn guitar.\n2. Đặc biệt nó dễ dàng truy cập trên điện thoại ở bất cứ đâu."],
-        "en": ["1. An app that can store music sheets and guitar learning guides.\n2. It is especially accessible on mobile devices anywhere."]
+        "vi": ["1. Một ứng dụng có thể lưu trữ các sheet nhạc và hướng dẫn học đàn guitar.\n2. Đặc biệt nó dễ dàng truy cập trên điện thoại ở bất cứ đâu.\n3. Soạn sheet nhạc nhanh chóng và thuận tiện.\n4. Phát âm thanh các note nhạc trên bài hát giúp người học dễ dàng học, ngoài ra còn phát các đoạn nhạc lặp lại để người chơi luyện tập."],
+        "en": ["1. An app to store sheet music and guitar learning guides.\n2. Easily accessible on mobile devices anywhere.\n3. Quick and convenient sheet music editing.\n4. Play audio notes for songs to facilitate learning, with looped playback for practice."
+        ]
       },
       "description": {
-        "vi": "ChickenGuitar là ứng dụng Android dành cho những người yêu thích và học chơi đàn guitar. Ứng dụng giúp bạn dễ dàng lưu trữ, quản lý và mở các bản sheet nhạc/hợp âm ở bất kỳ đâu. Bên cạnh đó, ChickenGuitar còn tích hợp công cụ hỗ trợ quá trình soạn thảo sheet nhạc một cách nhanh chóng và thuận tiện, giúp việc tập luyện và sáng tạo âm nhạc của bạn trở nên đơn giản hơn bao giờ hết.",
-        "en": "ChickenGuitar is an Android app designed for guitar learners and music enthusiasts. It allows you to easily store, manage, and access your sheet music or chord charts anytime, anywhere. In addition, ChickenGuitar provides helpful tools to simplify the process of editing and creating sheet music, making your practice and music writing seamless."
+        "vi": "ChickenGuitar là ứng dụng Android dành cho những người yêu thích và học chơi đàn guitar. Ứng dụng giúp bạn dễ dàng lưu trữ, quản lý và mở các bản sheet nhạc/hợp âm ở bất kỳ đâu. Bên cạnh đó, ChickenGuitar còn tích hợp công cụ hỗ trợ quá trình soạn thảo sheet nhạc một cách nhanh chóng và thuận tiện, giúp việc tập luyện và sáng tạo âm nhạc của bạn trở nên đơn giản.",
+        "en": "ChickenGuitar is an Android application designed for guitar enthusiasts and learners. It allows users to easily store, manage, and access sheet music/chord charts anywhere. Additionally, ChickenGuitar integrates tools for quick and convenient sheet music editing, making practice and musical creativity more accessible."
       },
       "equipmentTags": ["Android"],
       "gallery": ["/assets/images/chickenguitar/C8.jpg","/assets/images/chickenguitar/C9.png","/assets/images/chickenguitar/C10.png"],
@@ -249,59 +251,86 @@
         "en": ["Experience in app development."]
       }
     },
-    {
+        {
       "id": "reflow-optimization",
       "slug": "reflow-optimization",
       "title": {
-        "vi": "Cải tiến profile Reflow giảm lỗi hàn",
-        "en": "Reflow Profile Optimization for Solder Defect Reduction"
+        "vi": "Cải tiến chương trình dán: Khắc phục lỗi nhổng linh kiện USB (THD/PIP)",
+        "en": "Mounting Program Optimization: Resolving USB Connector Lifting Issues"
       },
       "category": "smt-improvement",
       "status": "completed",
       "summary": {
-        "vi": "Phân tích lỗi bắc cầu/tombstone và hiệu chỉnh profile theo loại board để tăng yield.",
-        "en": "Analyzed bridging/tombstone defects and tuned profiles by board type to improve yield."
+        "vi": [
+          "Linh kiện USB dạng cắm xuyên lỗ (THD/Pin-in-Paste) có dung sai chân và lỗ PCB quá chặt, gây ra hiện tượng bật/nhổng linh kiện sau khi thả nozzle.",
+          "Tạo cải tiến quy trình dán hai bước (Pressing Action) trực tiếp trên máy dán, giúp linh kiện được gài chắc chắn vào PCB trước khi đi qua Reflow."
+        ],
+        "en": [
+          "Through-hole USB connectors (THD/PIP) with tight PCB hole tolerances caused component lifting after nozzle release.",
+          "Implemented a two-step mounting sequence (Pressing Action) on the mounter to securely seat components before reflow."
+        ]
       },
       "objective": {
-        "vi": "Giảm tỷ lệ lỗi hàn và tăng First Pass Yield cho line SMT.",
-        "en": "Reduce soldering defects and improve SMT line first-pass yield."
+        "vi": "Giảm tỷ lệ lỗi nhổng linh kiện USB, khắc phục hạn chế do thiếu máy M-AOI (Mounter AOI) và nâng cao chỉ số First Pass Yield (FPY) tại công đoạn S-AOI.",
+        "en": "Reduce USB component lifting defects, overcome constraints of missing M-AOI (Mounter AOI), and improve First Pass Yield (FPY) at S-AOI."
       },
       "description": {
-        "vi": "Thu thập dữ liệu nhiệt thực tế, phân nhóm theo mã board và thử nghiệm profile mới theo từng điều kiện vận hành.",
-        "en": "Collected real thermal data, grouped by board model, and validated updated profiles per operating condition."
+        "vi": "Linh kiện USB xuyên lỗ đòi hỏi lực cắm chính xác do độ bó giữa chân linh kiện và lỗ PCB lớn. Khi không có M-AOI kiểm tra ngay sau máy dán, linh kiện bị nhổng sẽ trôi đến S-AOI/Reflow gây ra lỗi hàn và tăng chi phí Rework.\n\nGiải pháp thực hiện: Tùy chỉnh sequence lập trình trên máy dán: Sau khi nozzle gắn USB vào PCB, máy thực hiện thêm một hành trình nhặt liệu giả và quay trở lại nhấn phụ (Secondary Pressing/Re-seating) với lực nhấn kiểm soát (Controlled Mounting Pressure). Thao tác này giúp ép triệt để chân USB ngàm chặt vào lỗ PCB, loại bỏ hiện tượng đàn hồi bật ngược.",
+        "en": "Through-hole USB connectors require precise insertion force due to tight pin-to-hole tolerances. Without M-AOI immediately after the mounter, lifted components led to soldering defects at S-AOI and higher rework costs.\n\nSolution implemented: Customized the mounter's pickup/placement sequence by adding a secondary controlled pressing step immediately after placement. This force-controlled action securely seats the USB lead pins into the PCB holes, eliminating spring-back lifting."
       },
-      "equipmentTags": ["Reflow JT", "Heller", "AOI"],
-      "gallery": ["/assets/images/project-reflow-1.jpg"],
+      "equipmentTags": [
+        "Panasonic Mounter NPM TT2"
+
+      ],
+      "gallery": [
+        "/assets/images/GBVN/USB_push.jpg",
+        "/assets/images/GBVN/USB_push_01.jpg"
+      ],
       "attachments": [],
       "lessonsLearned": {
-        "vi": ["Dữ liệu nhiệt độ thực tế quan trọng hơn profile mẫu chung."],
-        "en": ["Measured thermal data matters more than generic profile templates."]
+        "vi": [
+          "Tận dụng tối đa khả năng tuỳ biến phần mềm của máy dán để giải quyết bài toán cơ khí khó mà không tốn chi phí mua thêm thiết bị.",
+          "Hiểu rõ đặc tính cơ lý của linh kiện dị hình (Odd-form / THD) giúp đưa ra giải pháp phòng ngừa lỗi triệt để trước lò Reflow.",
+          "Cải thiện FPY đáng kể tại S-AOI và giảm thiểu thao tác canh chỉnh thủ công của công nhân."
+        ],
+        "en": [
+          "Maximized mounter software customization to solve complex mechanical placement challenges without additional hardware costs.",
+          "Understanding odd-form/THD component physical characteristics enabled proactive defect prevention before Reflow.",
+          "Significantly improved S-AOI FPY and minimized manual operator intervention."
+        ]
       }
     },
     {
       "id": "chatbot-ai",
       "slug": "chatbot-ai",
       "title": {
-        "vi": "Chatbot AI kết hợp phần cứng và trí tuệ nhân tạo để hỗ trợ trò chuyện.",
-        "en": "AI Chatbot integrating hardware and artificial intelligence for conversational support."
+        "vi": "Chatbot AI.",
+        "en": "Chatbot AI."
       },
       "category": "ai-iot",
       "status": "ongoing",
       "summary": {
-        "vi": "Hệ thống AI Chatbot tương tác bằng giọng nói sử dụng vi điều khiển ESP32-S3 kết hợp với các mô hình trí tuệ nhân tạo (LLM).",
-        "en": "A voice-interactive AI Chatbot system using the ESP32-S3 microcontroller combined with Large Language Models (LLM)."
+        "vi": [],
+        "en": []
       },
       "objective": {
-        "vi": "Xây dựng thiết bị phần cứng nhỏ gọn có khả năng thu âm, xử lý giọng nói, kết nối API LLM và phản hồi câu trả lời bằng âm thanh theo thời gian thực.\nRotbot có thêm nhiều chức năng: di chuyển, kết nối điều khiển thiết bị trong nhà, phát nhạc, dạy học tiếng Anh, tiếng Trung",
-        "en": "Develop a compact hardware device capable of recording audio, processing speech, connecting to LLM APIs, and providing real-time audio responses. Rotbot also includes additional functionalities: mobility, smart home device control, music playback, and language learning support for English and Chinese."
+        "vi": "1. Học về lập trình nhúng IoT.\n2. Tự tay làm một robot nhỏ có khả năng tương tác, trò chuyện, dạy học, giải trí,...\n3. Tích hợp các chức năng IoT trong nhà thông minh.",
+        "en": "1. Learn embedded IoT programming.\n2. Build a small interactive robot capable of conversation, teaching, and entertainment.\n3. Integrate IoT functionalities for smart home applications."
       },
       "description": {
-        "vi": "Dự án nghiên cứu và phát triển thiết bị Chatbot AI nhúng dựa trên dòng chip ESP32-S3. Thiết bị thu âm thanh qua micro I2S, gửi dữ liệu lên cloud để nhận dạng giọng nói (STT), xử lý nội dung bằng mô hình AI và phát lại câu trả lời bằng âm thanh (TTS) qua loa tích hợp.",
-        "en": "An R&D project for an embedded AI Chatbot device powered by the ESP32-S3 chip. The system records audio via an I2S microphone, streams data to cloud services for speech recognition (STT), processes input using AI models, and streams audio responses back via Text-to-Speech (TTS) through an onboard speaker."
+        "vi": "Dự án nghiên cứu và phát triển thiết bị Chatbot AI(mã nguồn mở từ lập trình viên Trung Quốc) nhúng dựa trên dòng chip ESP32-S3. Thiết bị thu âm thanh qua micro I2S, gửi dữ liệu lên cloud để nhận dạng giọng nói (STT), xử lý nội dung bằng mô hình AI và phát lại câu trả lời bằng âm thanh (TTS) qua loa tích hợp.",
+        "en": "Research and development of an embedded Chatbot AI device (open-source from Chinese developers) based on the ESP32-S3 chip. The device captures audio via an I2S microphone, sends data to the cloud for speech recognition (STT), processes content using an AI model, and plays back responses through an integrated speaker (TTS)."
       },
-      "equipmentTags": ["ESP32-S3", "I2S Microphone", "I2S Audio DAC/Amplifier", "Speaker", "SD Card", "OLED Display"],
-      "gallery": ["/assets/images/ai-iot/01.jpg", "/assets/images/ai-iot/02.jpg", "/assets/images/ai-iot/03.mp4"],
-      "attachments":[],
+      "equipmentTags": ["ESP32-S3", "I2S Microphone", "I2S Audio DAC/Amplifier", "Speaker", "SD Card", "OLED Display","Blender 3D", "máy in mô hình 3D"],
+      "gallery": ["/assets/images/ai-iot/obj_3D_body.jpg","/assets/images/ai-iot/demo_01.jpg", "/assets/images/ai-iot/demo_02.jpg", "/assets/images/ai-iot/in_3D.mp4","/assets/images/ai-iot/03.mp4"],
+      "attachments":[{
+          "label": {
+            "vi": "file nạp code",
+            "en": "Code upload file"
+          },
+          "fileUrl": "/assets/docs/projects/IoT/chatBotAI/xiaozhi.bin"
+        }
+    ],
       "lessonsLearned": {
         "vi": [
           "Tìm hiểu lập trình nhúng.",

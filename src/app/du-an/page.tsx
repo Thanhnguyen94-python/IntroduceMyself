@@ -12,7 +12,7 @@ const filterLabels = {
     all: "Tất cả",
     "3d-jig": "Bản vẽ 3D/Jig",
     "app-software": "Ứng dụng/Phần mềm",
-    "smt-improvement": "Cải tiến SMT",
+    "smt-improvement": "SMT",
     "ai-iot": "AI/IoT"
   },
   en: {
