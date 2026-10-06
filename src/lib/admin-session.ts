@@ -51,15 +51,14 @@ export async function verifyAdminCredentials(username: string, password: string)
       return { ok: false, reason: "missing-input" };
     }
 
-    const { url, serviceRoleKey, anonKey } = getSupabaseEnv();
-    const supabaseKey = serviceRoleKey || anonKey;
+    const { url, serviceRoleKey } = getSupabaseEnv();
 
-    if (!url || !supabaseKey) {
-      console.error("[admin-auth] Supabase env is missing. Check NEXT_PUBLIC_SUPABASE_URL and keys.");
+    if (!url || !serviceRoleKey) {
+      console.error("[admin-auth] Supabase env is missing. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
       return { ok: false, reason: "supabase-not-configured" };
     }
 
-    const supabase = createClient(url, supabaseKey, {
+    const supabase = createClient(url, serviceRoleKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false
@@ -77,7 +76,11 @@ export async function verifyAdminCredentials(username: string, password: string)
       console.error("[admin-auth] admin_profiles query failed", profileError.message);
     }
 
-    if (!profileError && Array.isArray(profileRows) && profileRows.length > 0) {
+    if (profileError) {
+      return { ok: false, reason: "db-query-failed" };
+    }
+
+    if (Array.isArray(profileRows) && profileRows.length > 0) {
       const matchedProfile = profileRows[0];
 
       if (matchedProfile?.password_hash) {
@@ -98,27 +101,14 @@ export async function verifyAdminCredentials(username: string, password: string)
           };
         } catch (error) {
           console.error("[admin-auth] bcrypt compare failed", error);
+          return { ok: false, reason: "db-query-failed" };
         }
       }
+
+      return { ok: false, reason: "invalid-credentials" };
     }
 
-    const { data, error } = await supabase.rpc("verify_admin_login", {
-      p_identifier: identifier,
-      p_password: cleanPassword
-    });
-
-    if (error) {
-      console.error("[admin-auth] verify_admin_login failed", error.message);
-      return {
-        ok: false,
-        reason: profileError ? "db-query-failed" : "rpc-failed"
-      };
-    }
-
-    return {
-      ok: Array.isArray(data) && data.length > 0,
-      reason: "invalid-credentials"
-    };
+    return { ok: false, reason: "invalid-credentials" };
   } catch (error) {
     console.error("[admin-auth] unexpected verify error", error);
     return { ok: false, reason: "db-query-failed" };
