@@ -52,7 +52,7 @@ export async function verifyAdminCredentials(username: string, password: string)
       return { ok: false, reason: "missing-input" };
     }
 
-    const { url, serviceRoleKey } = getSupabaseEnv();
+    const { url, serviceRoleKey, anonKey } = getSupabaseEnv();
 
     if (!url || !serviceRoleKey) {
       console.error("[admin-auth] Supabase env is missing. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
@@ -78,6 +78,24 @@ export async function verifyAdminCredentials(username: string, password: string)
     }
 
     if (profileError) {
+      if (url && anonKey) {
+        const anonClient = createClient(url, anonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false
+          }
+        });
+
+        const { data: rpcData, error: rpcError } = await anonClient.rpc("verify_admin_login", {
+          p_identifier: identifier,
+          p_password: cleanPassword
+        });
+
+        if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+          return { ok: true, reason: "invalid-credentials" };
+        }
+      }
+
       const envMatched =
         safeCompare(identifier, envConfig.username.toLowerCase()) && safeCompare(cleanPassword, envConfig.password);
       if (envMatched) {
