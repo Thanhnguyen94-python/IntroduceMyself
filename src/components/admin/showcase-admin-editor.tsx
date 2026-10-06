@@ -5,6 +5,24 @@ import { useEffect, useMemo, useState } from "react";
 import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
 import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
+function isShowcaseData(value: unknown): value is ShowcaseData {
+  return Boolean(value) && typeof value === "object" && Array.isArray((value as ShowcaseData).items);
+}
+
+function isSiteVisibilityConfig(value: unknown): value is SiteVisibilityConfig {
+  const pages = (value as SiteVisibilityConfig | undefined)?.pages;
+  return (
+    Boolean(value) &&
+    typeof value === "object" &&
+    Boolean(pages) &&
+    typeof pages?.overview === "boolean" &&
+    typeof pages?.journey === "boolean" &&
+    typeof pages?.projects === "boolean" &&
+    typeof pages?.showcase === "boolean" &&
+    typeof pages?.docs === "boolean"
+  );
+}
+
 function emptyProduct(index: number): ShowcaseItem {
   return {
     id: `sp-${String(index + 1).padStart(2, "0")}`,
@@ -45,20 +63,28 @@ export function ShowcaseAdminEditor() {
 
   useEffect(() => {
     async function fetchData() {
-      const [showcaseResponse, visibilityResponse] = await Promise.all([
-        fetch("/api/showcase/products", { cache: "no-store" }),
-        fetch("/api/site/visibility", { cache: "no-store" })
-      ]);
+      try {
+        const [showcaseResponse, visibilityResponse] = await Promise.all([
+          fetch("/api/showcase/products", { cache: "no-store" }),
+          fetch("/api/site/visibility", { cache: "no-store" })
+        ]);
 
-      const showcasePayload = (await showcaseResponse.json()) as ShowcaseData;
-      setData(showcasePayload);
+        const showcasePayload = (await showcaseResponse.json().catch(() => null)) as unknown;
+        if (showcaseResponse.ok && isShowcaseData(showcasePayload)) {
+          setData(showcasePayload);
+        } else {
+          setMessage("Không tải được dữ liệu sản phẩm. Vui lòng kiểm tra cấu hình server.");
+        }
 
-      if (visibilityResponse.ok) {
-        const visibilityPayload = (await visibilityResponse.json()) as SiteVisibilityConfig;
-        setVisibility(visibilityPayload);
+        const visibilityPayload = (await visibilityResponse.json().catch(() => null)) as unknown;
+        if (visibilityResponse.ok && isSiteVisibilityConfig(visibilityPayload)) {
+          setVisibility(visibilityPayload);
+        }
+      } catch {
+        setMessage("Không thể kết nối API quản trị. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     fetchData();
