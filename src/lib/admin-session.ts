@@ -46,6 +46,7 @@ export async function verifyAdminCredentials(username: string, password: string)
   try {
     const identifier = username.trim().toLowerCase();
     const cleanPassword = password.trim();
+    const envConfig = getAdminConfig();
 
     if (!identifier || !cleanPassword) {
       return { ok: false, reason: "missing-input" };
@@ -77,6 +78,13 @@ export async function verifyAdminCredentials(username: string, password: string)
     }
 
     if (profileError) {
+      const envMatched =
+        safeCompare(identifier, envConfig.username.toLowerCase()) && safeCompare(cleanPassword, envConfig.password);
+      if (envMatched) {
+        console.warn("[admin-auth] Supabase query failed, fallback to ENV admin credentials.");
+        return { ok: true, reason: "invalid-credentials" };
+      }
+
       return { ok: false, reason: "db-query-failed" };
     }
 
@@ -111,6 +119,17 @@ export async function verifyAdminCredentials(username: string, password: string)
     return { ok: false, reason: "invalid-credentials" };
   } catch (error) {
     console.error("[admin-auth] unexpected verify error", error);
+
+    const identifier = username.trim().toLowerCase();
+    const cleanPassword = password.trim();
+    const envConfig = getAdminConfig();
+    const envMatched =
+      safeCompare(identifier, envConfig.username.toLowerCase()) && safeCompare(cleanPassword, envConfig.password);
+    if (envMatched) {
+      console.warn("[admin-auth] unexpected error, fallback to ENV admin credentials.");
+      return { ok: true, reason: "invalid-credentials" };
+    }
+
     return { ok: false, reason: "db-query-failed" };
   }
 }
