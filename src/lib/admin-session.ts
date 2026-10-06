@@ -43,79 +43,86 @@ function safeCompare(a: string, b: string) {
 }
 
 export async function verifyAdminCredentials(username: string, password: string): Promise<AdminVerifyResult> {
-  const identifier = username.trim().toLowerCase();
-  const cleanPassword = password.trim();
+  try {
+    const identifier = username.trim().toLowerCase();
+    const cleanPassword = password.trim();
 
-  if (!identifier || !cleanPassword) {
-    return { ok: false, reason: "missing-input" };
-  }
-
-  const { url, serviceRoleKey, anonKey } = getSupabaseEnv();
-  const supabaseKey = serviceRoleKey || anonKey;
-
-  if (!url || !supabaseKey) {
-    console.error("[admin-auth] Supabase env is missing. Check NEXT_PUBLIC_SUPABASE_URL and keys.");
-    return { ok: false, reason: "supabase-not-configured" };
-  }
-
-  const supabase = createClient(url, supabaseKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
+    if (!identifier || !cleanPassword) {
+      return { ok: false, reason: "missing-input" };
     }
-  });
 
-  const { data: profileRows, error: profileError } = await supabase
-    .from("admin_profiles")
-    .select("username,email,password_hash,is_active")
-    .eq("is_active", true)
-    .or(`username.eq.${identifier},email.eq.${identifier}`)
-    .limit(1);
+    const { url, serviceRoleKey, anonKey } = getSupabaseEnv();
+    const supabaseKey = serviceRoleKey || anonKey;
 
-  if (profileError) {
-    console.error("[admin-auth] admin_profiles query failed", profileError.message);
-  }
+    if (!url || !supabaseKey) {
+      console.error("[admin-auth] Supabase env is missing. Check NEXT_PUBLIC_SUPABASE_URL and keys.");
+      return { ok: false, reason: "supabase-not-configured" };
+    }
 
-  if (!profileError && Array.isArray(profileRows) && profileRows.length > 0) {
-    const matchedProfile = profileRows[0];
+    const supabase = createClient(url, supabaseKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
 
-    if (matchedProfile?.password_hash) {
-      try {
-        const storedHash = String(matchedProfile.password_hash);
-        if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+    const { data: profileRows, error: profileError } = await supabase
+      .from("admin_profiles")
+      .select("username,email,password_hash,is_active")
+      .eq("is_active", true)
+      .or(`username.eq.${identifier},email.eq.${identifier}`)
+      .limit(1);
+
+    if (profileError) {
+      console.error("[admin-auth] admin_profiles query failed", profileError.message);
+    }
+
+    if (!profileError && Array.isArray(profileRows) && profileRows.length > 0) {
+      const matchedProfile = profileRows[0];
+
+      if (matchedProfile?.password_hash) {
+        try {
+          const storedHash = String(matchedProfile.password_hash);
+          if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+            const matched = compareSync(cleanPassword, storedHash);
+            return {
+              ok: matched,
+              reason: matched ? "invalid-credentials" : "password-mismatch"
+            };
+          }
+
+          const matched = safeCompare(cleanPassword, storedHash);
           return {
-            ok: compareSync(cleanPassword, storedHash),
-            reason: compareSync(cleanPassword, storedHash) ? "invalid-credentials" : "password-mismatch"
+            ok: matched,
+            reason: matched ? "invalid-credentials" : "password-mismatch"
           };
+        } catch (error) {
+          console.error("[admin-auth] bcrypt compare failed", error);
         }
-
-        return {
-          ok: safeCompare(cleanPassword, storedHash),
-          reason: safeCompare(cleanPassword, storedHash) ? "invalid-credentials" : "password-mismatch"
-        };
-      } catch (error) {
-        console.error("[admin-auth] bcrypt compare failed", error);
       }
     }
-  }
 
-  const { data, error } = await supabase.rpc("verify_admin_login", {
-    p_identifier: identifier,
-    p_password: cleanPassword
-  });
+    const { data, error } = await supabase.rpc("verify_admin_login", {
+      p_identifier: identifier,
+      p_password: cleanPassword
+    });
 
-  if (error) {
-    console.error("[admin-auth] verify_admin_login failed", error.message);
+    if (error) {
+      console.error("[admin-auth] verify_admin_login failed", error.message);
+      return {
+        ok: false,
+        reason: profileError ? "db-query-failed" : "rpc-failed"
+      };
+    }
+
     return {
-      ok: false,
-      reason: profileError ? "db-query-failed" : "rpc-failed"
+      ok: Array.isArray(data) && data.length > 0,
+      reason: "invalid-credentials"
     };
+  } catch (error) {
+    console.error("[admin-auth] unexpected verify error", error);
+    return { ok: false, reason: "db-query-failed" };
   }
-
-  return {
-    ok: Array.isArray(data) && data.length > 0,
-    reason: "invalid-credentials"
-  };
 }
 
 export function createAdminSessionToken(username: string) {
