@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const username = String(body?.username ?? "");
   const password = String(body?.password ?? "");
 
-  if (!verifyAdminCredentials(username, password)) {
+  if (!(await verifyAdminCredentials(username, password))) {
     return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
   }
 

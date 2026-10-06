@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const ADMIN_SESSION_COOKIE = "admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
@@ -28,9 +30,31 @@ function safeCompare(a: string, b: string) {
   return timingSafeEqual(aBuffer, bBuffer);
 }
 
-export function verifyAdminCredentials(username: string, password: string) {
+export async function verifyAdminCredentials(username: string, password: string) {
+  const identifier = username.trim().toLowerCase();
+  const cleanPassword = password.trim();
+
+  if (!identifier || !cleanPassword) return false;
+
+  if (isSupabaseConfigured()) {
+    const supabase = getSupabaseServerClient();
+    if (!supabase) return false;
+
+    const { data, error } = await supabase.rpc("verify_admin_login", {
+      p_identifier: identifier,
+      p_password: cleanPassword
+    });
+
+    if (error) {
+      console.error("[admin-auth] verify_admin_login failed", error.message);
+      return false;
+    }
+
+    return Array.isArray(data) && data.length > 0;
+  }
+
   const config = getAdminConfig();
-  return safeCompare(username.trim(), config.username) && safeCompare(password.trim(), config.password);
+  return safeCompare(identifier, config.username.toLowerCase()) && safeCompare(cleanPassword, config.password);
 }
 
 export function createAdminSessionToken(username: string) {
