@@ -1,22 +1,61 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { ui } from "@/lib/content/i18n";
 import { ThemeToggle } from "@/components/theme-toggle";
+import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
 const menu = [
-  { href: "/tong-quan", key: "overview" as const },
-  { href: "/hanh-trinh", key: "journey" as const },
-  { href: "/du-an", key: "projects" as const },
-  { href: "/san-pham-trung-bay", key: "showcase" as const },
-  { href: "/tai-lieu-ky-thuat", key: "docs" as const }
+  { href: "/tong-quan", key: "overview" as const, pageKey: "overview" as ManagedPageKey },
+  { href: "/hanh-trinh", key: "journey" as const, pageKey: "journey" as ManagedPageKey },
+  { href: "/du-an", key: "projects" as const, pageKey: "projects" as ManagedPageKey },
+  { href: "/san-pham-trung-bay", key: "showcase" as const, pageKey: "showcase" as ManagedPageKey },
+  { href: "/tai-lieu-ky-thuat", key: "docs" as const, pageKey: "docs" as ManagedPageKey }
 ];
+
+const defaultVisibility: SiteVisibilityConfig = {
+  schemaVersion: 1,
+  pages: {
+    overview: true,
+    journey: true,
+    projects: true,
+    showcase: true,
+    docs: true
+  }
+};
 
 export function SiteHeader() {
   const pathname = usePathname();
   const { lang, setLang } = useLanguage();
+  const [visibility, setVisibility] = useState<SiteVisibilityConfig>(defaultVisibility);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadVisibility() {
+      try {
+        const response = await fetch("/api/site/visibility", { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = (await response.json()) as SiteVisibilityConfig;
+        if (mounted) setVisibility(payload);
+      } catch {
+        // Keep default visibility.
+      }
+    }
+
+    loadVisibility();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const visibleMenu = useMemo(
+    () => menu.filter((item) => visibility.pages[item.pageKey]),
+    [visibility.pages]
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/90 backdrop-blur dark:bg-slate-900/80" style={{ borderColor: "var(--border)" }}>
@@ -26,7 +65,7 @@ export function SiteHeader() {
             Mr Jay | SMT Engineer
           </Link>
           <nav className="hidden gap-2 md:flex">
-            {menu.map((item) => {
+            {visibleMenu.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
@@ -54,7 +93,7 @@ export function SiteHeader() {
         </div>
 
         <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 md:hidden">
-          {menu.map((item) => {
+          {visibleMenu.map((item) => {
             const active = pathname === item.href;
             return (
               <Link

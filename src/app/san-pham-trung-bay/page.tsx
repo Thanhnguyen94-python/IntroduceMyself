@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
+import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 import type { ShowcaseData } from "@/lib/showcase-types";
 
 type OrderLineInput = {
@@ -232,7 +233,8 @@ export default function SanPhamTrungBayPage() {
   );
 
   return (
-    <section className="space-y-6">
+    <PageVisibilityGuard pageKey="showcase">
+      <section className="space-y-6">
       <div className="card bg-gradient-to-br from-brand-100 via-white to-brand-200 dark:from-brand-800 dark:via-slate-900 dark:to-brand-900">
         {/* <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">
           {lang === "vi" ? "Trang mới" : "New section"}
@@ -580,6 +582,7 @@ export default function SanPhamTrungBayPage() {
           </div>
         </div>
       )}
-    </section>
+      </section>
+    </PageVisibilityGuard>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
+import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
 function emptyProduct(index: number): ShowcaseItem {
   return {
@@ -21,15 +22,36 @@ function emptyProduct(index: number): ShowcaseItem {
 
 export function ShowcaseAdminEditor() {
   const [data, setData] = useState<ShowcaseData>({ schemaVersion: 1, items: [] });
+  const [visibility, setVisibility] = useState<SiteVisibilityConfig>({
+    schemaVersion: 1,
+    pages: {
+      overview: true,
+      journey: true,
+      projects: true,
+      showcase: true,
+      docs: true
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingVisibility, setSavingVisibility] = useState(false);
   const [message, setMessage] = useState("");
+  const [visibilityMessage, setVisibilityMessage] = useState("");
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch("/api/showcase/products", { cache: "no-store" });
-      const payload = (await response.json()) as ShowcaseData;
-      setData(payload);
+      const [showcaseResponse, visibilityResponse] = await Promise.all([
+        fetch("/api/showcase/products", { cache: "no-store" }),
+        fetch("/api/site/visibility", { cache: "no-store" })
+      ]);
+
+      const showcasePayload = (await showcaseResponse.json()) as ShowcaseData;
+      setData(showcasePayload);
+
+      if (visibilityResponse.ok) {
+        const visibilityPayload = (await visibilityResponse.json()) as SiteVisibilityConfig;
+        setVisibility(visibilityPayload);
+      }
 
       setLoading(false);
     }
@@ -63,6 +85,16 @@ export function ShowcaseAdminEditor() {
     }));
   };
 
+  const updateVisibility = (key: ManagedPageKey, checked: boolean) => {
+    setVisibility((prev) => ({
+      ...prev,
+      pages: {
+        ...prev.pages,
+        [key]: checked
+      }
+    }));
+  };
+
   const saveAll = async () => {
     setSaving(true);
     setMessage("");
@@ -83,6 +115,28 @@ export function ShowcaseAdminEditor() {
 
     setMessage("Đã lưu thành công. Trang công khai sẽ hiển thị dữ liệu mới.");
     setSaving(false);
+  };
+
+  const saveVisibility = async () => {
+    setSavingVisibility(true);
+    setVisibilityMessage("");
+
+    const response = await fetch("/api/admin/site/visibility", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(visibility)
+    });
+
+    if (!response.ok) {
+      setVisibilityMessage("Lưu cài đặt hiển thị thất bại.");
+      setSavingVisibility(false);
+      return;
+    }
+
+    setVisibilityMessage("Đã lưu cài đặt hiển thị trang.");
+    setSavingVisibility(false);
   };
 
   const logout = async () => {
@@ -113,6 +167,41 @@ export function ShowcaseAdminEditor() {
           <button onClick={logout} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
             Đăng xuất
           </button>
+        </div>
+      </div>
+
+      <div className="card space-y-3">
+        <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">Hiển thị/Ẩn các trang chính</h2>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Khi tắt một trang, menu sẽ ẩn trang đó và người dùng sẽ thấy thông báo bảo trì nếu truy cập trực tiếp URL.
+        </p>
+        <div className="grid gap-2 md:grid-cols-2">
+          {([
+            ["overview", "Tổng quan"],
+            ["journey", "Hành trình"],
+            ["projects", "Dự án"],
+            ["showcase", "Sản phẩm"],
+            ["docs", "Tài liệu"]
+          ] as const).map(([key, label]) => (
+            <label key={key} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
+              <input
+                type="checkbox"
+                checked={visibility.pages[key]}
+                onChange={(e) => updateVisibility(key, e.target.checked)}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        <div className="space-y-2">
+          <button
+            disabled={savingVisibility}
+            onClick={saveVisibility}
+            className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {savingVisibility ? "Đang lưu hiển thị..." : "Lưu cài đặt hiển thị trang"}
+          </button>
+          {visibilityMessage && <p className="text-sm text-emerald-600 dark:text-emerald-400">{visibilityMessage}</p>}
         </div>
       </div>
 

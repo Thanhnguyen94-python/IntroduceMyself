@@ -252,8 +252,8 @@
       }
     },
         {
-      "id": "reflow-optimization",
-      "slug": "reflow-optimization",
+      "id": "smt-improvements",
+      "slug": "smt-improvements",
       "title": {
         "vi": "Cải tiến chương trình dán: Khắc phục lỗi nhổng linh kiện USB (THD/PIP)",
         "en": "Mounting Program Optimization: Resolving USB Connector Lifting Issues"

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "overview": true,
+    "journey": true,
+    "projects": true,
+    "showcase": false,
+    "docs": false
+  }
+}

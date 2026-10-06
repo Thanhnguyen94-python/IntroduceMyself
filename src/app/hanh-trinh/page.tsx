@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getExperienceData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
+import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
 export default function HanhTrinhPage() {
   const data = getExperienceData();
@@ -48,7 +49,8 @@ export default function HanhTrinhPage() {
   }, [active, viewerIndex]);
 
   return (
-    <section className="space-y-6">
+    <PageVisibilityGuard pageKey="journey">
+      <section className="space-y-6">
       <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Hành Trình Nghề Nghiệp" : "Career Journey"}</h1>
       <div className="grid gap-4">
         {data.items.map((item) => (
@@ -236,6 +238,7 @@ export default function HanhTrinhPage() {
           </div>
         </div>
       )}
-    </section>
+      </section>
+    </PageVisibilityGuard>
   );
 }

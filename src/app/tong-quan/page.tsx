@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getExperienceData, getSiteData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
+import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
 function getYearMonthValue(input: string) {
   const [y = "0", m = "01"] = input.split("-");
@@ -66,7 +67,8 @@ export default function TongQuanPage() {
   const journeyItems = journeyMode === "work" ? sortedWorkExp : sortedExp;
 
   return (
-    <section className="overview-hover space-y-8">
+    <PageVisibilityGuard pageKey="overview">
+      <section className="overview-hover space-y-8">
       <div className="card overflow-hidden bg-gradient-to-br from-brand-100 via-white to-brand-200 dark:from-brand-800 dark:via-slate-900 dark:to-brand-900">
         <div className="grid items-center gap-6 md:grid-cols-[220px_1fr]">
           <div className="mx-auto w-full max-w-[220px]">
@@ -269,6 +271,7 @@ export default function TongQuanPage() {
           ))}
         </div>
       </div>
-    </section>
+      </section>
+    </PageVisibilityGuard>
   );
 }

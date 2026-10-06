@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { getProjectsData } from "@/lib/content/loaders";
 import { pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
+import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
 const filters = ["all", "3d-jig", "app-software", "smt-improvement", "ai-iot"] as const;
 const filterLabels = {
@@ -35,7 +36,8 @@ export default function DuAnPage() {
   }, [activeFilter, data.items]);
 
   return (
-    <section className="space-y-6">
+    <PageVisibilityGuard pageKey="projects">
+      <section className="space-y-6">
       <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Dự Án & Cải Tiến" : "Projects & Improvements"}</h1>
       <div className="flex flex-wrap gap-2">
         {filters.map((f) => (
@@ -65,6 +67,7 @@ export default function DuAnPage() {
           </article>
         ))}
       </div>
-    </section>
+      </section>
+    </PageVisibilityGuard>
   );
 }

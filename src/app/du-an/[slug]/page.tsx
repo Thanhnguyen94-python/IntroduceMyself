@@ -6,6 +6,7 @@ import { notFound, useParams } from "next/navigation";
 import { getProjectsData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
+import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -65,7 +66,8 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <section className="space-y-6">
+    <PageVisibilityGuard pageKey="projects">
+      <section className="space-y-6">
       <Link href="/du-an" className="text-sm text-brand-600 dark:text-brand-300">← {lang === "vi" ? "Quay lại danh sách dự án" : "Back to projects"}</Link>
       <h1 className="text-2xl font-bold">{pickText(project.title, lang)}</h1>
       <p style={{ color: "var(--muted)" }}>{pickText(project.summary, lang)}</p>
@@ -260,6 +262,7 @@ export default function ProjectDetailPage() {
           ))}
         </ul>
       </div>
-    </section>
+      </section>
+    </PageVisibilityGuard>
   );
 }
