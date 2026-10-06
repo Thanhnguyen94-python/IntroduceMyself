@@ -23,7 +23,8 @@ export function AdminLoginForm() {
       });
 
       if (!response.ok) {
-        setError("Sai tài khoản hoặc mật khẩu.");
+        const payload = await response.json().catch(() => ({}));
+        setError(String(payload?.message || "Sai tài khoản hoặc mật khẩu."));
         return;
       }
 

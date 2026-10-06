@@ -9,9 +9,17 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const username = String(body?.username ?? "");
   const password = String(body?.password ?? "");
+  const authResult = await verifyAdminCredentials(username, password);
 
-  if (!(await verifyAdminCredentials(username, password))) {
-    return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
+  if (!authResult.ok) {
+    const message =
+      authResult.reason === "supabase-not-configured"
+        ? "Supabase auth is not configured on server."
+        : authResult.reason === "db-query-failed" || authResult.reason === "rpc-failed"
+          ? "Database auth check failed. Please check server logs."
+          : "Invalid credentials.";
+
+    return NextResponse.json({ message, reason: authResult.reason }, { status: 401 });
   }
 
   const token = createAdminSessionToken(username);
