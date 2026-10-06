@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getExperienceData, getSiteData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
@@ -9,7 +9,7 @@ import type { Lang } from "@/lib/content/types";
 
 type CvTemplate = "midnight" | "mint" | "sunrise" | "clean";
 type CvPalette = "blue" | "amber" | "emerald" | "violet";
-type AvatarShape = "circle" | "rounded" | "square";
+type AvatarShape = "circle" | "rectangle" | "hexagon";
 
 type SectionConfig = {
   summary: boolean;
@@ -20,7 +20,16 @@ type SectionConfig = {
   tools: boolean;
 };
 
-type CustomSection = { id: string; title: string; content: string };
+type CustomSectionPlacement =
+  | "beforeSummary"
+  | "beforeHighlights"
+  | "beforeWork"
+  | "beforeEducation"
+  | "beforeSkills"
+  | "betweenSkillsTools"
+  | "afterTools"
+  | "end";
+type CustomSection = { id: string; title: string; content: string; placement: CustomSectionPlacement };
 
 const EXPORT_PASSWORD = "Thanh94@@";
 
@@ -104,6 +113,10 @@ function normalizeLang(value: string | null): Lang | null {
   return null;
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
 function CvInner() {
   const router = useRouter();
   const pathname = usePathname();
@@ -123,7 +136,7 @@ function CvInner() {
   const [avatarUrl, setAvatarUrl] = useState("/assets/images/profile-mr-jay.jpg");
   const [avatarX, setAvatarX] = useState(50);
   const [avatarY, setAvatarY] = useState(50);
-  const [avatarSize, setAvatarSize] = useState(100);
+  const [avatarSize, setAvatarSize] = useState(200);
   const [avatarShape, setAvatarShape] = useState<AvatarShape>("circle");
 
   const [customName, setCustomName] = useState(site.profile.fullName);
@@ -144,11 +157,14 @@ function CvInner() {
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [newSectionContent, setNewSectionContent] = useState("");
+  const [newSectionPlacement, setNewSectionPlacement] = useState<CustomSectionPlacement>("beforeWork");
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [exportPassword, setExportPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [isDraggingAvatar, setIsDraggingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setCustomTitle(pickText(site.profile.title, dataLang));
@@ -189,10 +205,11 @@ function CvInner() {
     if (!newSectionTitle.trim() || !newSectionContent.trim()) return;
     setCustomSections((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), title: newSectionTitle.trim(), content: newSectionContent.trim() }
+      { id: crypto.randomUUID(), title: newSectionTitle.trim(), content: newSectionContent.trim(), placement: newSectionPlacement }
     ]);
     setNewSectionTitle("");
     setNewSectionContent("");
+    setNewSectionPlacement("beforeWork");
   };
 
   const removeCustomSection = (id: string) => {
@@ -219,7 +236,89 @@ function CvInner() {
     setIsPasswordModalOpen(false);
   };
 
-  const avatarRoundedClass = avatarShape === "circle" ? "rounded-full" : avatarShape === "rounded" ? "rounded-2xl" : "rounded-none";
+  const updateAvatarPositionFromPointer = (clientX: number, clientY: number, currentTarget: HTMLDivElement) => {
+    const rect = currentTarget.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+    setAvatarX(Math.round(clamp(x, 0, 100)));
+    setAvatarY(Math.round(clamp(y, 0, 100)));
+  };
+
+  const onAvatarPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    setIsDraggingAvatar(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateAvatarPositionFromPointer(e.clientX, e.clientY, e.currentTarget);
+  };
+
+  const onAvatarPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingAvatar) return;
+    updateAvatarPositionFromPointer(e.clientX, e.clientY, e.currentTarget);
+  };
+
+  const onAvatarPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDraggingAvatar(false);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const customSectionsByPlacement = useMemo(() => {
+    return customSections.reduce<Record<CustomSectionPlacement, CustomSection[]>>((acc, section) => {
+      acc[section.placement].push(section);
+      return acc;
+    }, {
+      beforeSummary: [],
+      beforeHighlights: [],
+      beforeWork: [],
+      beforeEducation: [],
+      beforeSkills: [],
+      betweenSkillsTools: [],
+      afterTools: [],
+      end: []
+    });
+  }, [customSections]);
+
+  const renderCustomSections = (placement: CustomSectionPlacement) => {
+    return customSectionsByPlacement[placement].map((section) => (
+      <section key={section.id} className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
+        <div className="mb-2 flex items-center justify-between gap-2 print:block">
+          <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{section.title}</h2>
+          {!isPrintMode && (
+            <button type="button" onClick={() => removeCustomSection(section.id)} className="rounded border px-2 py-1 text-xs" style={{ borderColor: "var(--border)" }}>
+              {dataLang === "vi" ? "Xóa" : "Remove"}
+            </button>
+          )}
+        </div>
+        <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{section.content}</p>
+      </section>
+    ));
+  };
+
+  const renderSidebarCustomSections = (placement: CustomSectionPlacement) => {
+    return customSectionsByPlacement[placement].map((section) => (
+      <section key={section.id} className="mt-6 border-t pt-4" style={{ borderColor: template === "midnight" ? "rgba(255,255,255,0.18)" : paletteStyle.accentSoft }}>
+        <div className="mb-2 flex items-center justify-between gap-2 print:block">
+          <h2 className="text-base font-bold" style={{ color: paletteStyle.accent }}>{section.title}</h2>
+          {!isPrintMode && (
+            <button type="button" onClick={() => removeCustomSection(section.id)} className="rounded border px-2 py-1 text-xs" style={{ borderColor: template === "midnight" ? "rgba(255,255,255,0.25)" : paletteStyle.accentSoft }}>
+              {dataLang === "vi" ? "Xóa" : "Remove"}
+            </button>
+          )}
+        </div>
+        <p className="whitespace-pre-line text-sm leading-relaxed" style={{ color: template === "midnight" ? "#f8fafc" : "#334155" }}>{section.content}</p>
+      </section>
+    ));
+  };
+
+  const avatarFrameClass = avatarShape === "circle" ? "rounded-full" : avatarShape === "rectangle" ? "rounded-lg" : "rounded-none";
+  const avatarFrameStyle = {
+    borderColor: paletteStyle.accent,
+    width: avatarShape === "rectangle" ? `${Math.round(avatarSize * 0.72)}px` : `${avatarSize}px`,
+    height: `${avatarSize}px`,
+    clipPath: avatarShape === "hexagon" ? "polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%)" : undefined,
+    cursor: isDraggingAvatar ? "grabbing" : "grab"
+  };
   const controlFieldStyle = {
     borderColor: "#334155",
     backgroundColor: "#1E293B",
@@ -273,16 +372,19 @@ function CvInner() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Màu chủ đạo" : "Accent color"}</label>
-                  <select
-                    value={palette}
-                    onChange={(e) => updateQuery("palette", e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    style={controlFieldStyle}
-                  >
+                  <div className="grid grid-cols-4 gap-2 rounded-lg border p-2" style={controlFieldStyle}>
                     {paletteOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => updateQuery("palette", option.value)}
+                        title={dataLang === "vi" ? option.labelVi : option.labelEn}
+                        aria-label={dataLang === "vi" ? option.labelVi : option.labelEn}
+                        className={`h-8 rounded border transition ${palette === option.value ? "ring-2 ring-offset-2 ring-offset-slate-800" : ""}`}
+                        style={{ backgroundColor: option.color, borderColor: palette === option.value ? "#F8FAFC" : "#334155" }}
+                      />
                     ))}
-                  </select>
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-semibold">Language</label>
@@ -325,14 +427,19 @@ function CvInner() {
                     <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "URL ảnh avatar" : "Avatar URL"} />
                     <input type="file" accept="image/*" onChange={(e) => onAvatarUpload(e.target.files?.[0] ?? null)} className="text-sm text-slate-100" />
                     <div className="grid gap-2 sm:grid-cols-3">
-                      <label className="text-xs">X <input type="range" min={0} max={100} value={avatarX} onChange={(e) => setAvatarX(Number(e.target.value))} className="w-full" /></label>
-                      <label className="text-xs">Y <input type="range" min={0} max={100} value={avatarY} onChange={(e) => setAvatarY(Number(e.target.value))} className="w-full" /></label>
-                      <label className="text-xs">Size <input type="range" min={80} max={130} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" /></label>
+                      <label className="text-xs">X ({dataLang === "vi" ? "Vị trí ngang ảnh" : "Image horizontal position"}) <input type="range" min={0} max={100} value={avatarX} onChange={(e) => setAvatarX(Number(e.target.value))} className="w-full" /></label>
+                      <label className="text-xs">Y ({dataLang === "vi" ? "Vị trí dọc ảnh" : "Image vertical position"}) <input type="range" min={0} max={100} value={avatarY} onChange={(e) => setAvatarY(Number(e.target.value))} className="w-full" /></label>
+                      <label className="text-xs">Size <input type="range" min={160} max={260} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" /></label>
                     </div>
+                    <p className="text-[11px] text-slate-300">
+                      {dataLang === "vi"
+                        ? "X/Y là tọa độ căn ảnh bên trong khung (không phải kích thước). Bạn cũng có thể kéo trực tiếp ảnh ở CV để canh tâm."
+                        : "X/Y controls image position inside the frame (not size). You can also drag the avatar directly on the CV preview."}
+                    </p>
                     <select value={avatarShape} onChange={(e) => setAvatarShape(e.target.value as AvatarShape)} className="rounded border px-2 py-1.5 text-sm" style={controlFieldStyle}>
                       <option value="circle">{dataLang === "vi" ? "Bo tròn (Circle)" : "Circle"}</option>
-                      <option value="rounded">{dataLang === "vi" ? "Bo góc (Rounded)" : "Rounded"}</option>
-                      <option value="square">{dataLang === "vi" ? "Vuông (Square)" : "Square"}</option>
+                      <option value="rectangle">{dataLang === "vi" ? "Chữ nhật đứng (Portrait Rectangle)" : "Portrait Rectangle"}</option>
+                      <option value="hexagon">{dataLang === "vi" ? "Lục giác (Hexagon)" : "Hexagon"}</option>
                     </select>
                   </div>
                 </div>
@@ -366,6 +473,16 @@ function CvInner() {
                 <div className="mt-2 grid gap-2">
                   <input value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Tiêu đề khối" : "Section title"} />
                   <textarea value={newSectionContent} onChange={(e) => setNewSectionContent(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} rows={3} placeholder={dataLang === "vi" ? "Nội dung" : "Content"} />
+                  <select value={newSectionPlacement} onChange={(e) => setNewSectionPlacement(e.target.value as CustomSectionPlacement)} className="rounded border px-2 py-1.5 text-sm" style={controlFieldStyle}>
+                    <option value="beforeSummary">{dataLang === "vi" ? "Đặt trước khối Mục tiêu" : "Place before Summary"}</option>
+                    <option value="beforeHighlights">{dataLang === "vi" ? "Đặt trước khối Điểm mạnh" : "Place before Highlights"}</option>
+                    <option value="beforeWork">{dataLang === "vi" ? "Đặt trước khối Kinh nghiệm" : "Place before Work"}</option>
+                    <option value="beforeEducation">{dataLang === "vi" ? "Đặt trước khối Học vấn" : "Place before Education"}</option>
+                    <option value="beforeSkills">{dataLang === "vi" ? "Cột trái: trước Kỹ năng chính" : "Left column: before Core skills"}</option>
+                    <option value="betweenSkillsTools">{dataLang === "vi" ? "Cột trái: giữa Kỹ năng và Công cụ" : "Left column: between Skills and Tools"}</option>
+                    <option value="afterTools">{dataLang === "vi" ? "Cột trái: sau Công cụ/Thiết bị" : "Left column: after Tools/Equipment"}</option>
+                    <option value="end">{dataLang === "vi" ? "Đặt cuối CV" : "Place at end of CV"}</option>
+                  </select>
                   <button type="button" onClick={addCustomSection} className="w-fit rounded bg-slate-800 px-3 py-1.5 text-sm text-white">
                     {dataLang === "vi" ? "Thêm khối" : "Add section"}
                   </button>
@@ -385,9 +502,35 @@ function CvInner() {
           data-print-columns={templateStyle.twoColumn ? "two" : "one"}
         >
           <aside className={`p-6 ${templateStyle.sidebar}`}>
-            <div className={`mx-auto overflow-hidden border-4 ${avatarRoundedClass}`} style={{ borderColor: paletteStyle.accent, width: `${avatarSize}px`, height: `${avatarSize}px` }}>
+            <div
+              className={`group relative mx-auto overflow-hidden border-4 ${avatarFrameClass}`}
+              style={avatarFrameStyle}
+              onPointerDown={onAvatarPointerDown}
+              onPointerMove={onAvatarPointerMove}
+              onPointerUp={onAvatarPointerUp}
+              onPointerCancel={onAvatarPointerUp}
+            >
               <img src={avatarUrl} alt={`${customName} profile`} className="h-full w-full object-cover" style={{ objectPosition: `${avatarX}% ${avatarY}%` }} />
+              {!isPrintMode && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    avatarInputRef.current?.click();
+                  }}
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-1 text-[11px] text-white opacity-0 transition group-hover:opacity-100"
+                >
+                  {dataLang === "vi" ? "Đổi ảnh" : "Change photo"}
+                </button>
+              )}
             </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => onAvatarUpload(e.target.files?.[0] ?? null)}
+              className="hidden"
+            />
 
             <h1 className="mt-5 text-2xl font-bold leading-tight">{customName}</h1>
             <p className="mt-1 text-sm font-semibold" style={{ color: template === "midnight" ? "#e2e8f0" : paletteStyle.accentDeep }}>
@@ -401,6 +544,8 @@ function CvInner() {
               <p>🎂 {site.profile.birthDate}</p>
             </div>
 
+            {renderSidebarCustomSections("beforeSkills")}
+
             {sections.skills && (
               <div className="mt-6">
                 <h2 className="text-base font-bold" style={{ color: paletteStyle.accent }}>{dataLang === "vi" ? "Kỹ năng chính" : "Core skills"}</h2>
@@ -408,39 +553,25 @@ function CvInner() {
                   {site.skills.slice(0, 3).map((skillGroup) => (
                     <div key={skillGroup.group.vi}>
                       <p className="text-xs font-semibold uppercase tracking-wide">{pickText(skillGroup.group, dataLang)}</p>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {skillGroup.items.slice(0, 4).map((item) => (
-                          <span
-                            key={`${skillGroup.group.vi}-${item}`}
-                            className="rounded-full px-2 py-0.5 text-[11px]"
-                            style={{ backgroundColor: template === "midnight" ? "rgba(255,255,255,0.16)" : paletteStyle.accentSoft, color: template === "midnight" ? "#fff" : "#0f172a" }}
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="mt-1 text-[11px]" style={{ color: template === "midnight" ? "#fff" : "#0f172a" }}>
+                        {skillGroup.items.slice(0, 4).join(", ")}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
+            {renderSidebarCustomSections("betweenSkillsTools")}
+
             {sections.tools && (
               <div className="mt-6">
                 <h2 className="text-base font-bold" style={{ color: paletteStyle.accent }}>{dataLang === "vi" ? "Công cụ/Thiết bị" : "Tools/Equipment"}</h2>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {topTools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="rounded-full px-2 py-0.5 text-[11px]"
-                      style={{ backgroundColor: template === "midnight" ? "rgba(255,255,255,0.16)" : paletteStyle.accentSoft, color: template === "midnight" ? "#fff" : "#0f172a" }}
-                    >
-                      {tool}
-                    </span>
-                  ))}
-                </div>
+                <p className="mt-2 text-[11px]" style={{ color: template === "midnight" ? "#fff" : "#0f172a" }}>{topTools.join(", ")}</p>
               </div>
             )}
+
+            {renderSidebarCustomSections("afterTools")}
 
             <div className="mt-6 rounded-lg border p-3 text-center" style={{ borderColor: template === "midnight" ? "rgba(255,255,255,0.25)" : paletteStyle.accentSoft }}>
               <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: template === "midnight" ? "#e2e8f0" : paletteStyle.accentDeep }}>
@@ -454,12 +585,16 @@ function CvInner() {
           </aside>
 
           <main className={`p-6 ${templateStyle.main}`}>
+            {renderCustomSections("beforeSummary")}
+
             {sections.summary && (
               <section>
                 <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{dataLang === "vi" ? "Mục tiêu nghề nghiệp" : "Career objective"}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-700">{customSlogan}</p>
               </section>
             )}
+
+            {renderCustomSections("beforeHighlights")}
 
             {sections.highlights && (
               <section className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
@@ -472,6 +607,8 @@ function CvInner() {
               </section>
             )}
 
+            {renderCustomSections("beforeWork")}
+
             {sections.work && (
               <section className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
                 <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{dataLang === "vi" ? "Kinh nghiệm làm việc" : "Work experience"}</h2>
@@ -480,7 +617,7 @@ function CvInner() {
                     <article key={item.id}>
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="font-semibold text-slate-900">{item.company}</p>
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${templateStyle.chip}`}>{item.startDate} - {item.endDate}</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ color: paletteStyle.accentDeep }}>{item.startDate} - {item.endDate}</span>
                       </div>
                       <p className="text-sm font-medium" style={{ color: paletteStyle.accentDeep }}>{pickText(item.role, dataLang)}</p>
                       <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
@@ -493,6 +630,8 @@ function CvInner() {
                 </div>
               </section>
             )}
+
+            {renderCustomSections("beforeEducation")}
 
             {sections.education && educationItems.length > 0 && (
               <section className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
@@ -509,19 +648,7 @@ function CvInner() {
               </section>
             )}
 
-            {customSections.map((section) => (
-              <section key={section.id} className={`mt-5 border-t pt-4 ${templateStyle.divider}`}>
-                <div className="mb-2 flex items-center justify-between gap-2 print:block">
-                  <h2 className={`text-xl font-bold ${templateStyle.heading}`} style={{ color: paletteStyle.accentDeep }}>{section.title}</h2>
-                  {!isPrintMode && (
-                    <button type="button" onClick={() => removeCustomSection(section.id)} className="rounded border px-2 py-1 text-xs" style={{ borderColor: "var(--border)" }}>
-                      {dataLang === "vi" ? "Xóa" : "Remove"}
-                    </button>
-                  )}
-                </div>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{section.content}</p>
-              </section>
-            ))}
+            {renderCustomSections("end")}
           </main>
         </div>
       </article>

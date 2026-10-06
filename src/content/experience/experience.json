@@ -115,7 +115,7 @@
       "responsibilities": {
         "vi": [
         "Đảm nhiệm vai trò Setup chính trong giai đoạn thành lập nhà máy: Đảm bảo lắp đặt, cân chỉnh, lập trình chương trình SMT và đưa dây chuyền vào vận hành đúng tiến độ.",
-        "Kiêm nhiệm quản lý sản xuất và kỹ thuật giai đoạn đầu; sau đó chuyển giao và tập trung quản lý, đào tạo đội ngũ Kỹ sư Kỹ thuật (Engineers/Technicians).",
+        "Kiêm đảm nhiệm quản lý sản xuất và kỹ thuật giai đoạn đầu; sau đó chuyển giao và tập trung quản lý, đào tạo đội ngũ Kỹ sư Kỹ thuật (Engineers/Technicians).",
         "Trực tiếp lập trình máy SMT, tối ưu hóa cân bằng chuyền (Line Balancing), bảo trì định kỳ và sửa chữa chuyên sâu hệ thống thiết bị SMT.",
         "Chủ trì phối hợp sản xuất hàng mẫu (NPI), phân tích nguyên nhân gốc rễ (RCA) để xử lý lỗi linh kiện/sản phẩm và cải tiến quy trình công nghệ."
         ],
@@ -272,7 +272,7 @@
       "id": "jabil-2016",
       "company": "JABIL VIETNAM COMPANY LIMITED",
       "role": {
-        "vi": "Kỹ thuật(Quản lý và setup máy test và debug board)",
+        "vi": "Kỹ thuật(Quản lý, setup máy test và debug board)",
         "en": "Techical (Test & Debug Board Setup Jig & Fixture)"
       },
       "startDate": "2016-10",
