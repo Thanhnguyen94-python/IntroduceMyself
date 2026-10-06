@@ -24,6 +24,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ ok: true, data: saved });
   } catch (error) {
     console.error("[admin-site-visibility] save failed", error);
-    return NextResponse.json({ message: "Cannot save site visibility now." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Cannot save site visibility now.";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

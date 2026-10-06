@@ -7,7 +7,8 @@ export async function GET() {
   try {
     const data = await readSiteVisibility();
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ message: "Cannot load site visibility." }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Cannot load site visibility.";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

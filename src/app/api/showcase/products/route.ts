@@ -7,7 +7,8 @@ export async function GET() {
   try {
     const data = await readShowcaseData();
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ message: "Cannot load showcase data." }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Cannot load showcase data.";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
