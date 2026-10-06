@@ -78,3 +78,64 @@ body {
     transform: none;
   }
 }
+
+@page {
+  size: A4 portrait;
+  margin: 8mm;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    min-height: 297mm;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background-image: none !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .cv-print-area,
+  .cv-print-area * {
+    visibility: visible !important;
+  }
+
+  .cv-print-area {
+    position: absolute !important;
+    left: 50% !important;
+    top: 0 !important;
+    transform: translateX(-50%) !important;
+    width: 194mm !important;
+    min-height: 281mm !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    page-break-inside: avoid;
+  }
+
+  .cv-layout {
+    min-height: 281mm !important;
+    break-inside: avoid;
+  }
+
+  .cv-layout[data-print-columns="two"] {
+    display: grid !important;
+    grid-template-columns: 280px 1fr !important;
+  }
+
+  .cv-layout[data-print-columns="one"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+}

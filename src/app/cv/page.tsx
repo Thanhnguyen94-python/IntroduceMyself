@@ -148,6 +148,7 @@ function CvInner() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [exportPassword, setExportPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   useEffect(() => {
     setCustomTitle(pickText(site.profile.title, dataLang));
@@ -219,133 +220,170 @@ function CvInner() {
   };
 
   const avatarRoundedClass = avatarShape === "circle" ? "rounded-full" : avatarShape === "rounded" ? "rounded-2xl" : "rounded-none";
+  const controlFieldStyle = {
+    borderColor: "#334155",
+    backgroundColor: "#1E293B",
+    color: "#F1F5F9"
+  };
+  const overviewUrl = typeof window !== "undefined" ? `${window.location.origin}/tong-quan` : "/tong-quan";
+  const overviewQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(overviewUrl)}`;
 
   return (
-    <section className="mx-auto max-w-[1150px] space-y-4">
-      {!isPrintMode && (
-        <div className="card print:hidden space-y-4">
-          <div className="grid gap-3 lg:grid-cols-4">
-            <div>
-              <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Mẫu CV" : "Template"}</label>
-              <select
-                value={template}
-                onChange={(e) => updateQuery("template", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm"
-                style={{ borderColor: "var(--border)" }}
+    <section className="mx-auto max-w-[1150px] space-y-4 cv-print-root">
+      {!isPrintMode && !isCustomizerOpen && (
+        <button
+          type="button"
+          onClick={() => setIsCustomizerOpen(true)}
+          className="fixed bottom-6 right-6 z-40 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg print:hidden"
+          style={{ backgroundColor: paletteStyle.accent }}
+        >
+          {dataLang === "vi" ? "Tùy chỉnh CV" : "Customize CV"}
+        </button>
+      )}
+
+      {!isPrintMode && isCustomizerOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 p-4 print:hidden">
+          <div className="mx-auto max-h-[92vh] w-full max-w-[1100px] overflow-y-auto rounded-2xl border bg-slate-900 p-4 text-slate-100 shadow-xl" style={{ borderColor: "#334155" }}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-base font-semibold">{dataLang === "vi" ? "Tùy chỉnh CV" : "Customize CV"}</h3>
+              <button
+                type="button"
+                onClick={() => setIsCustomizerOpen(false)}
+                className="rounded border px-3 py-1.5 text-sm"
+                style={{ borderColor: "#334155", color: "#F1F5F9" }}
               >
-                {templateOptions.map((option) => (
-                  <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Màu chủ đạo" : "Accent color"}</label>
-              <select
-                value={palette}
-                onChange={(e) => updateQuery("palette", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm"
-                style={{ borderColor: "var(--border)" }}
-              >
-                {paletteOptions.map((option) => (
-                  <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold">Language</label>
-              <select
-                value={dataLang}
-                onChange={(e) => updateQuery("lang", e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <option value="vi">Tiếng Việt</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-            <button
-              type="button"
-              onClick={openExportModal}
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
-              style={{ backgroundColor: paletteStyle.accent }}
-            >
-              {dataLang === "vi" ? "Xuất PDF (có mật khẩu)" : "Export PDF (password)"}
-            </button>
-          </div>
-
-          <div className="grid gap-3 lg:grid-cols-2">
-            <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
-              <p className="text-sm font-semibold">{dataLang === "vi" ? "Tùy chỉnh nhanh nội dung" : "Quick content edits"}</p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <input value={customName} onChange={(e) => setCustomName(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Họ tên" : "Full name"} />
-                <input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Chức danh" : "Title"} />
-                <input value={customEmail} onChange={(e) => setCustomEmail(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder="Email" />
-                <input value={customPhone} onChange={(e) => setCustomPhone(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Điện thoại" : "Phone"} />
-                <input value={customLocation} onChange={(e) => setCustomLocation(e.target.value)} className="rounded border px-2 py-1.5 text-sm sm:col-span-2" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Địa chỉ" : "Location"} />
-                <textarea value={customSlogan} onChange={(e) => setCustomSlogan(e.target.value)} className="rounded border px-2 py-1.5 text-sm sm:col-span-2" style={{ borderColor: "var(--border)" }} rows={3} placeholder={dataLang === "vi" ? "Mục tiêu nghề nghiệp" : "Career objective"} />
-              </div>
-            </div>
-
-            <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
-              <p className="text-sm font-semibold">{dataLang === "vi" ? "Avatar & bố cục" : "Avatar & layout"}</p>
-              <div className="mt-2 grid gap-2">
-                <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "URL ảnh avatar" : "Avatar URL"} />
-                <input type="file" accept="image/*" onChange={(e) => onAvatarUpload(e.target.files?.[0] ?? null)} className="text-sm" />
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <label className="text-xs">X <input type="range" min={0} max={100} value={avatarX} onChange={(e) => setAvatarX(Number(e.target.value))} className="w-full" /></label>
-                  <label className="text-xs">Y <input type="range" min={0} max={100} value={avatarY} onChange={(e) => setAvatarY(Number(e.target.value))} className="w-full" /></label>
-                  <label className="text-xs">Size <input type="range" min={80} max={130} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" /></label>
-                </div>
-                <select value={avatarShape} onChange={(e) => setAvatarShape(e.target.value as AvatarShape)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }}>
-                  <option value="circle">{dataLang === "vi" ? "Bo tròn (Circle)" : "Circle"}</option>
-                  <option value="rounded">{dataLang === "vi" ? "Bo góc (Rounded)" : "Rounded"}</option>
-                  <option value="square">{dataLang === "vi" ? "Vuông (Square)" : "Square"}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
-            <p className="text-sm font-semibold">{dataLang === "vi" ? "Bật/Tắt khối nội dung" : "Toggle content blocks"}</p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-              {([
-                ["summary", dataLang === "vi" ? "Mục tiêu" : "Summary"],
-                ["highlights", dataLang === "vi" ? "Điểm mạnh" : "Highlights"],
-                ["work", dataLang === "vi" ? "Kinh nghiệm" : "Work"],
-                ["education", dataLang === "vi" ? "Học vấn" : "Education"],
-                ["skills", dataLang === "vi" ? "Kỹ năng" : "Skills"],
-                ["tools", dataLang === "vi" ? "Thiết bị" : "Tools"]
-              ] as const).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 rounded border px-2 py-1 text-sm" style={{ borderColor: "var(--border)" }}>
-                  <input
-                    type="checkbox"
-                    checked={sections[key]}
-                    onChange={(e) => setSections((prev) => ({ ...prev, [key]: e.target.checked }))}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
-            <p className="text-sm font-semibold">{dataLang === "vi" ? "Thêm bố cục mới (custom section)" : "Add custom section"}</p>
-            <div className="mt-2 grid gap-2">
-              <input value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} placeholder={dataLang === "vi" ? "Tiêu đề khối" : "Section title"} />
-              <textarea value={newSectionContent} onChange={(e) => setNewSectionContent(e.target.value)} className="rounded border px-2 py-1.5 text-sm" style={{ borderColor: "var(--border)" }} rows={3} placeholder={dataLang === "vi" ? "Nội dung" : "Content"} />
-              <button type="button" onClick={addCustomSection} className="w-fit rounded bg-slate-800 px-3 py-1.5 text-sm text-white">
-                {dataLang === "vi" ? "Thêm khối" : "Add section"}
+                {dataLang === "vi" ? "Đóng" : "Close"}
               </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid gap-3 lg:grid-cols-4">
+                <div>
+                  <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Mẫu CV" : "Template"}</label>
+                  <select
+                    value={template}
+                    onChange={(e) => updateQuery("template", e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={controlFieldStyle}
+                  >
+                    {templateOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold">{dataLang === "vi" ? "Màu chủ đạo" : "Accent color"}</label>
+                  <select
+                    value={palette}
+                    onChange={(e) => updateQuery("palette", e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={controlFieldStyle}
+                  >
+                    {paletteOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{dataLang === "vi" ? option.labelVi : option.labelEn}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold">Language</label>
+                  <select
+                    value={dataLang}
+                    onChange={(e) => updateQuery("lang", e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={controlFieldStyle}
+                  >
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={openExportModal}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                  style={{ backgroundColor: paletteStyle.accent }}
+                >
+                  {dataLang === "vi" ? "Xuất PDF (có mật khẩu)" : "Export PDF (password)"}
+                </button>
+              </div>
+
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
+                  <p className="text-sm font-semibold">{dataLang === "vi" ? "Tùy chỉnh nhanh nội dung" : "Quick content edits"}</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <input value={customName} onChange={(e) => setCustomName(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Họ tên" : "Full name"} />
+                    <input value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Chức danh" : "Title"} />
+                    <input value={customEmail} onChange={(e) => setCustomEmail(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder="Email" />
+                    <input value={customPhone} onChange={(e) => setCustomPhone(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Điện thoại" : "Phone"} />
+                    <input value={customLocation} onChange={(e) => setCustomLocation(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300 sm:col-span-2" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Địa chỉ" : "Location"} />
+                    <textarea value={customSlogan} onChange={(e) => setCustomSlogan(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300 sm:col-span-2" style={controlFieldStyle} rows={3} placeholder={dataLang === "vi" ? "Mục tiêu nghề nghiệp" : "Career objective"} />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
+                  <p className="text-sm font-semibold">{dataLang === "vi" ? "Avatar & bố cục" : "Avatar & layout"}</p>
+                  <div className="mt-2 grid gap-2">
+                    <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "URL ảnh avatar" : "Avatar URL"} />
+                    <input type="file" accept="image/*" onChange={(e) => onAvatarUpload(e.target.files?.[0] ?? null)} className="text-sm text-slate-100" />
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <label className="text-xs">X <input type="range" min={0} max={100} value={avatarX} onChange={(e) => setAvatarX(Number(e.target.value))} className="w-full" /></label>
+                      <label className="text-xs">Y <input type="range" min={0} max={100} value={avatarY} onChange={(e) => setAvatarY(Number(e.target.value))} className="w-full" /></label>
+                      <label className="text-xs">Size <input type="range" min={80} max={130} value={avatarSize} onChange={(e) => setAvatarSize(Number(e.target.value))} className="w-full" /></label>
+                    </div>
+                    <select value={avatarShape} onChange={(e) => setAvatarShape(e.target.value as AvatarShape)} className="rounded border px-2 py-1.5 text-sm" style={controlFieldStyle}>
+                      <option value="circle">{dataLang === "vi" ? "Bo tròn (Circle)" : "Circle"}</option>
+                      <option value="rounded">{dataLang === "vi" ? "Bo góc (Rounded)" : "Rounded"}</option>
+                      <option value="square">{dataLang === "vi" ? "Vuông (Square)" : "Square"}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
+                <p className="text-sm font-semibold">{dataLang === "vi" ? "Bật/Tắt khối nội dung" : "Toggle content blocks"}</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                  {([
+                    ["summary", dataLang === "vi" ? "Mục tiêu" : "Summary"],
+                    ["highlights", dataLang === "vi" ? "Điểm mạnh" : "Highlights"],
+                    ["work", dataLang === "vi" ? "Kinh nghiệm" : "Work"],
+                    ["education", dataLang === "vi" ? "Học vấn" : "Education"],
+                    ["skills", dataLang === "vi" ? "Kỹ năng" : "Skills"],
+                    ["tools", dataLang === "vi" ? "Thiết bị" : "Tools"]
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 rounded border px-2 py-1 text-sm" style={{ borderColor: "#334155" }}>
+                      <input
+                        type="checkbox"
+                        checked={sections[key]}
+                        onChange={(e) => setSections((prev) => ({ ...prev, [key]: e.target.checked }))}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
+                <p className="text-sm font-semibold">{dataLang === "vi" ? "Thêm bố cục mới (custom section)" : "Add custom section"}</p>
+                <div className="mt-2 grid gap-2">
+                  <input value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Tiêu đề khối" : "Section title"} />
+                  <textarea value={newSectionContent} onChange={(e) => setNewSectionContent(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} rows={3} placeholder={dataLang === "vi" ? "Nội dung" : "Content"} />
+                  <button type="button" onClick={addCustomSection} className="w-fit rounded bg-slate-800 px-3 py-1.5 text-sm text-white">
+                    {dataLang === "vi" ? "Thêm khối" : "Add section"}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       <article
-        className={`overflow-hidden rounded-2xl border shadow-sm print:shadow-none ${templateStyle.shell}`}
+        className={`cv-print-area overflow-hidden rounded-2xl border shadow-sm print:shadow-none ${templateStyle.shell}`}
         style={{ borderColor: paletteStyle.accentSoft }}
       >
-        <div className={templateStyle.twoColumn ? "grid min-h-[1120px] md:grid-cols-[280px_1fr]" : "grid min-h-[1120px] md:grid-cols-1"}>
+        <div
+          className={`cv-layout grid min-h-[1120px] ${templateStyle.twoColumn ? "md:grid-cols-[280px_1fr]" : "md:grid-cols-1"}`}
+          data-print-columns={templateStyle.twoColumn ? "two" : "one"}
+        >
           <aside className={`p-6 ${templateStyle.sidebar}`}>
             <div className={`mx-auto overflow-hidden border-4 ${avatarRoundedClass}`} style={{ borderColor: paletteStyle.accent, width: `${avatarSize}px`, height: `${avatarSize}px` }}>
               <img src={avatarUrl} alt={`${customName} profile`} className="h-full w-full object-cover" style={{ objectPosition: `${avatarX}% ${avatarY}%` }} />
@@ -403,6 +441,16 @@ function CvInner() {
                 </div>
               </div>
             )}
+
+            <div className="mt-6 rounded-lg border p-3 text-center" style={{ borderColor: template === "midnight" ? "rgba(255,255,255,0.25)" : paletteStyle.accentSoft }}>
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: template === "midnight" ? "#e2e8f0" : paletteStyle.accentDeep }}>
+                {dataLang === "vi" ? "Xem CV chi tiết tại" : "View detailed CV at"}
+              </p>
+              <img src={overviewQrUrl} alt="QR to overview page" className="mx-auto mt-2 h-24 w-24 rounded bg-white p-1" />
+              <p className="mt-2 break-all text-[11px] leading-relaxed" style={{ color: template === "midnight" ? "#f8fafc" : "#334155" }}>
+                {overviewUrl}
+              </p>
+            </div>
           </aside>
 
           <main className={`p-6 ${templateStyle.main}`}>
