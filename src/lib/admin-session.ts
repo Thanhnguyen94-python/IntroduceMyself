@@ -4,10 +4,14 @@ export const ADMIN_SESSION_COOKIE = "admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 function getAdminConfig() {
+  const username = (process.env.ADMIN_USERNAME ?? process.env.ADMIN_USER ?? "admin").trim();
+  const password = (process.env.ADMIN_PASSWORD ?? process.env.ADMIN_PASS ?? "Thanh94@@").trim();
+  const sessionSecret = (process.env.ADMIN_SESSION_SECRET ?? "change-this-secret-in-production").trim();
+
   return {
-    username: process.env.ADMIN_USERNAME ?? "admin",
-    password: process.env.ADMIN_PASSWORD ?? "Thanh94@@",
-    sessionSecret: process.env.ADMIN_SESSION_SECRET ?? "change-this-secret-in-production"
+    username,
+    password,
+    sessionSecret
   };
 }
 
@@ -26,7 +30,7 @@ function safeCompare(a: string, b: string) {
 
 export function verifyAdminCredentials(username: string, password: string) {
   const config = getAdminConfig();
-  return safeCompare(username, config.username) && safeCompare(password, config.password);
+  return safeCompare(username.trim(), config.username) && safeCompare(password.trim(), config.password);
 }
 
 export function createAdminSessionToken(username: string) {

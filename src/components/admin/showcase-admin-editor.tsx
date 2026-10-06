@@ -37,6 +37,11 @@ export function ShowcaseAdminEditor() {
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [message, setMessage] = useState("");
   const [visibilityMessage, setVisibilityMessage] = useState("");
+  const [uploadBucket, setUploadBucket] = useState<"images" | "videos" | "docs">("images");
+  const [uploadFolder, setUploadFolder] = useState("admin");
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState("");
+  const [uploadMessage, setUploadMessage] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -144,6 +149,36 @@ export function ShowcaseAdminEditor() {
     window.location.href = "/admin/login";
   };
 
+  const uploadFile = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    setUploadMessage("");
+    setUploadedUrl("");
+
+    const body = new FormData();
+    body.append("file", file);
+    body.append("bucket", uploadBucket);
+    body.append("folder", uploadFolder || "admin");
+
+    const response = await fetch("/api/admin/storage/upload", {
+      method: "POST",
+      body
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as { message?: string; publicUrl?: string };
+
+    if (!response.ok) {
+      setUploadMessage(payload.message ?? "Upload thất bại.");
+      setUploading(false);
+      return;
+    }
+
+    const url = payload.publicUrl ?? "";
+    setUploadedUrl(url);
+    setUploadMessage("Upload thành công.");
+    setUploading(false);
+  };
+
   if (loading) {
     return <section className="card">Đang tải dữ liệu quản trị...</section>;
   }
@@ -203,6 +238,57 @@ export function ShowcaseAdminEditor() {
           </button>
           {visibilityMessage && <p className="text-sm text-emerald-600 dark:text-emerald-400">{visibilityMessage}</p>}
         </div>
+      </div>
+
+      <div className="card space-y-3">
+        <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">Upload media lên Supabase Storage</h2>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>
+          Tải ảnh/video/tài liệu lên cloud, sau đó copy URL để dán vào các trường `image`, `gallery` hoặc tài liệu.
+        </p>
+        <div className="grid gap-3 md:grid-cols-3">
+          <select
+            value={uploadBucket}
+            onChange={(e) => setUploadBucket(e.target.value as "images" | "videos" | "docs")}
+            className="rounded-lg border px-3 py-2 text-sm"
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+          >
+            <option value="images">images</option>
+            <option value="videos">videos</option>
+            <option value="docs">docs</option>
+          </select>
+          <input
+            value={uploadFolder}
+            onChange={(e) => setUploadFolder(e.target.value)}
+            placeholder="Folder (vd: projects, docs, showcase)"
+            className="rounded-lg border px-3 py-2 text-sm md:col-span-2"
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+          />
+          <input
+            type="file"
+            onChange={(e) => uploadFile(e.target.files?.[0] ?? null)}
+            className="rounded-lg border px-3 py-2 text-sm md:col-span-3"
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+            disabled={uploading}
+          />
+        </div>
+        {uploadMessage && <p className="text-sm" style={{ color: uploadedUrl ? "#10b981" : "#ef4444" }}>{uploadMessage}</p>}
+        {uploadedUrl && (
+          <div className="space-y-2">
+            <input
+              readOnly
+              value={uploadedUrl}
+              className="w-full rounded-lg border px-3 py-2 text-xs"
+              style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+            />
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(uploadedUrl)}
+              className="rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white"
+            >
+              Copy URL
+            </button>
+          </div>
+        )}
       </div>
 
       {data.items.map((item, index) => (
