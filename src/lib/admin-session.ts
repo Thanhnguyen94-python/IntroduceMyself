@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { compareSync } from "bcryptjs";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -39,6 +40,28 @@ export async function verifyAdminCredentials(username: string, password: string)
   if (isSupabaseConfigured()) {
     const supabase = getSupabaseServerClient();
     if (!supabase) return false;
+
+    const { data: profileRows, error: profileError } = await supabase
+      .from("admin_profiles")
+      .select("username,email,password_hash,is_active")
+      .eq("is_active", true)
+      .limit(100);
+
+    if (!profileError && Array.isArray(profileRows) && profileRows.length > 0) {
+      const matchedProfile = profileRows.find((row) => {
+        const rowUsername = String(row.username ?? "").trim().toLowerCase();
+        const rowEmail = String(row.email ?? "").trim().toLowerCase();
+        return rowUsername === identifier || rowEmail === identifier;
+      });
+
+      if (matchedProfile?.password_hash) {
+        try {
+          return compareSync(cleanPassword, String(matchedProfile.password_hash));
+        } catch (error) {
+          console.error("[admin-auth] bcrypt compare failed", error);
+        }
+      }
+    }
 
     const { data, error } = await supabase.rpc("verify_admin_login", {
       p_identifier: identifier,
