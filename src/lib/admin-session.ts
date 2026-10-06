@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { compareSync } from "bcryptjs";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@supabase/supabase-js";
+import { getSupabaseEnv } from "@/lib/supabase/config";
 
 export const ADMIN_SESSION_COOKIE = "admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
@@ -37,26 +37,35 @@ export async function verifyAdminCredentials(username: string, password: string)
 
   if (!identifier || !cleanPassword) return false;
 
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    if (!supabase) return false;
+  const { url, serviceRoleKey, anonKey } = getSupabaseEnv();
+  const supabaseKey = serviceRoleKey || anonKey;
+
+  if (url && supabaseKey) {
+    const supabase = createClient(url, supabaseKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
 
     const { data: profileRows, error: profileError } = await supabase
       .from("admin_profiles")
       .select("username,email,password_hash,is_active")
       .eq("is_active", true)
-      .limit(100);
+      .or(`username.eq.${identifier},email.eq.${identifier}`)
+      .limit(1);
 
     if (!profileError && Array.isArray(profileRows) && profileRows.length > 0) {
-      const matchedProfile = profileRows.find((row) => {
-        const rowUsername = String(row.username ?? "").trim().toLowerCase();
-        const rowEmail = String(row.email ?? "").trim().toLowerCase();
-        return rowUsername === identifier || rowEmail === identifier;
-      });
+      const matchedProfile = profileRows[0];
 
       if (matchedProfile?.password_hash) {
         try {
-          return compareSync(cleanPassword, String(matchedProfile.password_hash));
+          const storedHash = String(matchedProfile.password_hash);
+          if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+            return compareSync(cleanPassword, storedHash);
+          }
+
+          return safeCompare(cleanPassword, storedHash);
         } catch (error) {
           console.error("[admin-auth] bcrypt compare failed", error);
         }
