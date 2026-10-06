@@ -12,5 +12,5 @@ import type { DocsData, ExperienceData, ProjectsData, SiteData } from "@/lib/con
 
 export const getSiteData = () => normalizeSiteData(siteJson as SiteData);
 export const getExperienceData = () => normalizeExperienceData(experienceJson as ExperienceData);
-export const getProjectsData = () => normalizeProjectsData(projectsJson as ProjectsData);
+export const getProjectsData = () => normalizeProjectsData(projectsJson as unknown as ProjectsData);
 export const getDocsData = () => normalizeDocsData(docsJson as DocsData);

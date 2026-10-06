@@ -2,6 +2,17 @@ import type { DocsData, ExperienceData, ProjectsData, SiteData } from "@/lib/con
 
 const LATEST_SCHEMA = 1;
 
+function normalizeTextValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item : ""))
+      .filter(Boolean)
+      .join("\n");
+  }
+  return "";
+}
+
 export function normalizeSiteData(raw: SiteData): SiteData {
   return {
     ...raw,
@@ -67,14 +78,25 @@ export function normalizeProjectsData(raw: ProjectsData): ProjectsData {
   return {
     schemaVersion: raw.schemaVersion ?? LATEST_SCHEMA,
     items: (raw.items ?? []).map((item) => ({
-      ...item,
+      id: item.id ?? "",
+      slug: item.slug ?? "",
+      title: {
+        vi: normalizeTextValue(item.title?.vi),
+        en: normalizeTextValue(item.title?.en)
+      },
+      category: item.category,
+      status: item.status,
+      summary: {
+        vi: normalizeTextValue(item.summary?.vi),
+        en: normalizeTextValue(item.summary?.en)
+      },
       objective: {
-        vi: item.objective?.vi ?? "",
-        en: item.objective?.en ?? ""
+        vi: normalizeTextValue(item.objective?.vi),
+        en: normalizeTextValue(item.objective?.en)
       },
       description: {
-        vi: item.description?.vi ?? "",
-        en: item.description?.en ?? ""
+        vi: normalizeTextValue(item.description?.vi),
+        en: normalizeTextValue(item.description?.en)
       },
       equipmentTags: item.equipmentTags ?? [],
       gallery: item.gallery ?? [],
