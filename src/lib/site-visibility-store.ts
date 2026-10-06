@@ -11,6 +11,10 @@ type SiteVisibilityRow = {
   is_enabled: boolean;
 };
 
+function isProductionRuntime() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+}
+
 function createDefaultVisibility(): SiteVisibilityConfig {
   return {
     schemaVersion: 1,
@@ -95,6 +99,12 @@ export async function writeSiteVisibility(input: SiteVisibilityConfig): Promise<
     if (!error) {
       return normalized;
     }
+
+    if (isProductionRuntime()) {
+      throw new Error(`Supabase write failed (site_visibility upsert): ${error.message}`);
+    }
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
   }
 
   await fs.writeFile(visibilityPath, `${JSON.stringify(normalized, null, 2)}\n`, "utf-8");

@@ -22,6 +22,10 @@ type ShowcaseProductRow = {
   sort_order: number;
 };
 
+function isProductionRuntime() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+}
+
 function normalizePayload(data: ShowcaseData): ShowcaseData {
   return {
     schemaVersion: 1,
@@ -159,10 +163,20 @@ export async function writeShowcaseData(data: ShowcaseData) {
       .from("showcase_products")
       .upsert(rows, { onConflict: "id" });
 
+    if (upsertError) {
+      if (isProductionRuntime()) {
+        throw new Error(`Supabase write failed (showcase_products upsert): ${upsertError.message}`);
+      }
+    }
+
     if (!upsertError) {
       const { data: existingRows, error: existingError } = await supabase
         .from("showcase_products")
         .select("id");
+
+      if (existingError && isProductionRuntime()) {
+        throw new Error(`Supabase read-after-write failed (showcase_products select): ${existingError.message}`);
+      }
 
       if (!existingError) {
         const keepIds = new Set(rows.map((row) => row.id));
@@ -176,6 +190,10 @@ export async function writeShowcaseData(data: ShowcaseData) {
             .delete()
             .in("id", staleIds);
 
+          if (deleteError && isProductionRuntime()) {
+            throw new Error(`Supabase cleanup failed (showcase_products delete): ${deleteError.message}`);
+          }
+
           if (!deleteError) {
             return;
           }
@@ -184,6 +202,8 @@ export async function writeShowcaseData(data: ShowcaseData) {
         }
       }
     }
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
   }
 
   await writeShowcaseDataToFile(payload);

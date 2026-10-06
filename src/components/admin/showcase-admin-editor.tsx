@@ -139,7 +139,8 @@ export function ShowcaseAdminEditor() {
     });
 
     if (!response.ok) {
-      setMessage("Lưu thất bại. Kiểm tra đăng nhập admin.");
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+      setMessage(payload.message ?? "Lưu thất bại. Kiểm tra đăng nhập admin.");
       setSaving(false);
       return;
     }
@@ -161,7 +162,8 @@ export function ShowcaseAdminEditor() {
     });
 
     if (!response.ok) {
-      setVisibilityMessage("Lưu cài đặt hiển thị thất bại.");
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+      setVisibilityMessage(payload.message ?? "Lưu cài đặt hiển thị thất bại.");
       setSavingVisibility(false);
       return;
     }
