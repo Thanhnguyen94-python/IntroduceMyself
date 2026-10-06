@@ -28,7 +28,7 @@ select
   'Administrator',
   'admin',
   true,
-  crypt('Thanh94@@', gen_salt('bf'))
+  extensions.crypt('Thanh94@@', extensions.gen_salt('bf'))
 where not exists (
   select 1 from public.admin_profiles where coalesce(username, '') <> ''
 );
@@ -37,7 +37,7 @@ where not exists (
 update public.admin_profiles
 set
   username = coalesce(nullif(trim(username), ''), 'admin'),
-  password_hash = coalesce(nullif(password_hash, ''), crypt('Thanh94@@', gen_salt('bf'))),
+  password_hash = coalesce(nullif(password_hash, ''), extensions.crypt('Thanh94@@', extensions.gen_salt('bf'))),
   updated_at = now()
 where id in (
   select id
@@ -75,7 +75,7 @@ as $$
       or lower(coalesce(ap.email, '')) = lower(coalesce(p_identifier, ''))
     )
     and coalesce(ap.password_hash, '') <> ''
-    and ap.password_hash = crypt(coalesce(p_password, ''), ap.password_hash)
+    and ap.password_hash = extensions.crypt(coalesce(p_password, ''), ap.password_hash)
   limit 1;
 $$;
 
