@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const productId = String(body?.productId ?? "").trim() || undefined;
   const address = String(body?.address ?? "").trim() || undefined;
   const quantity = Number(body?.quantity ?? 1);
-  const rawLineItems = Array.isArray(body?.lineItems) ? body.lineItems : [];
+  const rawLineItems: unknown[] = Array.isArray(body?.lineItems) ? body.lineItems : [];
 
   if (!customerName || !contact || !note) {
     return NextResponse.json({ message: "Thiếu thông tin bắt buộc." }, { status: 400 });
@@ -26,9 +26,10 @@ export async function POST(request: Request) {
   const productMap = new Map(showcase.items.map((item) => [item.id, item]));
 
   const lineItems = rawLineItems
-    .map((line) => {
-      const lineProductId = String(line?.productId ?? "").trim();
-      const lineQtyRaw = Number(line?.quantity ?? 1);
+    .map((line: unknown) => {
+      const candidate = typeof line === "object" && line !== null ? (line as Record<string, unknown>) : null;
+      const lineProductId = String(candidate?.productId ?? "").trim();
+      const lineQtyRaw = Number(candidate?.quantity ?? 1);
       const lineQty = Number.isFinite(lineQtyRaw) ? Math.max(1, Math.floor(lineQtyRaw)) : 1;
       const product = productMap.get(lineProductId);
       if (!lineProductId || !product) return null;
