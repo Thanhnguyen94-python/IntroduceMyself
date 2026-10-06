@@ -118,7 +118,7 @@ export default function TongQuanPage() {
           
         </div>
         <div className="card">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{lang === "vi" ? "Vai trò dẫn dắt" : "Leadership"}</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{lang === "vi" ? "Vai trò dẫn dắt" : "Leader"}</p>
           <p className="mt-1 text-2xl font-bold text-brand-700 dark:text-brand-200">{leaderYears}+ {lang === "vi" ? "năm" : "years"}</p>
         </div>
         
@@ -141,8 +141,8 @@ export default function TongQuanPage() {
             <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{lang === "vi" ? "Cải tiến đã thực hiện" : "Implemented improvements"}</h3>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               {lang === "vi"
-                ? `Đã triển khai ${improvementCount} sáng kiến cải tiến và tự động hóa trong các giai đoạn làm việc.`
-                : `Implemented ${improvementCount} process/automation improvements across working stages.`}
+                ? `Đã triển khai ${improvementCount}+ sáng kiến cải tiến và tự động hóa nổi bậc trong các giai đoạn làm việc.`
+                : `Implemented ${improvementCount}+ notable improvements and automation initiatives throughout the career journey.`}
             </p>
           </div>
         </div>
@@ -170,19 +170,19 @@ export default function TongQuanPage() {
         </div>
 
         <div className="card">
-          <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Điều hướng nhanh" : "Quick navigation"}</h2>
+          <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Điều hướng trang" : "Quick navigation"}</h2>
           <div className="mt-3 grid gap-2">
             <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/hanh-trinh">
-              {lang === "vi" ? "Xem toàn bộ Hành Trình" : "View full Journey"}
+              {lang === "vi" ? "> Xem toàn bộ Hành Trình" : "> View full Journey"}
             </Link>
             <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/du-an">
-              {lang === "vi" ? "Khám phá Dự Án" : "Explore Projects"}
+              {lang === "vi" ? "> Khám phá Dự Án" : "> Explore Projects"}
             </Link>
             <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/san-pham-trung-bay">
-              {lang === "vi" ? "Xem Sản Phẩm Trưng Bày" : "View Showcase"}
+              {lang === "vi" ? "> Xem Sản Phẩm Trưng Bày" : "> View Showcase"}
             </Link>
             <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/tai-lieu-ky-thuat">
-              {lang === "vi" ? "Mở Tài Liệu Kỹ Thuật" : "Open Technical Docs"}
+              {lang === "vi" ? "> Mở Tài Liệu Kỹ Thuật" : "> Open Technical Docs"}
             </Link>
           </div>
         </div>
@@ -246,7 +246,7 @@ export default function TongQuanPage() {
               {lang === "vi" ? "Toàn bộ" : "All"}
             </button>
             <Link href="/hanh-trinh" className="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-200">
-              {lang === "vi" ? "Xem đầy đủ" : "See full"}
+              {lang === "vi" ? "Xem chi tiết" : "See full"}
             </Link>
           </div>
         </div>

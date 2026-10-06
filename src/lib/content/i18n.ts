@@ -16,15 +16,15 @@ export const ui = {
       overview: "Tổng Quan",
       journey: "Hành Trình",
       projects: "Dự Án",
-      showcase: "Sản Phẩm Trưng Bày",
-      docs: "Tài Liệu Kỹ Thuật"
+      showcase: "Sản Phẩm",
+      docs: "Tài Liệu"
     },
     en: {
       overview: "Overview",
       journey: "Journey",
       projects: "Projects",
       showcase: "3D Showcase",
-      docs: "Technical Docs"
+      docs: "Documents"
     }
   },
   common: {

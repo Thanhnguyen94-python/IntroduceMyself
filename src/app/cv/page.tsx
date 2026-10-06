@@ -404,7 +404,7 @@ function CvInner() {
                   className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
                   style={{ backgroundColor: paletteStyle.accent }}
                 >
-                  {dataLang === "vi" ? "Xuất PDF (có mật khẩu)" : "Export PDF (password)"}
+                  {dataLang === "vi" ? "Xuất PDF" : "Export PDF"}
                 </button>
               </div>
 
@@ -433,20 +433,20 @@ function CvInner() {
                     </div>
                     <p className="text-[11px] text-slate-300">
                       {dataLang === "vi"
-                        ? "X/Y là tọa độ căn ảnh bên trong khung (không phải kích thước). Bạn cũng có thể kéo trực tiếp ảnh ở CV để canh tâm."
-                        : "X/Y controls image position inside the frame (not size). You can also drag the avatar directly on the CV preview."}
+                        ? "X/Y là tọa độ căn ảnh bên trong khung (không phải kích thước)."
+                        : "X/Y controls image position inside the frame (not size)."}
                     </p>
                     <select value={avatarShape} onChange={(e) => setAvatarShape(e.target.value as AvatarShape)} className="rounded border px-2 py-1.5 text-sm" style={controlFieldStyle}>
-                      <option value="circle">{dataLang === "vi" ? "Bo tròn (Circle)" : "Circle"}</option>
-                      <option value="rectangle">{dataLang === "vi" ? "Chữ nhật đứng (Portrait Rectangle)" : "Portrait Rectangle"}</option>
-                      <option value="hexagon">{dataLang === "vi" ? "Lục giác (Hexagon)" : "Hexagon"}</option>
+                      <option value="circle">{dataLang === "vi" ? "Bo tròn" : "Circle"}</option>
+                      <option value="rectangle">{dataLang === "vi" ? "Chữ nhật" : "Portrait Rectangle"}</option>
+                      <option value="hexagon">{dataLang === "vi" ? "Lục giác" : "Hexagon"}</option>
                     </select>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
-                <p className="text-sm font-semibold">{dataLang === "vi" ? "Bật/Tắt khối nội dung" : "Toggle content blocks"}</p>
+                <p className="text-sm font-semibold">{dataLang === "vi" ? "Bật/Tắt nội dung" : "Toggle content blocks"}</p>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
                   {([
                     ["summary", dataLang === "vi" ? "Mục tiêu" : "Summary"],
@@ -469,22 +469,22 @@ function CvInner() {
               </div>
 
               <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
-                <p className="text-sm font-semibold">{dataLang === "vi" ? "Thêm bố cục mới (custom section)" : "Add custom section"}</p>
+                <p className="text-sm font-semibold">{dataLang === "vi" ? "Thêm bố cục mới" : "Add custom section"}</p>
                 <div className="mt-2 grid gap-2">
-                  <input value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Tiêu đề khối" : "Section title"} />
-                  <textarea value={newSectionContent} onChange={(e) => setNewSectionContent(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} rows={3} placeholder={dataLang === "vi" ? "Nội dung" : "Content"} />
+                  <input value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} placeholder={dataLang === "vi" ? "Tiêu đề" : "Title"} />
+                  <textarea value={newSectionContent} onChange={(e) => setNewSectionContent(e.target.value)} className="rounded border px-2 py-1.5 text-sm placeholder:text-slate-300" style={controlFieldStyle} rows={3} placeholder={dataLang === "vi" ? "Nội dung..." : "Content..."} />
                   <select value={newSectionPlacement} onChange={(e) => setNewSectionPlacement(e.target.value as CustomSectionPlacement)} className="rounded border px-2 py-1.5 text-sm" style={controlFieldStyle}>
-                    <option value="beforeSummary">{dataLang === "vi" ? "Đặt trước khối Mục tiêu" : "Place before Summary"}</option>
-                    <option value="beforeHighlights">{dataLang === "vi" ? "Đặt trước khối Điểm mạnh" : "Place before Highlights"}</option>
-                    <option value="beforeWork">{dataLang === "vi" ? "Đặt trước khối Kinh nghiệm" : "Place before Work"}</option>
-                    <option value="beforeEducation">{dataLang === "vi" ? "Đặt trước khối Học vấn" : "Place before Education"}</option>
-                    <option value="beforeSkills">{dataLang === "vi" ? "Cột trái: trước Kỹ năng chính" : "Left column: before Core skills"}</option>
-                    <option value="betweenSkillsTools">{dataLang === "vi" ? "Cột trái: giữa Kỹ năng và Công cụ" : "Left column: between Skills and Tools"}</option>
-                    <option value="afterTools">{dataLang === "vi" ? "Cột trái: sau Công cụ/Thiết bị" : "Left column: after Tools/Equipment"}</option>
-                    <option value="end">{dataLang === "vi" ? "Đặt cuối CV" : "Place at end of CV"}</option>
+                    <option value="beforeSummary">{dataLang === "vi" ? "Trước Mục tiêu" : "Before Summary"}</option>
+                    <option value="beforeHighlights">{dataLang === "vi" ? "Trước Điểm mạnh" : "Before Highlights"}</option>
+                    <option value="beforeWork">{dataLang === "vi" ? "Trước Kinh nghiệm" : "Before Work"}</option>
+                    <option value="beforeEducation">{dataLang === "vi" ? "Trước Học vấn" : "Before Education"}</option>
+                    <option value="beforeSkills">{dataLang === "vi" ? "Trước Kỹ năng chính" : "Before Core skills"}</option>
+                    <option value="betweenSkillsTools">{dataLang === "vi" ? "Giữa Kỹ năng và Công cụ" : "Between Skills and Tools"}</option>
+                    <option value="afterTools">{dataLang === "vi" ? "Sau Công cụ/Thiết bị" : "After Tools/Equipment"}</option>
+                    <option value="end">{dataLang === "vi" ? "Cuối CV" : "At the end of CV"}</option>
                   </select>
                   <button type="button" onClick={addCustomSection} className="w-fit rounded bg-slate-800 px-3 py-1.5 text-sm text-white">
-                    {dataLang === "vi" ? "Thêm khối" : "Add section"}
+                    {dataLang === "vi" ? "+ Thêm" : "+ Add"}
                   </button>
                 </div>
               </div>
@@ -656,8 +656,8 @@ function CvInner() {
       {!isPrintMode && (
         <p className="text-center text-xs text-slate-500 print:hidden">
           {dataLang === "vi"
-            ? "V3: Có thể chỉnh avatar, text, bố cục, ngôn ngữ và xác nhận mật khẩu trước khi xuất PDF."
-            : "V3: You can edit avatar, text, layout, language, and confirm password before exporting PDF."}
+            ? "Xuất file PDF nhớ kiểm tra kỹ giúp Jay nhé."
+            : "Please double-check the PDF export before sending it out."}
         </p>
       )}
 

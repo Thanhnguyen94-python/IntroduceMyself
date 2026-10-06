@@ -71,21 +71,21 @@ export default function ProjectDetailPage() {
       <p style={{ color: "var(--muted)" }}>{pickText(project.summary, lang)}</p>
 
       <div className="card">
-        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Mục tiêu dự án" : "Project objective"}</h2>
+        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Mục tiêu" : "Objective"}</h2>
         <p className="whitespace-pre-line text-sm" style={{ color: "var(--muted)" }}>
           {pickText(project.objective, lang) || (lang === "vi" ? "Chưa cập nhật" : "Not updated")}
         </p>
       </div>
 
       <div className="card">
-        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Mô tả dự án" : "Project description"}</h2>
+        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Mô tả" : "Description"}</h2>
         <p className="whitespace-pre-line text-sm leading-6" style={{ color: "var(--muted)" }}>
           {pickText(project.description, lang) || (lang === "vi" ? "Chưa cập nhật" : "Not updated")}
         </p>
       </div>
 
       <div className="card">
-        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Thiết bị" : "Equipments"}</h2>
+        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Thiết bị/ Công cụ hỗ trợ" : "Equipments"}</h2>
         <div className="flex flex-wrap gap-2">
           {project.equipmentTags.map((tag: string) => (
             <span key={tag} className="rounded bg-brand-100 px-2 py-1 text-xs text-brand-700 dark:bg-slate-800 dark:text-brand-200">{tag}</span>
@@ -94,7 +94,7 @@ export default function ProjectDetailPage() {
       </div>
 
       <div className="card">
-        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "File đính kèm" : "Attachments"}</h2>
+        <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Tài liệu đính kèm" : "Attachments"}</h2>
         {project.attachments.length > 0 ? (
           <ul className="space-y-2 text-sm">
             {project.attachments.map((file) => (

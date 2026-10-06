@@ -234,9 +234,9 @@ export default function SanPhamTrungBayPage() {
   return (
     <section className="space-y-6">
       <div className="card bg-gradient-to-br from-brand-100 via-white to-brand-200 dark:from-brand-800 dark:via-slate-900 dark:to-brand-900">
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">
+        {/* <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">
           {lang === "vi" ? "Trang mới" : "New section"}
-        </p>
+        </p> */}
         <h1 className="mt-1 text-2xl font-bold text-brand-700 dark:text-brand-200 md:text-3xl">
           {lang === "vi" ? "In 3D & Sản phẩm trưng bày" : "3D Printing & Showcase Products"}
         </h1>
