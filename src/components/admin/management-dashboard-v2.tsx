@@ -7,7 +7,7 @@ import { getSiteData } from "@/lib/content/loaders";
 import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData, SiteData } from "@/lib/content/types";
 import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
 import type { SiteVisibilityConfig } from "@/lib/site-visibility-types";
-import { resolveMedia } from "@/lib/media-url";
+import { normalizeGoogleDriveImageUrl, resolveMedia } from "@/lib/media-url";
 import { OverviewTab } from "@/components/admin/dashboard-tabs/overview-tab";
 import { JourneyTab } from "@/components/admin/dashboard-tabs/journey-tab";
 import { ProjectsTab } from "@/components/admin/dashboard-tabs/projects-tab";
@@ -164,6 +164,7 @@ export function ManagementDashboardV2() {
   const [savingItem, setSavingItem] = useState(false);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [savingSite, setSavingSite] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [uploading, setUploading] = useState(false);
   const [mediaBucket, setMediaBucket] = useState<"images" | "videos" | "docs">("images");
@@ -308,6 +309,36 @@ export function ManagementDashboardV2() {
       setSite(payload.data);
     }
     setMessage("Đã lưu thông tin profile.");
+  }
+
+  async function uploadAvatarFile(file: File) {
+    setUploadingAvatar(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("bucket", "images");
+      body.append("folder", "admin");
+
+      const response = await fetch("/api/admin/storage/upload", { method: "POST", body });
+      const payload = (await response.json().catch(() => ({}))) as { message?: string; publicUrl?: string };
+
+      if (!response.ok || !payload.publicUrl) {
+        setMessage(payload.message ?? "Upload avatar thất bại.");
+        return;
+      }
+
+      const url = normalizeGoogleDriveImageUrl(payload.publicUrl);
+      setSite((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          avatarUrl: url
+        }
+      }));
+      setMessage("Đã upload avatar. Nhấn 'Lưu profile' để áp dụng.");
+    } finally {
+      setUploadingAvatar(false);
+    }
   }
 
   async function saveJourneyItem() {
@@ -486,8 +517,10 @@ export function ManagementDashboardV2() {
               setSite={setSite}
               onSave={saveVisibility}
               onSaveSite={saveSiteProfile}
+              onPickAvatarFile={uploadAvatarFile}
               saving={savingVisibility}
               savingSite={savingSite}
+              uploadingAvatar={uploadingAvatar}
             />
           )}
 

@@ -1,3 +1,15 @@
+export function normalizeGoogleDriveImageUrl(url: string) {
+  const input = (url || "").trim();
+  if (!input) return "";
+
+  const fileMatch = input.match(/https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  const openMatch = input.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
+  const fileId = fileMatch?.[1] ?? openMatch?.[1] ?? "";
+
+  if (!fileId) return input;
+  return `https://lh3.googleusercontent.com/d/${fileId}`;
+}
+
 export function getYouTubeVideoId(url: string) {
   const input = (url || "").trim();
   if (!input) return "";
@@ -34,13 +46,14 @@ export function getYouTubeEmbedUrl(url: string) {
 }
 
 export function resolveMedia(url: string) {
-  const youtubeId = getYouTubeVideoId(url);
+  const normalizedUrl = normalizeGoogleDriveImageUrl(url);
+  const youtubeId = getYouTubeVideoId(normalizedUrl);
   if (youtubeId) {
     return {
       type: "youtube" as const,
       youtubeId,
       embedUrl: `https://www.youtube.com/embed/${youtubeId}`,
-      src: url
+      src: normalizedUrl
     };
   }
 
@@ -48,6 +61,6 @@ export function resolveMedia(url: string) {
     type: "image" as const,
     youtubeId: "",
     embedUrl: "",
-    src: url
+    src: normalizedUrl
   };
 }

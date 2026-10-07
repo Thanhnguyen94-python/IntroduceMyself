@@ -1,7 +1,7 @@
 "use client";
 
 import type { SiteData } from "@/lib/content/types";
-import { resolveMedia } from "@/lib/media-url";
+import { normalizeGoogleDriveImageUrl, resolveMedia } from "@/lib/media-url";
 import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
 type Props = {
@@ -11,13 +11,15 @@ type Props = {
   setSite: (next: SiteData) => void;
   onSave: () => void;
   onSaveSite: () => void;
+  onPickAvatarFile: (file: File) => void;
   saving: boolean;
   savingSite: boolean;
+  uploadingAvatar: boolean;
 };
 
 const defaultAvatar = "/assets/images/profile-mr-jay.jpg";
 
-export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, onSaveSite, saving, savingSite }: Props) {
+export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, onSaveSite, onPickAvatarFile, saving, savingSite, uploadingAvatar }: Props) {
   const avatarInput = (site.profile.avatarUrl ?? "").trim();
   const avatarMedia = resolveMedia(avatarInput || defaultAvatar);
   const avatarPreview = avatarMedia.type === "image" ? avatarMedia.src : defaultAvatar;
@@ -33,7 +35,7 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
               type="text"
               value={site.profile.avatarUrl ?? ""}
               onChange={(e) => {
-                const input = e.target.value;
+                const input = normalizeGoogleDriveImageUrl(e.target.value);
                 setSite({
                   ...site,
                   profile: {
@@ -46,6 +48,20 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
               className="w-full rounded-lg border px-3 py-2 text-sm"
               style={{ borderColor: "var(--border)", background: "var(--surface)" }}
             />
+            <label className="inline-flex w-fit cursor-pointer rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white">
+              {uploadingAvatar ? "Đang upload..." : "Chọn tệp từ máy tính"}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                disabled={uploadingAvatar}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onPickAvatarFile(file);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
             <p className="text-xs" style={{ color: "var(--muted)" }}>Dán link ảnh hoặc đường dẫn nội bộ. Nếu là link YouTube sẽ tự fallback về ảnh mặc định.</p>
           </div>
           <div className="space-y-2">
