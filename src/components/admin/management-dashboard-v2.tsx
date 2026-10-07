@@ -133,7 +133,7 @@ function createEmptyShowcaseItem(): ShowcaseItem {
 export function ManagementDashboardV2() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const [journeyItems, setJourneyItems] = useState<ExperienceItem[]>([]);
   const [projectItems, setProjectItems] = useState<ProjectItem[]>([]);
@@ -259,7 +259,7 @@ export function ManagementDashboardV2() {
         const response = await fetch("/api/admin/storage/upload", { method: "POST", body });
         const payload = (await response.json().catch(() => ({}))) as { message?: string; publicUrl?: string };
         if (!response.ok || !payload.publicUrl) {
-          setMessage(payload.message ?? `Upload thất bại: ${file.name}`);
+          setNotice({ text: payload.message ?? `Upload thất bại: ${file.name}`, type: "error" });
           continue;
         }
         urls.push(payload.publicUrl);
@@ -283,10 +283,10 @@ export function ManagementDashboardV2() {
     setSavingVisibility(false);
     if (!response.ok) {
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
-      setMessage(payload.message ?? "Lưu cài đặt hiển thị thất bại.");
+      setNotice({ text: payload.message ?? "Lưu cài đặt hiển thị thất bại.", type: "error" });
       return;
     }
-    setMessage("Đã lưu cài đặt hiển thị.");
+    setNotice({ text: "Đã lưu cài đặt hiển thị.", type: "success" });
   }
 
   async function saveSiteProfile() {
@@ -300,7 +300,7 @@ export function ManagementDashboardV2() {
 
     if (!response.ok) {
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
-      setMessage(payload.message ?? "Lưu profile thất bại.");
+      setNotice({ text: payload.message ?? "Lưu profile thất bại.", type: "error" });
       return;
     }
 
@@ -308,7 +308,7 @@ export function ManagementDashboardV2() {
     if (payload?.data?.profile) {
       setSite(payload.data);
     }
-    setMessage("Đã lưu thông tin profile.");
+    setNotice({ text: "Đã lưu thông tin profile.", type: "success" });
   }
 
   async function uploadAvatarFile(file: File) {
@@ -323,7 +323,7 @@ export function ManagementDashboardV2() {
       const payload = (await response.json().catch(() => ({}))) as { message?: string; publicUrl?: string };
 
       if (!response.ok || !payload.publicUrl) {
-        setMessage(payload.message ?? "Upload avatar thất bại.");
+        setNotice({ text: payload.message ?? "Upload avatar thất bại.", type: "error" });
         return;
       }
 
@@ -335,7 +335,7 @@ export function ManagementDashboardV2() {
           avatarUrl: url
         }
       }));
-      setMessage("Đã upload avatar. Nhấn 'Lưu profile' để áp dụng.");
+      setNotice({ text: "Đã upload avatar. Nhấn 'Lưu profile' để áp dụng.", type: "success" });
     } finally {
       setUploadingAvatar(false);
     }
@@ -353,7 +353,7 @@ export function ManagementDashboardV2() {
     setSavingItem(false);
     if (!response.ok) {
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
-      setMessage(payload.message ?? "Không lưu được hành trình.");
+      setNotice({ text: payload.message ?? "Không lưu được hành trình.", type: "error" });
       return;
     }
     setJourneyItems((prev) => {
@@ -363,7 +363,7 @@ export function ManagementDashboardV2() {
     });
     setJourneyModalOpen(false);
     setEditingJourney(null);
-    setMessage("Đã lưu hành trình.");
+    setNotice({ text: "Đã lưu hành trình.", type: "success" });
   }
 
   async function saveProjectItem() {
@@ -378,7 +378,7 @@ export function ManagementDashboardV2() {
     setSavingItem(false);
     if (!response.ok) {
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
-      setMessage(payload.message ?? "Không lưu được dự án.");
+      setNotice({ text: payload.message ?? "Không lưu được dự án.", type: "error" });
       return;
     }
     setProjectItems((prev) => {
@@ -388,7 +388,7 @@ export function ManagementDashboardV2() {
     });
     setProjectModalOpen(false);
     setEditingProject(null);
-    setMessage("Đã lưu dự án.");
+    setNotice({ text: "Đã lưu dự án.", type: "success" });
   }
 
   async function saveShowcaseItem() {
@@ -408,7 +408,7 @@ export function ManagementDashboardV2() {
     setSavingItem(false);
     if (!response.ok) {
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
-      setMessage(payload.message ?? "Không lưu được sản phẩm.");
+      setNotice({ text: payload.message ?? "Không lưu được sản phẩm.", type: "error" });
       return;
     }
     setShowcaseItems((prev) => {
@@ -418,7 +418,7 @@ export function ManagementDashboardV2() {
     });
     setShowcaseModalOpen(false);
     setEditingShowcase(null);
-    setMessage("Đã lưu sản phẩm.");
+    setNotice({ text: "Đã lưu sản phẩm.", type: "success" });
   }
 
   async function deleteJourney(id: string) {
@@ -507,7 +507,17 @@ export function ManagementDashboardV2() {
         </aside>
 
         <div className="space-y-4">
-          {message && <div className="card text-sm text-emerald-600 dark:text-emerald-400">{message}</div>}
+          {notice && (
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm ${
+                notice.type === "success"
+                  ? "border-green-300 bg-green-50 text-green-700"
+                  : "border-red-300 bg-red-50 text-red-700"
+              }`}
+            >
+              {notice.text}
+            </div>
+          )}
 
           {activeTab === "overview" && (
             <OverviewTab
