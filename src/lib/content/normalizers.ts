@@ -17,6 +17,10 @@ export function normalizeSiteData(raw: SiteData): SiteData {
   return {
     ...raw,
     schemaVersion: raw.schemaVersion ?? LATEST_SCHEMA,
+    profile: {
+      ...raw.profile,
+      avatarUrl: raw.profile?.avatarUrl ?? ""
+    },
     highlights: {
       vi: raw.highlights?.vi ?? [],
       en: raw.highlights?.en ?? []

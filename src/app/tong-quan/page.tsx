@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getExperienceData, getSiteData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
-import { normalizeExperienceData } from "@/lib/content/normalizers";
-import type { ExperienceData } from "@/lib/content/types";
+import { normalizeExperienceData, normalizeSiteData } from "@/lib/content/normalizers";
+import type { ExperienceData, SiteData } from "@/lib/content/types";
 import { resolveMedia } from "@/lib/media-url";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
@@ -28,10 +28,24 @@ export default function TongQuanPage() {
   const { lang } = useLanguage();
   const [showAllVisuals, setShowAllVisuals] = useState(false);
   const [journeyMode, setJourneyMode] = useState<"work" | "all">("work");
-  const site = getSiteData();
+  const [site, setSite] = useState<SiteData>(() => getSiteData());
   const [exp, setExp] = useState<ExperienceData>(() => getExperienceData());
 
   useEffect(() => {
+    async function loadSite() {
+      try {
+        const response = await fetch("/api/site", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload = (await response.json().catch(() => null)) as SiteData | null;
+        if (payload?.profile) {
+          setSite(normalizeSiteData(payload));
+        }
+      } catch {
+        // ignore and keep fallback state
+      }
+    }
+
     async function loadJourney() {
       try {
         const response = await fetch("/api/journey", { cache: "no-store" });
@@ -46,8 +60,14 @@ export default function TongQuanPage() {
       }
     }
 
+    loadSite();
     loadJourney();
   }, []);
+
+  const defaultAvatar = "/assets/images/profile-mr-jay.jpg";
+  const avatarInput = (site.profile.avatarUrl ?? "").trim();
+  const avatarMedia = resolveMedia(avatarInput || defaultAvatar);
+  const avatarSrc = avatarMedia.type === "image" ? avatarMedia.src : defaultAvatar;
 
   const hasExperience = exp.items.length > 0;
 
@@ -98,7 +118,7 @@ export default function TongQuanPage() {
         <div className="grid items-center gap-6 md:grid-cols-[220px_1fr]">
           <div className="mx-auto w-full max-w-[220px]">
             <img
-              src="/assets/images/profile-mr-jay.jpg"
+              src={avatarSrc}
               alt="Nguyễn Văn Thạnh - Mr Jay"
               className="h-[280px] w-full rounded-2xl object-cover shadow-lg"
             />

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TextareaHTMLAttributes } from "react";
-import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData } from "@/lib/content/types";
+import { getSiteData } from "@/lib/content/loaders";
+import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData, SiteData } from "@/lib/content/types";
 import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
 import type { SiteVisibilityConfig } from "@/lib/site-visibility-types";
 import { resolveMedia } from "@/lib/media-url";
@@ -137,6 +138,7 @@ export function ManagementDashboardV2() {
   const [journeyItems, setJourneyItems] = useState<ExperienceItem[]>([]);
   const [projectItems, setProjectItems] = useState<ProjectItem[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
+  const [site, setSite] = useState<SiteData>(() => getSiteData());
 
   const [visibility, setVisibility] = useState<SiteVisibilityConfig>({
     schemaVersion: 1,
@@ -161,6 +163,7 @@ export function ManagementDashboardV2() {
 
   const [savingItem, setSavingItem] = useState(false);
   const [savingVisibility, setSavingVisibility] = useState(false);
+  const [savingSite, setSavingSite] = useState(false);
 
   const [uploading, setUploading] = useState(false);
   const [mediaBucket, setMediaBucket] = useState<"images" | "videos" | "docs">("images");
@@ -170,22 +173,25 @@ export function ManagementDashboardV2() {
   useEffect(() => {
     async function loadAll() {
       try {
-        const [journeyRes, projectsRes, showcaseRes, visibilityRes] = await Promise.all([
+        const [journeyRes, projectsRes, showcaseRes, visibilityRes, siteRes] = await Promise.all([
           fetch("/api/journey", { cache: "no-store" }),
           fetch("/api/projects", { cache: "no-store" }),
           fetch("/api/showcase/products", { cache: "no-store" }),
-          fetch("/api/site/visibility", { cache: "no-store" })
+          fetch("/api/site/visibility", { cache: "no-store" }),
+          fetch("/api/site", { cache: "no-store" })
         ]);
 
         const journeyPayload = (await journeyRes.json().catch(() => null)) as ExperienceData | null;
         const projectsPayload = (await projectsRes.json().catch(() => null)) as ProjectsData | null;
         const showcasePayload = (await showcaseRes.json().catch(() => null)) as ShowcaseData | null;
         const visibilityPayload = (await visibilityRes.json().catch(() => null)) as SiteVisibilityConfig | null;
+        const sitePayload = (await siteRes.json().catch(() => null)) as SiteData | null;
 
         if (journeyPayload?.items) setJourneyItems(journeyPayload.items);
         if (projectsPayload?.items) setProjectItems(projectsPayload.items);
         if (showcasePayload?.items) setShowcaseItems(showcasePayload.items);
         if (visibilityPayload?.pages) setVisibility(visibilityPayload);
+        if (sitePayload?.profile) setSite(sitePayload);
       } finally {
         setLoading(false);
       }
@@ -280,6 +286,28 @@ export function ManagementDashboardV2() {
       return;
     }
     setMessage("Đã lưu cài đặt hiển thị.");
+  }
+
+  async function saveSiteProfile() {
+    setSavingSite(true);
+    const response = await fetch("/api/admin/site", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(site)
+    });
+    setSavingSite(false);
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+      setMessage(payload.message ?? "Lưu profile thất bại.");
+      return;
+    }
+
+    const payload = (await response.json().catch(() => null)) as { data?: SiteData } | null;
+    if (payload?.data?.profile) {
+      setSite(payload.data);
+    }
+    setMessage("Đã lưu thông tin profile.");
   }
 
   async function saveJourneyItem() {
@@ -451,7 +479,16 @@ export function ManagementDashboardV2() {
           {message && <div className="card text-sm text-emerald-600 dark:text-emerald-400">{message}</div>}
 
           {activeTab === "overview" && (
-            <OverviewTab visibility={visibility} setVisibility={setVisibility} onSave={saveVisibility} saving={savingVisibility} />
+            <OverviewTab
+              visibility={visibility}
+              setVisibility={setVisibility}
+              site={site}
+              setSite={setSite}
+              onSave={saveVisibility}
+              onSaveSite={saveSiteProfile}
+              saving={savingVisibility}
+              savingSite={savingSite}
+            />
           )}
 
           {activeTab === "journey" && (
