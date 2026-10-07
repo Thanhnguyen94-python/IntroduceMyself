@@ -333,7 +333,7 @@ function CvInner() {
         <button
           type="button"
           onClick={() => setIsCustomizerOpen(true)}
-          className="fixed bottom-6 right-6 z-40 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg print:hidden"
+          className="fixed bottom-24 right-6 z-40 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg md:bottom-6 md:right-24 print:hidden"
           style={{ backgroundColor: paletteStyle.accent }}
         >
           {dataLang === "vi" ? "Tùy chỉnh CV" : "Customize CV"}

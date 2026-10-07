@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ManagementDashboard } from "@/components/admin/management-dashboard";
+import { ManagementDashboardV2 } from "@/components/admin/management-dashboard-v2";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
 
 export default async function AdminPage() {
@@ -11,5 +11,5 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  return <ManagementDashboard />;
+  return <ManagementDashboardV2 />;
 }
