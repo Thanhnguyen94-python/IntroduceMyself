@@ -341,7 +341,7 @@ export async function POST(request: Request) {
         tools: [
           {
             name: "get_personal_info",
-            description: "Lấy hồ sơ cá nhân, thông tin liên hệ và highlights nghề nghiệp.",
+            description: "Lấy thông tin cá nhân, mục tiêu, kỹ năng chính của Nguyễn Văn Thạnh",
             inputSchema: {
               type: "object",
               properties: {
@@ -355,7 +355,7 @@ export async function POST(request: Request) {
           },
           {
             name: "get_smt_experience",
-            description: "Lấy tóm tắt kinh nghiệm SMT từ hành trình nghề nghiệp.",
+            description: "Lấy quá trình làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền (Line balance) và thiết bị xưởng",
             inputSchema: {
               type: "object",
               properties: {
@@ -375,7 +375,7 @@ export async function POST(request: Request) {
           },
           {
             name: "get_projects",
-            description: "Lấy danh sách dự án kỹ thuật và tự động hóa theo danh mục.",
+            description: "Lấy danh sách các dự án thực tế và sản phẩm tiêu biểu",
             inputSchema: {
               type: "object",
               properties: {

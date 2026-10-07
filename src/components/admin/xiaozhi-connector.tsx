@@ -21,8 +21,83 @@ type LogItem = {
 };
 
 type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
+type JsonRpcId = string | number | null;
+
+type WsRpcRequest = {
+  jsonrpc?: string;
+  id?: JsonRpcId;
+  method?: string;
+  params?: Record<string, unknown>;
+};
 
 const defaultEndpoint = "wss://api.xiaozhi.me/mcp/?token=YOUR_TOKEN";
+
+const TOOL_DEFINITIONS = [
+  {
+    name: "get_personal_info",
+    description: "Lấy thông tin cá nhân, mục tiêu, kỹ năng chính của Nguyễn Văn Thạnh",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lang: {
+          type: "string",
+          enum: ["vi", "en"],
+          default: "vi",
+          description: "Ngôn ngữ phản hồi mong muốn"
+        }
+      }
+    }
+  },
+  {
+    name: "get_smt_experience",
+    description: "Lấy quá trình làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền (Line balance) và thiết bị xưởng",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lang: {
+          type: "string",
+          enum: ["vi", "en"],
+          default: "vi",
+          description: "Ngôn ngữ phản hồi mong muốn"
+        },
+        limit: {
+          type: "number",
+          minimum: 1,
+          maximum: 20,
+          default: 8,
+          description: "Số lượng mục kinh nghiệm cần trả về"
+        }
+      }
+    }
+  },
+  {
+    name: "get_projects",
+    description: "Lấy danh sách các dự án thực tế và sản phẩm tiêu biểu",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lang: {
+          type: "string",
+          enum: ["vi", "en"],
+          default: "vi",
+          description: "Ngôn ngữ phản hồi mong muốn"
+        },
+        category: {
+          type: "string",
+          enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"],
+          description: "Lọc dự án theo danh mục"
+        },
+        limit: {
+          type: "number",
+          minimum: 1,
+          maximum: 20,
+          default: 8,
+          description: "Số lượng dự án cần trả về"
+        }
+      }
+    }
+  }
+] as const;
 
 function createRpcPayload(id: number, method: string, params?: Record<string, unknown>) {
   return {
@@ -30,6 +105,25 @@ function createRpcPayload(id: number, method: string, params?: Record<string, un
     id,
     method,
     ...(params ? { params } : {})
+  };
+}
+
+function createRpcResponse(id: JsonRpcId, result: Record<string, unknown>) {
+  return {
+    jsonrpc: "2.0",
+    id,
+    result
+  };
+}
+
+function createRpcError(id: JsonRpcId, code: number, message: string) {
+  return {
+    jsonrpc: "2.0",
+    id,
+    error: {
+      code,
+      message
+    }
   };
 }
 
@@ -76,6 +170,78 @@ export function XiaozhiConnector() {
     }
 
     return payload.result ?? {};
+  }
+
+  function sendWsPayload(payload: Record<string, unknown>) {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    wsRef.current.send(JSON.stringify(payload));
+  }
+
+  async function handleIncomingRpc(rawText: string) {
+    const parsed = JSON.parse(rawText) as WsRpcRequest;
+    const method = typeof parsed?.method === "string" ? parsed.method : "";
+    const id = parsed?.id ?? null;
+    const params = parsed?.params ?? {};
+
+    if (!method) return false;
+
+    if (method === "initialize") {
+      sendWsPayload(
+        createRpcResponse(id, {
+          protocolVersion: "2024-11-05",
+          serverInfo: {
+            name: "introducemyself-mcp-bridge",
+            version: "1.0.0"
+          },
+          capabilities: {
+            tools: {
+              listChanged: false
+            }
+          }
+        })
+      );
+      addLog("Đã phản hồi initialize cho Xiaozhi.", "success");
+      return true;
+    }
+
+    if (method === "tools/list" || method === "ListToolsRequest") {
+      sendWsPayload(
+        createRpcResponse(id, {
+          tools: TOOL_DEFINITIONS
+        })
+      );
+      addLog("Đã phản hồi danh sách MCP tools cho Xiaozhi.", "success");
+      return true;
+    }
+
+    if (method === "tools/call" || method === "CallToolRequest") {
+      const toolName = typeof params.name === "string" ? params.name : "";
+      const toolArgs =
+        typeof params.arguments === "object" && params.arguments ? (params.arguments as Record<string, unknown>) : {};
+
+      if (!toolName) {
+        sendWsPayload(createRpcError(id, -32602, "Invalid params: missing tool name"));
+        return true;
+      }
+
+      try {
+        const result = await callMcp("tools/call", {
+          name: toolName,
+          arguments: toolArgs
+        });
+
+        sendWsPayload(createRpcResponse(id, result));
+        addLog(`Đã phản hồi tool ${toolName} theo request ID ${String(id)}.`, "success");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : `Tool call failed: ${toolName}`;
+        sendWsPayload(createRpcError(id, -32000, message));
+        addLog(`Lỗi phản hồi tool ${toolName}: ${message}`, "error");
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   async function buildMcpContext() {
@@ -149,6 +315,20 @@ export function XiaozhiConnector() {
     ws.onmessage = (event) => {
       const text = typeof event.data === "string" ? event.data : "[binary message]";
       addLog(`Robot phản hồi: ${text}`);
+
+      if (typeof event.data !== "string") return;
+
+      void (async () => {
+        try {
+          const handled = await handleIncomingRpc(event.data);
+          if (!handled) {
+            addLog("Đã nhận message không thuộc luồng JSON-RPC tools/list-tools/call.");
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Không xử lý được message từ Xiaozhi";
+          addLog(message, "error");
+        }
+      })();
     };
 
     ws.onerror = () => {
