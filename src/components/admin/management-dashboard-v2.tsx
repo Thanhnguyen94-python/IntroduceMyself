@@ -479,6 +479,9 @@ export function ManagementDashboardV2() {
           <Link href="/admin/orders" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
             Dashboard đơn hàng
           </Link>
+          <Link href="/admin/xiaozhi" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
+            Kết nối Xiaozhi MCP
+          </Link>
           <button
             onClick={async () => {
               await fetch("/api/admin/logout", { method: "POST" });
