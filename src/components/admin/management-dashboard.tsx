@@ -41,6 +41,18 @@ function parseLines(value: string) {
     .filter(Boolean);
 }
 
+function normalizeImageUrl(value: string) {
+  const input = value.trim();
+  if (!input) return value;
+
+  const fileMatch = input.match(/https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  const openMatch = input.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
+  const fileId = fileMatch?.[1] ?? openMatch?.[1] ?? "";
+
+  if (!fileId) return value;
+  return `https://lh3.googleusercontent.com/d/${fileId}`;
+}
+
 function AutoTextarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
 
@@ -808,7 +820,7 @@ export function ManagementDashboard() {
                     value={editingJourney.images[0]?.src ?? ""}
                     onChange={(e) => {
                       const images = editingJourney.images.length > 0 ? [...editingJourney.images] : [{ src: "", description: { vi: "", en: "" } }];
-                      images[0] = { ...images[0], src: e.target.value };
+                      images[0] = { ...images[0], src: normalizeImageUrl(e.target.value) };
                       setEditingJourney({ ...editingJourney, images });
                     }}
                     className="w-full rounded border px-3 py-2 text-sm"
@@ -867,7 +879,7 @@ export function ManagementDashboard() {
                     value={editingProject.gallery[0] ?? ""}
                     onChange={(e) => {
                       const gallery = [...editingProject.gallery];
-                      gallery[0] = e.target.value;
+                      gallery[0] = normalizeImageUrl(e.target.value);
                       setEditingProject({ ...editingProject, gallery });
                     }}
                     className="w-full rounded border px-3 py-2 text-sm"
@@ -917,7 +929,7 @@ export function ManagementDashboard() {
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-semibold">Ảnh chính</label>
                 <div className="flex gap-2">
-                  <input value={editingShowcase.image} onChange={(e) => setEditingShowcase({ ...editingShowcase, image: e.target.value })} className="w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
+                  <input value={editingShowcase.image} onChange={(e) => setEditingShowcase({ ...editingShowcase, image: normalizeImageUrl(e.target.value) })} className="w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
                   <FileInputButton disabled={uploading} onPick={async (file) => {
                     const url = await uploadToStorage(file);
                     if (!url) return;
@@ -927,7 +939,7 @@ export function ManagementDashboard() {
               </div>
 
               <AutoTextarea value={editingShowcase.description.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, description: { ...editingShowcase.description, vi: e.target.value } })} placeholder="Mô tả (VI)" className="rounded border px-3 py-2 text-sm md:col-span-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <input value={editingShowcase.gallery?.join(", ") ?? ""} onChange={(e) => setEditingShowcase({ ...editingShowcase, gallery: parseCsv(e.target.value) })} placeholder="Gallery URL (csv)" className="rounded border px-3 py-2 text-sm md:col-span-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
+              <input value={editingShowcase.gallery?.join(", ") ?? ""} onChange={(e) => setEditingShowcase({ ...editingShowcase, gallery: parseCsv(e.target.value).map((url) => normalizeImageUrl(url)) })} placeholder="Gallery URL (csv)" className="rounded border px-3 py-2 text-sm md:col-span-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
               <input type="number" value={editingShowcase.oldPrice} onChange={(e) => setEditingShowcase({ ...editingShowcase, oldPrice: Number(e.target.value || 0) })} placeholder="Giá gốc" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
               <input type="number" value={editingShowcase.salePrice} onChange={(e) => setEditingShowcase({ ...editingShowcase, salePrice: Number(e.target.value || 0) })} placeholder="Giá sale" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
               <input value={editingShowcase.stockText.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, stockText: { ...editingShowcase.stockText, vi: e.target.value } })} placeholder="Trạng thái kho (VI)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />

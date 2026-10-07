@@ -47,6 +47,18 @@ function parseLines(value: string) {
     .filter(Boolean);
 }
 
+function normalizeImageUrl(value: string) {
+  const input = value.trim();
+  if (!input) return value;
+
+  const fileMatch = input.match(/https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+  const openMatch = input.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
+  const fileId = fileMatch?.[1] ?? openMatch?.[1] ?? "";
+
+  if (!fileId) return value;
+  return `https://lh3.googleusercontent.com/d/${fileId}`;
+}
+
 function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
   if (toIndex < 0 || toIndex >= items.length) return items;
   const next = [...items];
@@ -529,7 +541,7 @@ export function ManagementDashboardV2() {
                           value={image.src}
                           onChange={(e) => {
                             const images = [...editingJourney.images];
-                            images[index] = { ...images[index], src: e.target.value };
+                            images[index] = { ...images[index], src: normalizeImageUrl(e.target.value) };
                             setEditingJourney({ ...editingJourney, images });
                           }}
                           placeholder={`URL ảnh #${index + 1}`}
@@ -704,7 +716,7 @@ export function ManagementDashboardV2() {
                         value={url}
                         onChange={(e) => {
                           const gallery = [...editingProject.gallery];
-                          gallery[index] = e.target.value;
+                          gallery[index] = normalizeImageUrl(e.target.value);
                           setEditingProject({ ...editingProject, gallery });
                         }}
                         placeholder={`URL ảnh #${index + 1}`}
@@ -831,7 +843,7 @@ export function ManagementDashboardV2() {
                         value={url}
                         onChange={(e) => {
                           const gallery = [...(editingShowcase.gallery ?? [])];
-                          gallery[index] = e.target.value;
+                          gallery[index] = normalizeImageUrl(e.target.value);
                           setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
                         }}
                         placeholder={`URL ảnh #${index + 1}`}
