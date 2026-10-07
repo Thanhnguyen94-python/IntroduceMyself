@@ -47,6 +47,14 @@ function parseLines(value: string) {
     .filter(Boolean);
 }
 
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (toIndex < 0 || toIndex >= items.length) return items;
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next;
+}
+
 function AutoTextarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
   useEffect(() => {
@@ -209,23 +217,40 @@ export function ManagementDashboardV2() {
   useEffect(() => setShowcasePage(1), [showcaseSearch]);
 
   async function uploadToStorage(file: File) {
-    setUploading(true);
-    const body = new FormData();
-    body.append("file", file);
-    body.append("bucket", mediaBucket);
-    body.append("folder", mediaFolder || "admin");
-
-    const response = await fetch("/api/admin/storage/upload", { method: "POST", body });
-    const payload = (await response.json().catch(() => ({}))) as { message?: string; publicUrl?: string };
-    setUploading(false);
-
-    if (!response.ok || !payload.publicUrl) {
-      setMessage(payload.message ?? "Upload thất bại.");
+    const [firstUrl = ""] = await uploadManyToStorage([file]);
+    if (!firstUrl) {
       return "";
     }
+    setMediaUrl(firstUrl);
+    return firstUrl;
+  }
 
-    setMediaUrl(payload.publicUrl);
-    return payload.publicUrl;
+  async function uploadManyToStorage(files: File[]) {
+    if (!files.length) return [] as string[];
+    setUploading(true);
+    const urls: string[] = [];
+    try {
+      for (const file of files) {
+        const body = new FormData();
+        body.append("file", file);
+        body.append("bucket", mediaBucket);
+        body.append("folder", mediaFolder || "admin");
+
+        const response = await fetch("/api/admin/storage/upload", { method: "POST", body });
+        const payload = (await response.json().catch(() => ({}))) as { message?: string; publicUrl?: string };
+        if (!response.ok || !payload.publicUrl) {
+          setMessage(payload.message ?? `Upload thất bại: ${file.name}`);
+          continue;
+        }
+        urls.push(payload.publicUrl);
+      }
+      if (urls.length) {
+        setMediaUrl(urls[urls.length - 1]);
+      }
+      return urls;
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function saveVisibility() {
@@ -297,11 +322,16 @@ export function ManagementDashboardV2() {
   async function saveShowcaseItem() {
     if (!editingShowcase) return;
     setSavingItem(true);
-    const exists = showcaseItems.some((it) => it.id === editingShowcase.id);
+    const normalizedShowcase: ShowcaseItem = {
+      ...editingShowcase,
+      gallery: editingShowcase.gallery ?? [],
+      image: editingShowcase.gallery?.[0] ?? editingShowcase.image
+    };
+    const exists = showcaseItems.some((it) => it.id === normalizedShowcase.id);
     const response = await fetch("/api/admin/showcase/products", {
       method: exists ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item: editingShowcase })
+      body: JSON.stringify({ item: normalizedShowcase })
     });
     setSavingItem(false);
     if (!response.ok) {
@@ -310,9 +340,9 @@ export function ManagementDashboardV2() {
       return;
     }
     setShowcaseItems((prev) => {
-      const idx = prev.findIndex((it) => it.id === editingShowcase.id);
-      if (idx >= 0) return prev.map((it, i) => (i === idx ? editingShowcase : it));
-      return [...prev, editingShowcase];
+      const idx = prev.findIndex((it) => it.id === normalizedShowcase.id);
+      if (idx >= 0) return prev.map((it, i) => (i === idx ? normalizedShowcase : it));
+      return [...prev, normalizedShowcase];
     });
     setShowcaseModalOpen(false);
     setEditingShowcase(null);
@@ -483,25 +513,74 @@ export function ManagementDashboardV2() {
               <input value={editingJourney.endDate} onChange={(e) => setEditingJourney({ ...editingJourney, endDate: e.target.value })} placeholder="End (YYYY-MM)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editingJourney.isCurrent} onChange={(e) => setEditingJourney({ ...editingJourney, isCurrent: e.target.checked })} />Đang làm hiện tại</label>
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-semibold">Ảnh đại diện</label>
-                <div className="flex gap-2">
-                  <input value={editingJourney.images[0]?.src ?? ""} onChange={(e) => {
-                    const images = editingJourney.images.length ? [...editingJourney.images] : [{ src: "", description: { vi: "", en: "" } }];
-                    images[0] = { ...images[0], src: e.target.value };
-                    setEditingJourney({ ...editingJourney, images });
-                  }} className="w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
+                <label className="text-sm font-semibold">Gallery ảnh (ảnh đầu tiên là ảnh đại diện)</label>
+                <div className="space-y-2">
+                  {editingJourney.images.map((image, index) => (
+                    <div key={`${editingJourney.id}-image-${index}`} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[1fr_88px_auto]" style={{ borderColor: "var(--border)" }}>
+                      <input
+                        value={image.src}
+                        onChange={(e) => {
+                          const images = [...editingJourney.images];
+                          images[index] = { ...images[index], src: e.target.value };
+                          setEditingJourney({ ...editingJourney, images });
+                        }}
+                        placeholder={`URL ảnh #${index + 1}`}
+                        className="rounded border px-3 py-2 text-sm"
+                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      />
+                      {image.src ? (
+                        <img src={image.src} alt={`Journey ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
+                      ) : (
+                        <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
+                      )}
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => setEditingJourney({ ...editingJourney, images: moveItem(editingJourney.images, index, index - 1) })}
+                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                          style={{ borderColor: "var(--border)" }}
+                        >↑</button>
+                        <button
+                          type="button"
+                          disabled={index === editingJourney.images.length - 1}
+                          onClick={() => setEditingJourney({ ...editingJourney, images: moveItem(editingJourney.images, index, index + 1) })}
+                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                          style={{ borderColor: "var(--border)" }}
+                        >↓</button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingJourney({ ...editingJourney, images: editingJourney.images.filter((_, i) => i !== index) })}
+                          className="rounded bg-red-500 px-2 py-1 text-xs text-white"
+                        >Xóa</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingJourney({ ...editingJourney, images: [...editingJourney.images, { src: "", description: { vi: "", en: "" } }] })}
+                    className="rounded-lg border px-3 py-2 text-xs font-semibold"
+                    style={{ borderColor: "var(--border)" }}
+                  >+ Thêm URL ảnh</button>
                   <label className="inline-flex cursor-pointer rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white">
-                    Upload
-                    <input type="file" className="hidden" disabled={uploading} onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const url = await uploadToStorage(file);
-                      if (!url) return;
-                      const images = editingJourney.images.length ? [...editingJourney.images] : [{ src: "", description: { vi: "", en: "" } }];
-                      images[0] = { ...images[0], src: url };
-                      setEditingJourney({ ...editingJourney, images });
-                      e.currentTarget.value = "";
-                    }} />
+                    Upload nhiều ảnh
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      disabled={uploading}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files ?? []);
+                        if (!files.length) return;
+                        const urls = await uploadManyToStorage(files);
+                        if (!urls.length) return;
+                        const appended = urls.map((src) => ({ src, description: { vi: "", en: "" } }));
+                        setEditingJourney({ ...editingJourney, images: [...editingJourney.images, ...appended] });
+                        e.currentTarget.value = "";
+                      }}
+                    />
                   </label>
                 </div>
               </div>
@@ -526,6 +605,77 @@ export function ManagementDashboardV2() {
               <select value={editingProject.category} onChange={(e) => setEditingProject({ ...editingProject, category: e.target.value as ProjectItem["category"] })} className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
                 <option value="3d-jig">3D/Jig</option><option value="app-software">App/Software</option><option value="smt-improvement">SMT</option><option value="ai-iot">AI/IoT</option>
               </select>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-semibold">Gallery ảnh (ảnh đầu tiên là ảnh đại diện)</label>
+                <div className="space-y-2">
+                  {editingProject.gallery.map((url, index) => (
+                    <div key={`${editingProject.id}-gallery-${index}`} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[1fr_88px_auto]" style={{ borderColor: "var(--border)" }}>
+                      <input
+                        value={url}
+                        onChange={(e) => {
+                          const gallery = [...editingProject.gallery];
+                          gallery[index] = e.target.value;
+                          setEditingProject({ ...editingProject, gallery });
+                        }}
+                        placeholder={`URL ảnh #${index + 1}`}
+                        className="rounded border px-3 py-2 text-sm"
+                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      />
+                      {url ? (
+                        <img src={url} alt={`Project ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
+                      ) : (
+                        <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
+                      )}
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => setEditingProject({ ...editingProject, gallery: moveItem(editingProject.gallery, index, index - 1) })}
+                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                          style={{ borderColor: "var(--border)" }}
+                        >↑</button>
+                        <button
+                          type="button"
+                          disabled={index === editingProject.gallery.length - 1}
+                          onClick={() => setEditingProject({ ...editingProject, gallery: moveItem(editingProject.gallery, index, index + 1) })}
+                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                          style={{ borderColor: "var(--border)" }}
+                        >↓</button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingProject({ ...editingProject, gallery: editingProject.gallery.filter((_, i) => i !== index) })}
+                          className="rounded bg-red-500 px-2 py-1 text-xs text-white"
+                        >Xóa</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProject({ ...editingProject, gallery: [...editingProject.gallery, ""] })}
+                    className="rounded-lg border px-3 py-2 text-xs font-semibold"
+                    style={{ borderColor: "var(--border)" }}
+                  >+ Thêm URL ảnh</button>
+                  <label className="inline-flex cursor-pointer rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white">
+                    Upload nhiều ảnh
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      disabled={uploading}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files ?? []);
+                        if (!files.length) return;
+                        const urls = await uploadManyToStorage(files);
+                        if (!urls.length) return;
+                        setEditingProject({ ...editingProject, gallery: [...editingProject.gallery, ...urls] });
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
               <AutoTextarea value={editingProject.description.vi} onChange={(e) => setEditingProject({ ...editingProject, description: { ...editingProject.description, vi: e.target.value } })} placeholder="Description VI" className="rounded border px-3 py-2 text-sm md:col-span-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
             </div>
             <div className="mt-4 flex justify-end gap-2">
@@ -543,7 +693,90 @@ export function ManagementDashboardV2() {
             <div className="grid gap-3 md:grid-cols-2">
               <input value={editingShowcase.id} onChange={(e) => setEditingShowcase({ ...editingShowcase, id: e.target.value })} placeholder="ID" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
               <input value={editingShowcase.name.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, name: { ...editingShowcase.name, vi: e.target.value } })} placeholder="Tên sản phẩm (VI)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <div className="space-y-2 md:col-span-2"><label className="text-sm font-semibold">Ảnh chính</label><div className="flex gap-2"><input value={editingShowcase.image} onChange={(e) => setEditingShowcase({ ...editingShowcase, image: e.target.value })} className="w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} /><label className="inline-flex cursor-pointer rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white">Upload<input type="file" className="hidden" disabled={uploading} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const url = await uploadToStorage(file); if (!url) return; setEditingShowcase({ ...editingShowcase, image: url }); e.currentTarget.value = ""; }} /></label></div></div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-semibold">Gallery ảnh (gallery[0] là ảnh chính)</label>
+                <div className="space-y-2">
+                  {(editingShowcase.gallery ?? []).map((url, index) => (
+                    <div key={`${editingShowcase.id}-gallery-${index}`} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[1fr_88px_auto]" style={{ borderColor: "var(--border)" }}>
+                      <input
+                        value={url}
+                        onChange={(e) => {
+                          const gallery = [...(editingShowcase.gallery ?? [])];
+                          gallery[index] = e.target.value;
+                          setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
+                        }}
+                        placeholder={`URL ảnh #${index + 1}`}
+                        className="rounded border px-3 py-2 text-sm"
+                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                      />
+                      {url ? (
+                        <img src={url} alt={`Showcase ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
+                      ) : (
+                        <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
+                      )}
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const gallery = moveItem([...(editingShowcase.gallery ?? [])], index, index - 1);
+                            setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? "" });
+                          }}
+                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                          style={{ borderColor: "var(--border)" }}
+                        >↑</button>
+                        <button
+                          type="button"
+                          disabled={index === (editingShowcase.gallery ?? []).length - 1}
+                          onClick={() => {
+                            const gallery = moveItem([...(editingShowcase.gallery ?? [])], index, index + 1);
+                            setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? "" });
+                          }}
+                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                          style={{ borderColor: "var(--border)" }}
+                        >↓</button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const gallery = (editingShowcase.gallery ?? []).filter((_, i) => i !== index);
+                            setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? "" });
+                          }}
+                          className="rounded bg-red-500 px-2 py-1 text-xs text-white"
+                        >Xóa</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const gallery = [...(editingShowcase.gallery ?? []), ""];
+                      setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
+                    }}
+                    className="rounded-lg border px-3 py-2 text-xs font-semibold"
+                    style={{ borderColor: "var(--border)" }}
+                  >+ Thêm URL ảnh</button>
+                  <label className="inline-flex cursor-pointer rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white">
+                    Upload nhiều ảnh
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      disabled={uploading}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files ?? []);
+                        if (!files.length) return;
+                        const urls = await uploadManyToStorage(files);
+                        if (!urls.length) return;
+                        const gallery = [...(editingShowcase.gallery ?? []), ...urls];
+                        setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
               <AutoTextarea value={editingShowcase.description.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, description: { ...editingShowcase.description, vi: e.target.value } })} placeholder="Mô tả (VI)" className="rounded border px-3 py-2 text-sm md:col-span-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
             </div>
             <div className="mt-4 flex justify-end gap-2">
