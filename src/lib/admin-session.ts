@@ -29,11 +29,6 @@ function getAdminConfig() {
   };
 }
 
-function isAdminBypassEnabled() {
-  const raw = (process.env.ADMIN_BYPASS_LOGIN ?? "").trim().toLowerCase();
-  return raw === "1" || raw === "true" || raw === "yes";
-}
-
 function signPayload(payload: string) {
   const { sessionSecret } = getAdminConfig();
   return createHmac("sha256", sessionSecret).update(payload).digest("hex");
@@ -181,7 +176,6 @@ export function createAdminSessionToken(username: string) {
 }
 
 export function verifyAdminSessionToken(token?: string | null) {
-  if (isAdminBypassEnabled()) return true;
   if (!token) return false;
 
   try {
