@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
-import { getProjectsData } from "@/lib/content/loaders";
+import projectsJson from "@/content/projects/projects.json";
+import { normalizeProjectsData } from "@/lib/content/normalizers";
+import type { ProjectsData } from "@/lib/content/types";
 import { pickList, pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
@@ -11,11 +13,30 @@ import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 export default function ProjectDetailPage() {
   const params = useParams<{ slug: string }>();
   const { lang } = useLanguage();
+  const [data, setData] = useState<ProjectsData>(normalizeProjectsData(projectsJson as unknown as ProjectsData));
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
-  const project = getProjectsData().items.find((item) => item.slug === params.slug);
+  const project = data.items.find((item) => item.slug === params.slug);
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const response = await fetch("/api/projects", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload = (await response.json().catch(() => null)) as ProjectsData | null;
+        if (payload?.items) {
+          setData(normalizeProjectsData(payload));
+        }
+      } catch {
+        // fallback to local JSON
+      }
+    }
+
+    loadProjects();
+  }, []);
 
   const showPrevImage = () => {
     if (!project || project.gallery.length === 0) {

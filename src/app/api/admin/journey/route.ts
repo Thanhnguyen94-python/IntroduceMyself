@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
-import type { ShowcaseData } from "@/lib/showcase-types";
-import { writeShowcaseData } from "@/lib/showcase-store";
+import type { ExperienceData } from "@/lib/content/types";
+import { writeJourneyData } from "@/lib/journey-store";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +16,20 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = (await request.json().catch(() => null)) as ShowcaseData | null;
+    const payload = (await request.json().catch(() => null)) as ExperienceData | null;
     if (!payload || !Array.isArray(payload.items)) {
       return NextResponse.json({ message: "Invalid payload." }, { status: 400 });
     }
 
-    await writeShowcaseData(payload);
-    revalidatePath("/san-pham-trung-bay");
+    await writeJourneyData(payload);
+    revalidatePath("/hanh-trinh");
+    revalidatePath("/tong-quan");
+    revalidatePath("/cv");
+
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Cannot save showcase data.";
-    console.error("[admin-showcase] save failed", error);
+    const message = error instanceof Error ? error.message : "Cannot save journey data.";
+    console.error("[admin-journey] save failed", error);
     return NextResponse.json({ message }, { status: 500 });
   }
 }

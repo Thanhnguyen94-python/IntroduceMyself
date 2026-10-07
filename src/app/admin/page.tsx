@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ShowcaseAdminEditor } from "@/components/admin/showcase-admin-editor";
+import { ContentAdminEditor } from "@/components/admin/content-admin-editor";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
 
 export default async function AdminPage() {
@@ -11,5 +12,10 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  return <ShowcaseAdminEditor />;
+  return (
+    <section className="space-y-6">
+      <ShowcaseAdminEditor />
+      <ContentAdminEditor />
+    </section>
+  );
 }

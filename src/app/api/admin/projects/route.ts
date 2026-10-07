@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
-import type { ShowcaseData } from "@/lib/showcase-types";
-import { writeShowcaseData } from "@/lib/showcase-store";
+import type { ProjectsData } from "@/lib/content/types";
+import { writeProjectsData } from "@/lib/projects-store";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +16,19 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = (await request.json().catch(() => null)) as ShowcaseData | null;
+    const payload = (await request.json().catch(() => null)) as ProjectsData | null;
     if (!payload || !Array.isArray(payload.items)) {
       return NextResponse.json({ message: "Invalid payload." }, { status: 400 });
     }
 
-    await writeShowcaseData(payload);
-    revalidatePath("/san-pham-trung-bay");
+    await writeProjectsData(payload);
+    revalidatePath("/du-an");
+    revalidatePath("/du-an/[slug]", "page");
+
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Cannot save showcase data.";
-    console.error("[admin-showcase] save failed", error);
+    const message = error instanceof Error ? error.message : "Cannot save projects data.";
+    console.error("[admin-projects] save failed", error);
     return NextResponse.json({ message }, { status: 500 });
   }
 }

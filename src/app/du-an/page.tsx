@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { getProjectsData } from "@/lib/content/loaders";
+import { useEffect, useMemo, useState } from "react";
+import projectsJson from "@/content/projects/projects.json";
+import { normalizeProjectsData } from "@/lib/content/normalizers";
+import type { ProjectsData } from "@/lib/content/types";
 import { pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
@@ -27,8 +29,26 @@ const filterLabels = {
 
 export default function DuAnPage() {
   const { lang } = useLanguage();
-  const data = getProjectsData();
+  const [data, setData] = useState<ProjectsData>(normalizeProjectsData(projectsJson as unknown as ProjectsData));
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("all");
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const response = await fetch("/api/projects", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload = (await response.json().catch(() => null)) as ProjectsData | null;
+        if (payload?.items) {
+          setData(normalizeProjectsData(payload));
+        }
+      } catch {
+        // fallback to local JSON
+      }
+    }
+
+    loadProjects();
+  }, []);
 
   const visible = useMemo(() => {
     if (activeFilter === "all") return data.items;

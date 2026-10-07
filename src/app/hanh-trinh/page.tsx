@@ -1,18 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getExperienceData } from "@/lib/content/loaders";
+import experienceJson from "@/content/experience/experience.json";
+import { normalizeExperienceData } from "@/lib/content/normalizers";
+import type { ExperienceData } from "@/lib/content/types";
 import { pickList, pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
 export default function HanhTrinhPage() {
-  const data = getExperienceData();
+  const [data, setData] = useState<ExperienceData>(normalizeExperienceData(experienceJson as ExperienceData));
   const { lang } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const active = data.items.find((i) => i.id === activeId);
+
+  useEffect(() => {
+    async function loadJourney() {
+      try {
+        const response = await fetch("/api/journey", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload = (await response.json().catch(() => null)) as ExperienceData | null;
+        if (payload?.items) {
+          setData(normalizeExperienceData(payload));
+        }
+      } catch {
+        // fallback to local JSON
+      }
+    }
+
+    loadJourney();
+  }, []);
 
   useEffect(() => {
     if (!active || viewerIndex === null) {

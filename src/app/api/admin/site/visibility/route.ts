@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-session";
 import { writeSiteVisibility } from "@/lib/site-visibility-store";
 import type { SiteVisibilityConfig } from "@/lib/site-visibility-types";
@@ -21,6 +22,12 @@ export async function PUT(request: Request) {
     }
 
     const saved = await writeSiteVisibility(payload);
+    revalidatePath("/");
+    revalidatePath("/tong-quan");
+    revalidatePath("/hanh-trinh");
+    revalidatePath("/du-an");
+    revalidatePath("/san-pham-trung-bay");
+    revalidatePath("/tai-lieu-ky-thuat");
     return NextResponse.json({ ok: true, data: saved });
   } catch (error) {
     console.error("[admin-site-visibility] save failed", error);

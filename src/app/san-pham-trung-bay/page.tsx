@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
+import productsJson from "@/content/showcase/products.json";
 import type { ShowcaseData } from "@/lib/showcase-types";
 
 type OrderLineInput = {
@@ -20,7 +21,7 @@ export default function SanPhamTrungBayPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState<Record<string, number>>({});
-  const [products, setProducts] = useState<ShowcaseData["items"]>([]);
+  const [products, setProducts] = useState<ShowcaseData["items"]>((productsJson as ShowcaseData).items ?? []);
   const [lightbox, setLightbox] = useState<{
     open: boolean;
     title: string;
@@ -44,7 +45,7 @@ export default function SanPhamTrungBayPage() {
         const payload = (await response.json()) as ShowcaseData;
         setProducts(payload.items ?? []);
       } catch {
-        setProducts([]);
+        setProducts((productsJson as ShowcaseData).items ?? []);
       }
     }
 
