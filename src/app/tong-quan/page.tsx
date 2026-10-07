@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getExperienceData, getSiteData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
+import { normalizeExperienceData } from "@/lib/content/normalizers";
+import type { ExperienceData } from "@/lib/content/types";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
@@ -26,7 +28,26 @@ export default function TongQuanPage() {
   const [showAllVisuals, setShowAllVisuals] = useState(false);
   const [journeyMode, setJourneyMode] = useState<"work" | "all">("work");
   const site = getSiteData();
-  const exp = getExperienceData();
+  const [exp, setExp] = useState<ExperienceData>(() => getExperienceData());
+
+  useEffect(() => {
+    async function loadJourney() {
+      try {
+        const response = await fetch("/api/journey", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload = (await response.json().catch(() => null)) as ExperienceData | null;
+        if (payload?.items) {
+          setExp(normalizeExperienceData(payload));
+        }
+      } catch {
+        // ignore and keep fallback state
+      }
+    }
+
+    loadJourney();
+  }, []);
+
   const hasExperience = exp.items.length > 0;
 
   const sortedExp = [...exp.items].sort((a, b) => getYearMonthValue(b.startDate) - getYearMonthValue(a.startDate));
@@ -57,11 +78,14 @@ export default function TongQuanPage() {
   const improvementCount = workExp.reduce((sum, item) => sum + pickList(item.improvements, lang).length, 0);
   const uniqueTools = new Set(workExp.flatMap((item) => item.equipmentTags));
   const visualItems = sortedWorkExp.flatMap((item) =>
-    item.images.slice(0, 2).map((image) => ({
-      ...image,
-      company: item.company,
-      period: `${item.startDate}${item.isCurrent ? " → nay" : ` → ${item.endDate}`}`
-    }))
+    item.images
+      .filter((image) => Boolean(image.src?.trim()))
+      .slice(0, 2)
+      .map((image) => ({
+        ...image,
+        company: item.company,
+        period: `${item.startDate}${item.isCurrent ? " → nay" : ` → ${item.endDate}`}`
+      }))
   );
   const visibleVisualItems = showAllVisuals ? visualItems : visualItems.slice(0, 6);
   const journeyItems = journeyMode === "work" ? sortedWorkExp : sortedExp;

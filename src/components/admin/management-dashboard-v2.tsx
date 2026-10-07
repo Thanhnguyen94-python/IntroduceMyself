@@ -524,17 +524,55 @@ export function ManagementDashboardV2() {
                 <div className="space-y-2">
                   {editingJourney.images.map((image, index) => (
                     <div key={`${editingJourney.id}-image-${index}`} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[1fr_88px_auto]" style={{ borderColor: "var(--border)" }}>
-                      <input
-                        value={image.src}
-                        onChange={(e) => {
-                          const images = [...editingJourney.images];
-                          images[index] = { ...images[index], src: e.target.value };
-                          setEditingJourney({ ...editingJourney, images });
-                        }}
-                        placeholder={`URL ảnh #${index + 1}`}
-                        className="rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-                      />
+                      <div className="space-y-2">
+                        <input
+                          value={image.src}
+                          onChange={(e) => {
+                            const images = [...editingJourney.images];
+                            images[index] = { ...images[index], src: e.target.value };
+                            setEditingJourney({ ...editingJourney, images });
+                          }}
+                          placeholder={`URL ảnh #${index + 1}`}
+                          className="rounded border px-3 py-2 text-sm"
+                          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                        />
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <input
+                            value={image.description?.vi ?? ""}
+                            onChange={(e) => {
+                              const images = [...editingJourney.images];
+                              images[index] = {
+                                ...images[index],
+                                description: {
+                                  ...(images[index].description ?? { vi: "", en: "" }),
+                                  vi: e.target.value
+                                }
+                              };
+                              setEditingJourney({ ...editingJourney, images });
+                            }}
+                            placeholder="Mô tả ảnh (VI)"
+                            className="rounded border px-3 py-2 text-sm"
+                            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                          />
+                          <input
+                            value={image.description?.en ?? ""}
+                            onChange={(e) => {
+                              const images = [...editingJourney.images];
+                              images[index] = {
+                                ...images[index],
+                                description: {
+                                  ...(images[index].description ?? { vi: "", en: "" }),
+                                  en: e.target.value
+                                }
+                              };
+                              setEditingJourney({ ...editingJourney, images });
+                            }}
+                            placeholder="Image description (EN)"
+                            className="rounded border px-3 py-2 text-sm"
+                            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                          />
+                        </div>
+                      </div>
                       {image.src ? (
                         <img src={image.src} alt={`Journey ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
                       ) : (
