@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { ShowcaseData } from "@/lib/showcase-types";
+import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 const showcasePath = path.join(process.cwd(), "src", "content", "showcase", "products.json");
@@ -135,6 +135,29 @@ async function writeShowcaseDataToFile(payload: ShowcaseData) {
   await fs.writeFile(showcasePath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");
 }
 
+function normalizeShowcaseItem(item: ShowcaseItem): ShowcaseItem {
+  return normalizePayload({ schemaVersion: 1, items: [item] }).items[0];
+}
+
+function toShowcaseRow(item: ShowcaseItem, sortOrder: number): ShowcaseProductRow {
+  return {
+    id: item.id,
+    category: item.category === "display" ? "display" : "3d",
+    name_vi: item.name.vi,
+    name_en: item.name.en,
+    description_vi: item.description.vi,
+    description_en: item.description.en,
+    image: item.image,
+    gallery: item.gallery ?? [],
+    old_price: item.oldPrice,
+    sale_price: item.salePrice,
+    stock_text_vi: item.stockText.vi,
+    stock_text_en: item.stockText.en,
+    tags: item.tags ?? [],
+    sort_order: sortOrder
+  };
+}
+
 export async function readShowcaseData(): Promise<ShowcaseData> {
   const supabase = getSupabaseServerClient();
 
@@ -207,4 +230,68 @@ export async function writeShowcaseData(data: ShowcaseData) {
   }
 
   await writeShowcaseDataToFile(payload);
+}
+
+export async function upsertShowcaseItem(item: ShowcaseItem) {
+  const normalized = normalizeShowcaseItem(item);
+  const supabase = getSupabaseServerClient();
+
+  if (supabase) {
+    const { data: existingRow } = await supabase
+      .from("showcase_products")
+      .select("sort_order")
+      .eq("id", normalized.id)
+      .maybeSingle();
+
+    let sortOrder = Number(existingRow?.sort_order ?? -1);
+    if (sortOrder < 0) {
+      const { data: maxRows } = await supabase
+        .from("showcase_products")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      sortOrder = Number(maxRows?.[0]?.sort_order ?? -1) + 1;
+    }
+
+    const row = toShowcaseRow(normalized, sortOrder);
+    const { error } = await supabase.from("showcase_products").upsert(row, { onConflict: "id" });
+
+    if (error && isProductionRuntime()) {
+      throw new Error(`Supabase row upsert failed (showcase_products): ${error.message}`);
+    }
+
+    if (!error) return;
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
+  }
+
+  const current = await readShowcaseDataFromFile();
+  const index = current.items.findIndex((it) => it.id === normalized.id);
+  if (index >= 0) {
+    current.items[index] = normalized;
+  } else {
+    current.items.push(normalized);
+  }
+
+  await writeShowcaseDataToFile(normalizePayload(current));
+}
+
+export async function deleteShowcaseItem(id: string) {
+  const targetId = id.trim();
+  if (!targetId) return;
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    const { error } = await supabase.from("showcase_products").delete().eq("id", targetId);
+    if (error && isProductionRuntime()) {
+      throw new Error(`Supabase row delete failed (showcase_products): ${error.message}`);
+    }
+    if (!error) return;
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
+  }
+
+  const current = await readShowcaseDataFromFile();
+  current.items = current.items.filter((item) => item.id !== targetId);
+  await writeShowcaseDataToFile(normalizePayload(current));
 }

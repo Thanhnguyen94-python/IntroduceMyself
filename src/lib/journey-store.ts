@@ -128,6 +128,39 @@ async function writeJourneyDataToFile(payload: ExperienceData) {
   await fs.writeFile(journeyPath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");
 }
 
+function normalizeJourneyItem(item: ExperienceItem): ExperienceItem {
+  return normalizePayload({ schemaVersion: 1, items: [item] }).items[0];
+}
+
+function toJourneyRow(item: ExperienceItem, sortOrder: number): JourneyRow {
+  return {
+    id: item.id,
+    company: item.company,
+    role_vi: item.role.vi,
+    role_en: item.role.en,
+    start_date: item.startDate,
+    end_date: item.endDate,
+    is_current: Boolean(item.isCurrent),
+    equipment_tags: item.equipmentTags ?? [],
+    responsibilities_vi: item.responsibilities.vi ?? [],
+    responsibilities_en: item.responsibilities.en ?? [],
+    problem_root_cause_action_vi: item.problemRootCauseAction.vi ?? [],
+    problem_root_cause_action_en: item.problemRootCauseAction.en ?? [],
+    training_activities_vi: item.trainingActivities.vi ?? [],
+    training_activities_en: item.trainingActivities.en ?? [],
+    achievements_vi: item.achievements.vi ?? [],
+    achievements_en: item.achievements.en ?? [],
+    improvements_vi: item.improvements.vi ?? [],
+    improvements_en: item.improvements.en ?? [],
+    images: (item.images ?? []).map((image) => ({
+      src: image.src,
+      description_vi: image.description.vi,
+      description_en: image.description.en
+    })),
+    sort_order: sortOrder
+  };
+}
+
 export async function readJourneyData(): Promise<ExperienceData> {
   const supabase = getSupabaseServerClient();
 
@@ -195,4 +228,67 @@ export async function writeJourneyData(data: ExperienceData) {
   }
 
   await writeJourneyDataToFile(payload);
+}
+
+export async function upsertJourneyItem(item: ExperienceItem) {
+  const normalized = normalizeJourneyItem(item);
+  const supabase = getSupabaseServerClient();
+
+  if (supabase) {
+    const { data: existingRow } = await supabase
+      .from("career_journey")
+      .select("sort_order")
+      .eq("id", normalized.id)
+      .maybeSingle();
+
+    let sortOrder = Number(existingRow?.sort_order ?? -1);
+    if (sortOrder < 0) {
+      const { data: maxRows } = await supabase
+        .from("career_journey")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      sortOrder = Number(maxRows?.[0]?.sort_order ?? -1) + 1;
+    }
+
+    const row = toJourneyRow(normalized, sortOrder);
+    const { error } = await supabase.from("career_journey").upsert(row, { onConflict: "id" });
+
+    if (error && isProductionRuntime()) {
+      throw new Error(`Supabase row upsert failed (career_journey): ${error.message}`);
+    }
+
+    if (!error) return;
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
+  }
+
+  const current = await readJourneyDataFromFile();
+  const index = current.items.findIndex((it) => it.id === normalized.id);
+  if (index >= 0) {
+    current.items[index] = normalized;
+  } else {
+    current.items.push(normalized);
+  }
+  await writeJourneyDataToFile(normalizePayload(current));
+}
+
+export async function deleteJourneyItem(id: string) {
+  const targetId = id.trim();
+  if (!targetId) return;
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    const { error } = await supabase.from("career_journey").delete().eq("id", targetId);
+    if (error && isProductionRuntime()) {
+      throw new Error(`Supabase row delete failed (career_journey): ${error.message}`);
+    }
+    if (!error) return;
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
+  }
+
+  const current = await readJourneyDataFromFile();
+  current.items = current.items.filter((item) => item.id !== targetId);
+  await writeJourneyDataToFile(normalizePayload(current));
 }

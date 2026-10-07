@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { ProjectsData } from "@/lib/content/types";
+import type { ProjectItem, ProjectsData } from "@/lib/content/types";
 import { normalizeProjectsData } from "@/lib/content/normalizers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -120,6 +120,37 @@ async function writeProjectsDataToFile(payload: ProjectsData) {
   await fs.writeFile(projectsPath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");
 }
 
+function normalizeProjectItem(item: ProjectItem): ProjectItem {
+  return normalizePayload({ schemaVersion: 1, items: [item] }).items[0];
+}
+
+function toProjectRow(item: ProjectItem, sortOrder: number): ProjectRow {
+  return {
+    id: item.id,
+    slug: item.slug,
+    title_vi: item.title.vi,
+    title_en: item.title.en,
+    category: item.category,
+    status: item.status,
+    summary_vi: item.summary.vi,
+    summary_en: item.summary.en,
+    objective_vi: item.objective.vi,
+    objective_en: item.objective.en,
+    description_vi: item.description.vi,
+    description_en: item.description.en,
+    equipment_tags: item.equipmentTags ?? [],
+    gallery: item.gallery ?? [],
+    attachments: (item.attachments ?? []).map((attachment) => ({
+      file_url: attachment.fileUrl,
+      label_vi: attachment.label.vi,
+      label_en: attachment.label.en
+    })),
+    lessons_learned_vi: item.lessonsLearned.vi ?? [],
+    lessons_learned_en: item.lessonsLearned.en ?? [],
+    sort_order: sortOrder
+  };
+}
+
 export async function readProjectsData(): Promise<ProjectsData> {
   const supabase = getSupabaseServerClient();
 
@@ -187,4 +218,68 @@ export async function writeProjectsData(data: ProjectsData) {
   }
 
   await writeProjectsDataToFile(payload);
+}
+
+export async function upsertProjectItem(item: ProjectItem) {
+  const normalized = normalizeProjectItem(item);
+  const supabase = getSupabaseServerClient();
+
+  if (supabase) {
+    const { data: existingRow } = await supabase
+      .from("projects")
+      .select("sort_order")
+      .eq("id", normalized.id)
+      .maybeSingle();
+
+    let sortOrder = Number(existingRow?.sort_order ?? -1);
+    if (sortOrder < 0) {
+      const { data: maxRows } = await supabase
+        .from("projects")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      sortOrder = Number(maxRows?.[0]?.sort_order ?? -1) + 1;
+    }
+
+    const row = toProjectRow(normalized, sortOrder);
+    const { error } = await supabase.from("projects").upsert(row, { onConflict: "id" });
+
+    if (error && isProductionRuntime()) {
+      throw new Error(`Supabase row upsert failed (projects): ${error.message}`);
+    }
+
+    if (!error) return;
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
+  }
+
+  const current = await readProjectsDataFromFile();
+  const index = current.items.findIndex((it) => it.id === normalized.id);
+  if (index >= 0) {
+    current.items[index] = normalized;
+  } else {
+    current.items.push(normalized);
+  }
+
+  await writeProjectsDataToFile(normalizePayload(current));
+}
+
+export async function deleteProjectItem(id: string) {
+  const targetId = id.trim();
+  if (!targetId) return;
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    const { error } = await supabase.from("projects").delete().eq("id", targetId);
+    if (error && isProductionRuntime()) {
+      throw new Error(`Supabase row delete failed (projects): ${error.message}`);
+    }
+    if (!error) return;
+  } else if (isProductionRuntime()) {
+    throw new Error("Supabase is not configured for server writes (missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY).");
+  }
+
+  const current = await readProjectsDataFromFile();
+  current.items = current.items.filter((item) => item.id !== targetId);
+  await writeProjectsDataToFile(normalizePayload(current));
 }
