@@ -6,7 +6,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 type RpcResponse = {
   jsonrpc?: string;
   id?: string | number | null;
-  result?: Record<string, unknown>;
+  result?: {
+    content?: Array<{ type?: string; text?: string }>;
+    [key: string]: unknown;
+  };
   error?: {
     code?: number;
     message?: string;
@@ -147,6 +150,33 @@ function createRpcError(id: JsonRpcId, code: number, message: string) {
   };
 }
 
+function cleanText(input: string) {
+  return input.replace(/\s+/g, " ").trim();
+}
+
+function toToolContentResult(payload: unknown) {
+  const empty = {
+    content: [{ type: "text", text: "- Không có dữ liệu phù hợp." }]
+  };
+
+  if (!payload || typeof payload !== "object") return empty;
+
+  const result = payload as { content?: Array<{ type?: string; text?: string }>; structuredContent?: unknown };
+  const rawText = Array.isArray(result.content)
+    ? result.content
+        .map((item) => (typeof item?.text === "string" ? item.text : ""))
+        .join("\n")
+    : "";
+
+  const text = cleanText(rawText || "");
+  if (!text) return empty;
+
+  const compact = text.length > 1000 ? `${text.slice(0, 997).trim()}...` : text;
+  return {
+    content: [{ type: "text", text: compact }]
+  };
+}
+
 export function XiaozhiConnector() {
   const wsRef = useRef<Map<string, WebSocket>>(new Map());
   const wsUrlRef = useRef<Map<string, string>>(new Map());
@@ -275,7 +305,7 @@ export function XiaozhiConnector() {
           arguments: toolArgs
         });
 
-        sendWsPayload(robot.id, createRpcResponse(id, result));
+        sendWsPayload(robot.id, createRpcResponse(id, toToolContentResult(result)));
         addLog(`Đã phản hồi tool ${toolName} theo request ID ${String(id)}.`, "success", robot.name);
       } catch (error) {
         const message = error instanceof Error ? error.message : `Tool call failed: ${toolName}`;

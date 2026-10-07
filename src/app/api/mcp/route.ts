@@ -165,7 +165,26 @@ function toLanguage(input: unknown): "vi" | "en" {
 function asLimit(input: unknown, fallback = 6) {
   const value = Number(input);
   if (!Number.isFinite(value) || value <= 0) return fallback;
-  return Math.min(20, Math.floor(value));
+  return Math.min(8, Math.max(5, Math.floor(value)));
+}
+
+function cleanText(input: string) {
+  return input.replace(/\s+/g, " ").trim();
+}
+
+function toShortText(input: string, maxChars = 1000) {
+  const normalized = cleanText(input);
+  if (normalized.length <= maxChars) return normalized;
+  return `${normalized.slice(0, maxChars - 3).trim()}...`;
+}
+
+function makeBulletLines(items: string[], maxChars = 1000) {
+  const lines = items
+    .map((item) => cleanText(item))
+    .filter(Boolean)
+    .map((item) => `- ${item}`);
+
+  return toShortText(lines.join("\n"), maxChars);
 }
 
 function normalizeToolName(input: string) {
@@ -308,37 +327,53 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
 
   if (toolName === "thong_tin_ca_nhan") {
     const profile = site.profile;
+    const highlights = (site.highlights[lang] || site.highlights.vi).slice(0, 3);
     const payload = {
       fullName: profile.fullName,
       displayName: profile.displayName,
       title: profile.title[lang] || profile.title.vi,
       slogan: profile.slogan[lang] || profile.slogan.vi,
       location: profile.location,
-      phone: profile.phone,
-      email: profile.email,
-      highlights: site.highlights[lang] || site.highlights.vi
+      skills: site.skills.slice(0, 4).map((group) => group.group[lang] || group.group.vi),
+      highlights
     };
 
+    const bulletText = makeBulletLines([
+      `Họ tên: ${payload.fullName} (${payload.displayName})`,
+      `Mục tiêu/Vai trò: ${payload.title}`,
+      `Slogan: ${payload.slogan}`,
+      `Khu vực làm việc: ${payload.location}`,
+      `Kỹ năng chính: ${payload.skills.join(", ")}`,
+      `Điểm nổi bật: ${payload.highlights.join("; ")}`
+    ]);
+
     return {
-      text: `${payload.fullName} (${payload.displayName}) - ${payload.title}`,
+      text: bulletText,
       data: payload
     };
   }
 
   if (toolName === "kinh_nghiem_smt") {
-    const limit = asLimit(args.limit, 8);
+    const limit = asLimit(args.limit, 6);
     const items = journey.items.slice(0, limit).map((item) => ({
-      id: item.id,
       company: item.company,
       role: item.role[lang] || item.role.vi,
       period: `${item.startDate} - ${item.isCurrent ? "present" : item.endDate}`,
-      achievements: item.achievements[lang] || item.achievements.vi,
-      improvements: item.improvements[lang] || item.improvements.vi,
-      equipmentTags: item.equipmentTags
+      equipment: item.equipmentTags.slice(0, 4),
+      achievements: (item.achievements[lang] || item.achievements.vi).slice(0, 2),
+      improvements: (item.improvements[lang] || item.improvements.vi).slice(0, 2)
     }));
 
+    const summaryLines = items.map(
+      (item) =>
+        `${item.company} (${item.period}) | ${item.role} | Thiết bị: ${item.equipment.join(", ") || "N/A"} | Thành tựu: ${item.achievements.join("; ") || "N/A"}`
+    );
+
     return {
-      text: `SMT experience items: ${items.length}`,
+      text: makeBulletLines([
+        `Tổng giai đoạn kinh nghiệm SMT: ${journey.items.length}`,
+        ...summaryLines
+      ]),
       data: {
         total: journey.items.length,
         items
@@ -347,24 +382,29 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
   }
 
   if (toolName === "danh_sach_du_an") {
-    const limit = asLimit(args.limit, 8);
+    const limit = asLimit(args.limit, 6);
     const category = typeof args.category === "string" ? args.category.trim() : "";
 
     const filtered = projects.items.filter((item) => (category ? item.category === category : true)).slice(0, limit);
 
     const items = filtered.map((item) => ({
-      id: item.id,
       slug: item.slug,
       category: item.category,
       status: item.status,
       title: item.title[lang] || item.title.vi,
       summary: item.summary[lang] || item.summary.vi,
-      objective: item.objective[lang] || item.objective.vi,
-      equipmentTags: item.equipmentTags
+      objective: item.objective[lang] || item.objective.vi
     }));
 
+    const summaryLines = items.map(
+      (item) => `${item.title} | ${item.category} | ${item.status} | Mục tiêu: ${item.objective}`
+    );
+
     return {
-      text: `Project items: ${items.length}`,
+      text: makeBulletLines([
+        `Tổng số dự án phù hợp: ${items.length}/${projects.items.length}`,
+        ...summaryLines
+      ]),
       data: {
         total: projects.items.length,
         items
@@ -437,8 +477,7 @@ export async function POST(request: Request) {
 
       const output = await handleToolCall(name, args);
       return jsonOk(id, {
-        content: [{ type: "text", text: output.text }],
-        structuredContent: output.data
+        content: [{ type: "text", text: output.text }]
       });
     }
 
