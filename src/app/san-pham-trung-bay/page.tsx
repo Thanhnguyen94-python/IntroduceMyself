@@ -5,6 +5,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 import productsJson from "@/content/showcase/products.json";
 import type { ShowcaseData } from "@/lib/showcase-types";
+import { resolveMedia } from "@/lib/media-url";
 
 type OrderLineInput = {
   productId: string;
@@ -305,6 +306,7 @@ export default function SanPhamTrungBayPage() {
           const images = getImages(item);
           const activeIndex = carouselIndex[item.id] ?? 0;
           const imageSrc = images[activeIndex] ?? item.image;
+          const activeMedia = resolveMedia(imageSrc);
           const discount = Math.max(0, Math.round(((item.oldPrice - item.salePrice) / item.oldPrice) * 100));
           return (
             <article key={item.id} className="card overflow-hidden">
@@ -337,7 +339,19 @@ export default function SanPhamTrungBayPage() {
                     })
                   }
                 >
-                  <img src={imageSrc} alt={item.name[lang]} className="h-52 w-full rounded-lg object-cover" />
+                  {activeMedia.type === "youtube" ? (
+                    <div className="h-52 w-full">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${activeMedia.youtubeId}`}
+                        title="YouTube video player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="h-full w-full rounded-lg"
+                      />
+                    </div>
+                  ) : (
+                    <img src={imageSrc} alt={item.name[lang]} className="h-52 w-full rounded-lg object-cover" />
+                  )}
                 </button>
                 <span className="absolute left-2 top-2 rounded bg-red-500 px-2 py-1 text-xs font-bold text-white">
                   -{discount}%
@@ -547,11 +561,30 @@ export default function SanPhamTrungBayPage() {
         <div className="fixed inset-0 z-[90] bg-black/80 p-4" onClick={() => setLightbox((prev) => ({ ...prev, open: false }))}>
           <div className="mx-auto flex h-full w-full max-w-5xl items-center justify-center">
             <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
-              <img
-                src={lightbox.images[lightbox.index]}
-                alt={lightbox.title}
-                className="max-h-[82vh] w-full rounded-xl object-contain"
-              />
+              {(() => {
+                const media = resolveMedia(lightbox.images[lightbox.index]);
+                if (media.type === "youtube") {
+                  return (
+                    <div className="aspect-video w-full">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                        title="YouTube video player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="h-full w-full rounded-lg"
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <img
+                    src={lightbox.images[lightbox.index]}
+                    alt={lightbox.title}
+                    className="max-h-[82vh] w-full rounded-xl object-contain"
+                  />
+                );
+              })()}
 
               <button
                 type="button"

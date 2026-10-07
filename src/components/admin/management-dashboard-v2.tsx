@@ -6,6 +6,7 @@ import type { TextareaHTMLAttributes } from "react";
 import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData } from "@/lib/content/types";
 import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
 import type { SiteVisibilityConfig } from "@/lib/site-visibility-types";
+import { resolveMedia } from "@/lib/media-url";
 import { OverviewTab } from "@/components/admin/dashboard-tabs/overview-tab";
 import { JourneyTab } from "@/components/admin/dashboard-tabs/journey-tab";
 import { ProjectsTab } from "@/components/admin/dashboard-tabs/projects-tab";
@@ -586,7 +587,22 @@ export function ManagementDashboardV2() {
                         </div>
                       </div>
                       {image.src ? (
-                        <img src={image.src} alt={`Journey ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
+                        (() => {
+                          const media = resolveMedia(image.src);
+                          if (media.type === "youtube") {
+                            return (
+                              <iframe
+                                src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="h-16 w-[88px] rounded-lg"
+                              />
+                            );
+                          }
+
+                          return <img src={image.src} alt={`Journey ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />;
+                        })()
                       ) : (
                         <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
                       )}
@@ -724,7 +740,22 @@ export function ManagementDashboardV2() {
                         style={{ borderColor: "var(--border)", background: "var(--surface)" }}
                       />
                       {url ? (
-                        <img src={url} alt={`Project ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
+                        (() => {
+                          const media = resolveMedia(url);
+                          if (media.type === "youtube") {
+                            return (
+                              <iframe
+                                src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="h-16 w-[88px] rounded-lg"
+                              />
+                            );
+                          }
+
+                          return <img src={url} alt={`Project ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />;
+                        })()
                       ) : (
                         <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
                       )}
@@ -851,7 +882,22 @@ export function ManagementDashboardV2() {
                         style={{ borderColor: "var(--border)", background: "var(--surface)" }}
                       />
                       {url ? (
-                        <img src={url} alt={`Showcase ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />
+                        (() => {
+                          const media = resolveMedia(url);
+                          if (media.type === "youtube") {
+                            return (
+                              <iframe
+                                src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="h-16 w-[88px] rounded-lg"
+                              />
+                            );
+                          }
+
+                          return <img src={url} alt={`Showcase ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />;
+                        })()
                       ) : (
                         <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
                       )}

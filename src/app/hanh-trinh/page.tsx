@@ -5,6 +5,7 @@ import experienceJson from "@/content/experience/experience.json";
 import { normalizeExperienceData } from "@/lib/content/normalizers";
 import type { ExperienceData } from "@/lib/content/types";
 import { pickList, pickText } from "@/lib/content/i18n";
+import { resolveMedia } from "@/lib/media-url";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
@@ -159,6 +160,7 @@ export default function HanhTrinhPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {active.images.map((image, index) => {
                   const imageKey = `${active.id}-${image.src}`;
+                  const media = resolveMedia(image.src);
                   return (
                     <figure
                       key={imageKey}
@@ -174,13 +176,25 @@ export default function HanhTrinhPage() {
                           className="block w-full"
                           onClick={() => setViewerIndex(index)}
                         >
-                          <img
-                            src={image.src}
-                            alt={pickText(image.description, lang) || active.company}
-                            className="h-44 w-full object-cover transition duration-300 hover:scale-[1.02]"
-                            loading="lazy"
-                            onError={() => setBrokenImages((prev) => ({ ...prev, [imageKey]: true }))}
-                          />
+                          {media.type === "youtube" ? (
+                            <div className="h-44 w-full">
+                              <iframe
+                                src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="h-full w-full rounded-lg"
+                              />
+                            </div>
+                          ) : (
+                            <img
+                              src={image.src}
+                              alt={pickText(image.description, lang) || active.company}
+                              className="h-44 w-full object-cover transition duration-300 hover:scale-[1.02]"
+                              loading="lazy"
+                              onError={() => setBrokenImages((prev) => ({ ...prev, [imageKey]: true }))}
+                            />
+                          )}
                         </button>
                       )}
                       <figcaption className="px-3 py-2 text-sm" style={{ color: "var(--muted)" }}>
@@ -238,11 +252,30 @@ export default function HanhTrinhPage() {
                     {lang === "vi" ? "Đóng" : "Close"}
                   </button>
 
-                  <img
-                    src={active.images[viewerIndex].src}
-                    alt={pickText(active.images[viewerIndex].description, lang) || active.company}
-                    className="max-h-[78vh] w-full object-contain bg-slate-950/70"
-                  />
+                  {(() => {
+                    const media = resolveMedia(active.images[viewerIndex].src);
+                    if (media.type === "youtube") {
+                      return (
+                        <div className="aspect-video max-h-[78vh] w-full bg-slate-950/70">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="h-full w-full rounded-lg"
+                          />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <img
+                        src={active.images[viewerIndex].src}
+                        alt={pickText(active.images[viewerIndex].description, lang) || active.company}
+                        className="max-h-[78vh] w-full object-contain bg-slate-950/70"
+                      />
+                    );
+                  })()}
 
                   <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-200">
                     <p className="line-clamp-2">

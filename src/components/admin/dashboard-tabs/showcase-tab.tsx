@@ -1,6 +1,7 @@
 "use client";
 
 import type { ShowcaseItem } from "@/lib/showcase-types";
+import { resolveMedia } from "@/lib/media-url";
 
 type Props = {
   search: string;
@@ -57,7 +58,25 @@ export function ShowcaseTab({
             {items.map((item) => (
               <tr key={item.id} className="border-t" style={{ borderColor: "var(--border)" }}>
                 <td className="px-3 py-2">
-                  {(item.image || item.gallery?.[0]) ? <img src={item.image || item.gallery?.[0] || ""} alt={item.name.vi} className="h-12 w-16 rounded object-cover" /> : <div className="h-12 w-16 rounded bg-slate-200 dark:bg-slate-700" />}
+                  {(item.image || item.gallery?.[0]) ? (
+                    (() => {
+                      const previewUrl = item.image || item.gallery?.[0] || "";
+                      const media = resolveMedia(previewUrl);
+                      if (media.type === "youtube") {
+                        return (
+                          <iframe
+                            src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="h-12 w-16 rounded-lg"
+                          />
+                        );
+                      }
+
+                      return <img src={previewUrl} alt={item.name.vi} className="h-12 w-16 rounded object-cover" />;
+                    })()
+                  ) : <div className="h-12 w-16 rounded bg-slate-200 dark:bg-slate-700" />}
                 </td>
                 <td className="px-3 py-2">
                   <p className="font-semibold">{item.name.vi}</p>

@@ -6,6 +6,7 @@ import { getExperienceData, getSiteData } from "@/lib/content/loaders";
 import { pickList, pickText } from "@/lib/content/i18n";
 import { normalizeExperienceData } from "@/lib/content/normalizers";
 import type { ExperienceData } from "@/lib/content/types";
+import { resolveMedia } from "@/lib/media-url";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
@@ -237,7 +238,24 @@ export default function TongQuanPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleVisualItems.map((image, index) => (
               <figure key={`${image.src}-${index}`} className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--border)" }}>
-                <img src={image.src} alt={pickText(image.description, lang)} className="h-48 w-full object-cover" />
+                {(() => {
+                  const media = resolveMedia(image.src);
+                  if (media.type === "youtube") {
+                    return (
+                      <div className="h-48 w-full">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                          title="YouTube video player"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="h-full w-full rounded-lg"
+                        />
+                      </div>
+                    );
+                  }
+
+                  return <img src={image.src} alt={pickText(image.description, lang)} className="h-48 w-full object-cover" />;
+                })()}
                 <figcaption className="space-y-1 p-3 text-xs">
                   <p className="font-semibold text-slate-700 dark:text-slate-200">{image.company}</p>
                   <p className="text-slate-600 dark:text-slate-300">{pickText(image.description, lang)}</p>

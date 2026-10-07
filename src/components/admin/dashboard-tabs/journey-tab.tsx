@@ -1,6 +1,7 @@
 "use client";
 
 import type { ExperienceItem } from "@/lib/content/types";
+import { resolveMedia } from "@/lib/media-url";
 
 type Props = {
   search: string;
@@ -60,7 +61,22 @@ export function JourneyTab({
               <tr key={item.id} className="border-t" style={{ borderColor: "var(--border)" }}>
                 <td className="px-3 py-2">
                   {item.images[0]?.src ? (
-                    <img src={item.images[0].src} alt={item.company} className="h-12 w-16 rounded object-cover" />
+                    (() => {
+                      const media = resolveMedia(item.images[0].src);
+                      if (media.type === "youtube") {
+                        return (
+                          <iframe
+                            src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="h-12 w-16 rounded-lg"
+                          />
+                        );
+                      }
+
+                      return <img src={item.images[0].src} alt={item.company} className="h-12 w-16 rounded object-cover" />;
+                    })()
                   ) : (
                     <div className="h-12 w-16 rounded bg-slate-200 dark:bg-slate-700" />
                   )}

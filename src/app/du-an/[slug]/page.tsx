@@ -7,6 +7,7 @@ import projectsJson from "@/content/projects/projects.json";
 import { normalizeProjectsData } from "@/lib/content/normalizers";
 import type { ProjectsData } from "@/lib/content/types";
 import { pickList, pickText } from "@/lib/content/i18n";
+import { resolveMedia } from "@/lib/media-url";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
 
@@ -161,13 +162,32 @@ export default function ProjectDetailPage() {
                     setZoom(1);
                   }}
                 >
-                  <img
-                    src={img}
-                    alt={`${pickText(project.title, lang)} gallery`}
-                    className="h-40 w-full object-cover transition duration-300 hover:scale-[1.02]"
-                    loading="lazy"
-                    onError={() => setBrokenImages((prev) => ({ ...prev, [img]: true }))}
-                  />
+                  {(() => {
+                    const media = resolveMedia(img);
+                    if (media.type === "youtube") {
+                      return (
+                        <div className="h-40 w-full">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="h-full w-full rounded-lg"
+                          />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <img
+                        src={img}
+                        alt={`${pickText(project.title, lang)} gallery`}
+                        className="h-40 w-full object-cover transition duration-300 hover:scale-[1.02]"
+                        loading="lazy"
+                        onError={() => setBrokenImages((prev) => ({ ...prev, [img]: true }))}
+                      />
+                    );
+                  })()}
                 </button>
               )}
               <figcaption className="truncate px-2 py-1 text-center text-[11px]" style={{ color: "var(--muted)" }} title={img}>
@@ -221,48 +241,76 @@ export default function ProjectDetailPage() {
               {lang === "vi" ? "Tiếp" : "Next"}
             </button>
 
-            <div className="mb-3 flex items-center justify-end gap-2 px-3 pt-3">
-              <button
-                type="button"
-                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
-                onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.25).toFixed(2)))}
-              >
-                -
-              </button>
-              <span className="min-w-14 text-center text-sm text-white">{Math.round(zoom * 100)}%</span>
-              <button
-                type="button"
-                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
-                onClick={() => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)))}
-              >
-                +
-              </button>
-              <button
-                type="button"
-                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
-                onClick={() => setZoom(1)}
-              >
-                {lang === "vi" ? "Mặc định" : "Reset"}
-              </button>
-              <button
-                type="button"
-                className="rounded bg-white/15 px-3 py-1 text-sm text-white"
-                onClick={() => {
-                  setViewerIndex(null);
-                  setZoom(1);
-                }}
-              >
-                {lang === "vi" ? "Đóng" : "Close"}
-              </button>
-            </div>
+            {(() => {
+              const media = resolveMedia(project.gallery[viewerIndex]);
+              return (
+                <div className="mb-3 flex items-center justify-end gap-2 px-3 pt-3">
+                  {media.type === "image" && (
+                    <>
+                      <button
+                        type="button"
+                        className="rounded bg-white/15 px-3 py-1 text-sm text-white"
+                        onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.25).toFixed(2)))}
+                      >
+                        -
+                      </button>
+                      <span className="min-w-14 text-center text-sm text-white">{Math.round(zoom * 100)}%</span>
+                      <button
+                        type="button"
+                        className="rounded bg-white/15 px-3 py-1 text-sm text-white"
+                        onClick={() => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)))}
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded bg-white/15 px-3 py-1 text-sm text-white"
+                        onClick={() => setZoom(1)}
+                      >
+                        {lang === "vi" ? "Mặc định" : "Reset"}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    className="rounded bg-white/15 px-3 py-1 text-sm text-white"
+                    onClick={() => {
+                      setViewerIndex(null);
+                      setZoom(1);
+                    }}
+                  >
+                    {lang === "vi" ? "Đóng" : "Close"}
+                  </button>
+                </div>
+              );
+            })()}
 
             <div className="max-h-[78vh] overflow-auto bg-black/30 p-2">
-              <img
-                src={project.gallery[viewerIndex]}
-                alt={`${pickText(project.title, lang)} zoom`}
-                className="mx-auto max-w-full origin-center"
-                style={{ transform: `scale(${zoom})`, transition: "transform 150ms ease" }}
-              />
+              {(() => {
+                const media = resolveMedia(project.gallery[viewerIndex]);
+                if (media.type === "youtube") {
+                  return (
+                    <div className="aspect-video w-full">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                        title="YouTube video player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="h-full w-full rounded-lg"
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <img
+                    src={project.gallery[viewerIndex]}
+                    alt={`${pickText(project.title, lang)} zoom`}
+                    className="mx-auto max-w-full origin-center"
+                    style={{ transform: `scale(${zoom})`, transition: "transform 150ms ease" }}
+                  />
+                );
+              })()}
             </div>
 
             <div className="flex items-center justify-between px-4 py-3 text-sm text-slate-200">
