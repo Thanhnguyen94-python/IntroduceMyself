@@ -30,12 +30,28 @@ type WsRpcRequest = {
   params?: Record<string, unknown>;
 };
 
+type RobotConfig = {
+  id: string;
+  name: string;
+  url: string;
+  enabled: boolean;
+};
+
+type RobotRuntime = {
+  state: ConnectionState;
+  url: string;
+  lastError?: string;
+};
+
+const ROBOTS_STORAGE_KEY = "xiaozhi-robots-v1";
 const defaultEndpoint = "wss://api.xiaozhi.me/mcp/?token=YOUR_TOKEN";
 
 const TOOL_DEFINITIONS = [
   {
-    name: "get_personal_info",
-    description: "Lấy thông tin cá nhân, mục tiêu, kỹ năng chính của Nguyễn Văn Thạnh",
+    name: "Thông Tin Cá Nhân - thong_tin_ca_nhan",
+    functionName: "thong_tin_ca_nhan",
+    aliases: ["get_personal_info"],
+    description: "Tra cứu thông tin cá nhân, mục tiêu công việc và kỹ năng chính của Nguyễn Văn Thạnh",
     inputSchema: {
       type: "object",
       properties: {
@@ -49,8 +65,10 @@ const TOOL_DEFINITIONS = [
     }
   },
   {
-    name: "get_smt_experience",
-    description: "Lấy quá trình làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền (Line balance) và thiết bị xưởng",
+    name: "Kinh Nghiệm SMT - kinh_nghiem_smt",
+    functionName: "kinh_nghiem_smt",
+    aliases: ["get_smt_experience"],
+    description: "Tra cứu lịch sử làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền Line Balance và thiết bị xưởng của Nguyễn Văn Thạnh",
     inputSchema: {
       type: "object",
       properties: {
@@ -71,8 +89,10 @@ const TOOL_DEFINITIONS = [
     }
   },
   {
-    name: "get_projects",
-    description: "Lấy danh sách các dự án thực tế và sản phẩm tiêu biểu",
+    name: "Danh Sách Dự Án - danh_sach_du_an",
+    functionName: "danh_sach_du_an",
+    aliases: ["get_projects"],
+    description: "Tra cứu danh sách các dự án thực tế, phần mềm và sản phẩm tiêu biểu của Nguyễn Văn Thạnh",
     inputSchema: {
       type: "object",
       properties: {
@@ -128,27 +148,30 @@ function createRpcError(id: JsonRpcId, code: number, message: string) {
 }
 
 export function XiaozhiConnector() {
-  const wsRef = useRef<WebSocket | null>(null);
+  const wsRef = useRef<Map<string, WebSocket>>(new Map());
+  const wsUrlRef = useRef<Map<string, string>>(new Map());
   const idRef = useRef(1);
+  const localRobotsLoadedRef = useRef(false);
 
-  const [endpoint, setEndpoint] = useState(defaultEndpoint);
-  const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
+  const [robots, setRobots] = useState<RobotConfig[]>([]);
+  const [runtimes, setRuntimes] = useState<Record<string, RobotRuntime>>({});
   const [logs, setLogs] = useState<LogItem[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [contextPreview, setContextPreview] = useState<Record<string, unknown> | null>(null);
+  const [newRobotName, setNewRobotName] = useState("");
+  const [newRobotUrl, setNewRobotUrl] = useState(defaultEndpoint);
+  const [syncingRobotId, setSyncingRobotId] = useState<string | null>(null);
+  const [contextPreview, setContextPreview] = useState<Record<string, Record<string, unknown>>>({});
 
-  const statusLabel = useMemo(() => {
-    if (connectionState === "connected") return "Đã kết nối";
-    if (connectionState === "connecting") return "Đang kết nối";
-    if (connectionState === "error") return "Lỗi kết nối";
-    return "Chưa kết nối";
-  }, [connectionState]);
+  const connectedCount = useMemo(
+    () => Object.values(runtimes).filter((runtime) => runtime.state === "connected").length,
+    [runtimes]
+  );
 
-  function addLog(text: string, level: LogItem["level"] = "info") {
+  function addLog(text: string, level: LogItem["level"] = "info", robotName?: string) {
+    const prefix = robotName ? `[${robotName}] ` : "";
     setLogs((prev) => [
       {
         id: Date.now() + Math.floor(Math.random() * 1000),
-        text,
+        text: `${prefix}${text}`,
         level,
         timestamp: new Date().toLocaleTimeString("vi-VN")
       },
@@ -172,12 +195,26 @@ export function XiaozhiConnector() {
     return payload.result ?? {};
   }
 
-  function sendWsPayload(payload: Record<string, unknown>) {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-    wsRef.current.send(JSON.stringify(payload));
+  function sendWsPayload(robotId: string, payload: Record<string, unknown>) {
+    const ws = wsRef.current.get(robotId);
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify(payload));
   }
 
-  async function handleIncomingRpc(rawText: string) {
+  function updateRuntime(robotId: string, next: Partial<RobotRuntime>) {
+    setRuntimes((prev) => {
+      const current = prev[robotId] ?? { state: "disconnected", url: "" };
+      return {
+        ...prev,
+        [robotId]: {
+          ...current,
+          ...next
+        }
+      };
+    });
+  }
+
+  async function handleIncomingRpc(robot: RobotConfig, rawText: string) {
     const parsed = JSON.parse(rawText) as WsRpcRequest;
     const method = typeof parsed?.method === "string" ? parsed.method : "";
     const id = parsed?.id ?? null;
@@ -185,8 +222,15 @@ export function XiaozhiConnector() {
 
     if (!method) return false;
 
+    if (method === "ping") {
+      sendWsPayload(robot.id, createRpcResponse(id, {}));
+      addLog("Đã phản hồi ping/pong giữ kết nối.", "success", robot.name);
+      return true;
+    }
+
     if (method === "initialize") {
       sendWsPayload(
+        robot.id,
         createRpcResponse(id, {
           protocolVersion: "2024-11-05",
           serverInfo: {
@@ -200,17 +244,18 @@ export function XiaozhiConnector() {
           }
         })
       );
-      addLog("Đã phản hồi initialize cho Xiaozhi.", "success");
+      addLog("Đã phản hồi initialize cho Xiaozhi.", "success", robot.name);
       return true;
     }
 
     if (method === "tools/list" || method === "ListToolsRequest") {
       sendWsPayload(
+        robot.id,
         createRpcResponse(id, {
           tools: TOOL_DEFINITIONS
         })
       );
-      addLog("Đã phản hồi danh sách MCP tools cho Xiaozhi.", "success");
+      addLog("Đã phản hồi danh sách MCP tools cho Xiaozhi.", "success", robot.name);
       return true;
     }
 
@@ -220,7 +265,7 @@ export function XiaozhiConnector() {
         typeof params.arguments === "object" && params.arguments ? (params.arguments as Record<string, unknown>) : {};
 
       if (!toolName) {
-        sendWsPayload(createRpcError(id, -32602, "Invalid params: missing tool name"));
+        sendWsPayload(robot.id, createRpcError(id, -32602, "Invalid params: missing tool name"));
         return true;
       }
 
@@ -230,12 +275,12 @@ export function XiaozhiConnector() {
           arguments: toolArgs
         });
 
-        sendWsPayload(createRpcResponse(id, result));
-        addLog(`Đã phản hồi tool ${toolName} theo request ID ${String(id)}.`, "success");
+        sendWsPayload(robot.id, createRpcResponse(id, result));
+        addLog(`Đã phản hồi tool ${toolName} theo request ID ${String(id)}.`, "success", robot.name);
       } catch (error) {
         const message = error instanceof Error ? error.message : `Tool call failed: ${toolName}`;
-        sendWsPayload(createRpcError(id, -32000, message));
-        addLog(`Lỗi phản hồi tool ${toolName}: ${message}`, "error");
+        sendWsPayload(robot.id, createRpcError(id, -32000, message));
+        addLog(`Lỗi phản hồi tool ${toolName}: ${message}`, "error", robot.name);
       }
 
       return true;
@@ -249,9 +294,9 @@ export function XiaozhiConnector() {
     await callMcp("tools/list");
 
     const [profile, journey, projects] = await Promise.all([
-      callMcp("tools/call", { name: "get_personal_info", arguments: { lang: "vi" } }),
-      callMcp("tools/call", { name: "get_smt_experience", arguments: { lang: "vi", limit: 10 } }),
-      callMcp("tools/call", { name: "get_projects", arguments: { lang: "vi", limit: 10 } })
+      callMcp("tools/call", { name: "thong_tin_ca_nhan", arguments: { lang: "vi" } }),
+      callMcp("tools/call", { name: "kinh_nghiem_smt", arguments: { lang: "vi", limit: 10 } }),
+      callMcp("tools/call", { name: "danh_sach_du_an", arguments: { lang: "vi", limit: 10 } })
     ]);
 
     return {
@@ -263,98 +308,223 @@ export function XiaozhiConnector() {
     };
   }
 
-  async function syncContextToRobot() {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      addLog("WebSocket chưa mở. Không thể đồng bộ context.", "error");
+  async function syncContextToRobot(robot: RobotConfig) {
+    const ws = wsRef.current.get(robot.id);
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      addLog("WebSocket chưa mở. Không thể đồng bộ context.", "error", robot.name);
       return;
     }
 
-    setIsSyncing(true);
+    setSyncingRobotId(robot.id);
     try {
       const context = await buildMcpContext();
-      setContextPreview(context);
+      setContextPreview((prev) => ({
+        ...prev,
+        [robot.id]: context
+      }));
 
-      wsRef.current.send(
+      ws.send(
         JSON.stringify({
           type: "mcp_context",
           data: context
         })
       );
 
-      addLog("Đã gửi context MCP nội bộ tới Xiaozhi endpoint.", "success");
+      addLog("Đã gửi context MCP nội bộ tới Xiaozhi endpoint.", "success", robot.name);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không thể đồng bộ context";
-      addLog(message, "error");
+      addLog(message, "error", robot.name);
     } finally {
-      setIsSyncing(false);
+      setSyncingRobotId(null);
     }
   }
 
-  function connect() {
-    const target = endpoint.trim();
+  function connectRobot(robot: RobotConfig) {
+    const target = robot.url.trim();
     if (!target.startsWith("ws://") && !target.startsWith("wss://")) {
-      addLog("URL WebSocket không hợp lệ. Cần bắt đầu bằng ws:// hoặc wss://.", "error");
+      updateRuntime(robot.id, { state: "error", lastError: "URL WebSocket không hợp lệ", url: target });
+      addLog("URL WebSocket không hợp lệ. Cần bắt đầu bằng ws:// hoặc wss://.", "error", robot.name);
       return;
     }
 
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      addLog("Đang có kết nối hoạt động. Hãy ngắt trước khi kết nối lại.");
+    const existing = wsRef.current.get(robot.id);
+    if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
       return;
     }
 
-    setConnectionState("connecting");
+    updateRuntime(robot.id, { state: "connecting", lastError: undefined, url: target });
     const ws = new WebSocket(target);
-    wsRef.current = ws;
+    wsRef.current.set(robot.id, ws);
+    wsUrlRef.current.set(robot.id, target);
 
     ws.onopen = () => {
-      setConnectionState("connected");
-      addLog("Kết nối WebSocket thành công.", "success");
-      void syncContextToRobot();
+      updateRuntime(robot.id, { state: "connected", lastError: undefined, url: target });
+      addLog("Kết nối WebSocket thành công.", "success", robot.name);
+      void syncContextToRobot(robot);
     };
 
     ws.onmessage = (event) => {
       const text = typeof event.data === "string" ? event.data : "[binary message]";
-      addLog(`Robot phản hồi: ${text}`);
+      addLog(`Robot phản hồi: ${text}`, "info", robot.name);
 
       if (typeof event.data !== "string") return;
 
       void (async () => {
         try {
-          const handled = await handleIncomingRpc(event.data);
+          const handled = await handleIncomingRpc(robot, event.data);
           if (!handled) {
-            addLog("Đã nhận message không thuộc luồng JSON-RPC tools/list-tools/call.");
+            addLog("Đã nhận message không thuộc luồng JSON-RPC hỗ trợ.", "info", robot.name);
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Không xử lý được message từ Xiaozhi";
-          addLog(message, "error");
+          addLog(message, "error", robot.name);
         }
       })();
     };
 
     ws.onerror = () => {
-      setConnectionState("error");
-      addLog("Đã xảy ra lỗi khi kết nối WebSocket.", "error");
+      updateRuntime(robot.id, { state: "error", lastError: "Đã xảy ra lỗi khi kết nối WebSocket.", url: target });
+      addLog("Đã xảy ra lỗi khi kết nối WebSocket.", "error", robot.name);
     };
 
     ws.onclose = () => {
-      setConnectionState("disconnected");
-      addLog("WebSocket đã đóng.");
+      wsRef.current.delete(robot.id);
+       wsUrlRef.current.delete(robot.id);
+      updateRuntime(robot.id, { state: "disconnected", url: target });
+      addLog("WebSocket đã đóng.", "info", robot.name);
     };
   }
 
-  function disconnect() {
-    if (!wsRef.current) return;
-    wsRef.current.close();
-    wsRef.current = null;
-    setConnectionState("disconnected");
-    addLog("Đã ngắt kết nối thủ công.");
+  function disconnectRobot(robotId: string, robotName?: string) {
+    const ws = wsRef.current.get(robotId);
+    if (ws) {
+      ws.close();
+      wsRef.current.delete(robotId);
+    }
+    wsUrlRef.current.delete(robotId);
+    updateRuntime(robotId, { state: "disconnected" });
+    addLog("Đã ngắt kết nối thủ công.", "info", robotName);
+  }
+
+  function addRobot() {
+    const name = newRobotName.trim();
+    const url = newRobotUrl.trim();
+    if (!name || !url) {
+      addLog("Cần nhập đủ tên thiết bị và URL WebSocket.", "error");
+      return;
+    }
+
+    const id = `robot-${Date.now()}`;
+    setRobots((prev) => [...prev, { id, name, url, enabled: true }]);
+    setNewRobotName("");
+    setNewRobotUrl(defaultEndpoint);
+  }
+
+  function updateRobot(robotId: string, patch: Partial<RobotConfig>) {
+    setRobots((prev) => prev.map((robot) => (robot.id === robotId ? { ...robot, ...patch } : robot)));
+  }
+
+  function removeRobot(robotId: string) {
+    const robot = robots.find((item) => item.id === robotId);
+    disconnectRobot(robotId, robot?.name);
+    setRobots((prev) => prev.filter((item) => item.id !== robotId));
+    setContextPreview((prev) => {
+      const next = { ...prev };
+      delete next[robotId];
+      return next;
+    });
   }
 
   useEffect(() => {
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
+    const raw = window.localStorage.getItem(ROBOTS_STORAGE_KEY);
+    if (!raw) {
+      setRobots([
+        {
+          id: `robot-${Date.now()}`,
+          name: "Robot SMT Nhà",
+          url: defaultEndpoint,
+          enabled: false
+        }
+      ]);
+      localRobotsLoadedRef.current = true;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as RobotConfig[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const sanitized = parsed
+          .filter((item) => item && typeof item.id === "string")
+          .map((item) => ({
+            id: item.id,
+            name: String(item.name ?? "Robot Xiaozhi"),
+            url: String(item.url ?? ""),
+            enabled: Boolean(item.enabled)
+          }));
+
+        setRobots(
+          sanitized.length
+            ? sanitized
+            : [
+                {
+                  id: `robot-${Date.now()}`,
+                  name: "Robot SMT Nhà",
+                  url: defaultEndpoint,
+                  enabled: false
+                }
+              ]
+        );
       }
+    } catch {
+      setRobots([
+        {
+          id: `robot-${Date.now()}`,
+          name: "Robot SMT Nhà",
+          url: defaultEndpoint,
+          enabled: false
+        }
+      ]);
+    }
+
+    localRobotsLoadedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!localRobotsLoadedRef.current) return;
+    window.localStorage.setItem(ROBOTS_STORAGE_KEY, JSON.stringify(robots));
+  }, [robots]);
+
+  useEffect(() => {
+    const enabledIds = new Set(robots.filter((robot) => robot.enabled).map((robot) => robot.id));
+
+    wsRef.current.forEach((ws, robotId) => {
+      if (!enabledIds.has(robotId)) {
+        ws.close();
+      }
+    });
+
+    robots.forEach((robot) => {
+      if (!robot.enabled) return;
+
+      const ws = wsRef.current.get(robot.id);
+      if (!ws) {
+        connectRobot(robot);
+        return;
+      }
+
+      const activeUrl = wsUrlRef.current.get(robot.id) ?? "";
+      if (activeUrl && activeUrl !== robot.url.trim()) {
+        disconnectRobot(robot.id, robot.name);
+        connectRobot(robot);
+      }
+    });
+  }, [robots]);
+
+  useEffect(() => {
+    return () => {
+      wsRef.current.forEach((ws) => ws.close());
+      wsRef.current.clear();
+      wsUrlRef.current.clear();
     };
   }, []);
 
@@ -365,7 +535,7 @@ export function XiaozhiConnector() {
           <div>
             <h1 className="text-xl font-bold text-brand-600 dark:text-brand-300">Xiaozhi MCP Connector</h1>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Kết nối trực tiếp robot Xiaozhi và đẩy context nội bộ từ endpoint MCP của chính dự án.
+              Kết nối nhiều robot Xiaozhi đồng thời và phản hồi MCP tools theo chuẩn JSON-RPC qua WebSocket.
             </p>
           </div>
           <Link href="/admin" className="rounded-lg border px-3 py-2 text-sm font-semibold" style={{ borderColor: "var(--border)" }}>
@@ -375,46 +545,113 @@ export function XiaozhiConnector() {
 
         <div className="rounded-xl border p-3" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
           <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Trạng thái</p>
-          <p className="mt-1 text-sm font-semibold text-brand-700 dark:text-brand-200">{statusLabel}</p>
+          <p className="mt-1 text-sm font-semibold text-brand-700 dark:text-brand-200">
+            Đang kết nối: {connectedCount}/{robots.length}
+          </p>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
+        <div className="grid gap-3 md:grid-cols-[1fr_2fr_auto]">
           <input
-            value={endpoint}
-            onChange={(event) => setEndpoint(event.target.value)}
+            value={newRobotName}
+            onChange={(event) => setNewRobotName(event.target.value)}
+            placeholder="Tên thiết bị (ví dụ: Robot SMT Nhà)"
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+          />
+          <input
+            value={newRobotUrl}
+            onChange={(event) => setNewRobotUrl(event.target.value)}
             placeholder="wss://api.xiaozhi.me/mcp/?token=..."
             className="w-full rounded-lg border px-3 py-2 text-sm"
             style={{ borderColor: "var(--border)", background: "var(--surface)" }}
           />
-
-          <button
-            type="button"
-            onClick={connect}
-            disabled={connectionState === "connecting" || connectionState === "connected"}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            Kết nối
+          <button type="button" onClick={addRobot} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">
+            Thêm Robot
           </button>
+        </div>
 
-          <button
-            type="button"
-            onClick={disconnect}
-            disabled={connectionState === "disconnected"}
-            className="rounded-lg border px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60 dark:text-slate-200"
-            style={{ borderColor: "var(--border)" }}
-          >
-            Ngắt kết nối
-          </button>
+        <div className="space-y-3">
+          {robots.map((robot) => {
+            const runtime = runtimes[robot.id];
+            const status = runtime?.state ?? "disconnected";
+            const statusText =
+              status === "connected"
+                ? "Kết nối"
+                : status === "connecting"
+                  ? "Đang kết nối"
+                  : status === "error"
+                    ? "Lỗi"
+                    : "Ngắt";
 
-          <button
-            type="button"
-            onClick={() => void syncContextToRobot()}
-            disabled={connectionState !== "connected" || isSyncing}
-            className="rounded-lg border px-4 py-2 text-sm font-semibold text-brand-700 disabled:opacity-60 dark:text-brand-200"
-            style={{ borderColor: "var(--border)" }}
-          >
-            {isSyncing ? "Đang đồng bộ..." : "Gửi lại context"}
-          </button>
+            return (
+              <div key={robot.id} className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+                <div className="grid gap-3 lg:grid-cols-[1fr_2fr_auto]">
+                  <input
+                    value={robot.name}
+                    onChange={(event) => updateRobot(robot.id, { name: event.target.value })}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
+                  <input
+                    value={robot.url}
+                    onChange={(event) => updateRobot(robot.id, { url: event.target.value })}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                  />
+                  <label className="flex items-center justify-end gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <span>{robot.enabled ? "Bật" : "Tắt"}</span>
+                    <input
+                      type="checkbox"
+                      checked={robot.enabled}
+                      onChange={(event) => updateRobot(robot.id, { enabled: event.target.checked })}
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border px-2.5 py-1 text-xs font-semibold" style={{ borderColor: "var(--border)" }}>
+                    Trạng thái: {statusText}
+                  </span>
+                  {runtime?.lastError && <span className="text-xs text-red-500">{runtime.lastError}</span>}
+
+                  <button
+                    type="button"
+                    onClick={() => connectRobot(robot)}
+                    disabled={!robot.enabled || status === "connecting" || status === "connected"}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                  >
+                    Kết nối
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => disconnectRobot(robot.id, robot.name)}
+                    disabled={status === "disconnected"}
+                    className="rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-60"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    Ngắt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void syncContextToRobot(robot)}
+                    disabled={status !== "connected" || syncingRobotId === robot.id}
+                    className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-brand-700 disabled:opacity-60 dark:text-brand-200"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    {syncingRobotId === robot.id ? "Đang đồng bộ..." : "Gửi context"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeRobot(robot.id)}
+                    className="rounded-lg border px-3 py-1.5 text-xs font-semibold text-red-500"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    Xóa robot
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -447,9 +684,9 @@ export function XiaozhiConnector() {
 
         <div className="card">
           <h2 className="text-base font-semibold text-brand-600 dark:text-brand-300">MCP Context Preview</h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Dữ liệu lấy từ /api/mcp trước khi gửi qua WebSocket.</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Dữ liệu context gần nhất theo từng robot.</p>
           <pre className="mt-3 max-h-[420px] overflow-auto rounded-lg border p-3 text-xs" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-            {contextPreview ? JSON.stringify(contextPreview, null, 2) : "(chưa có dữ liệu)"}
+            {Object.keys(contextPreview).length ? JSON.stringify(contextPreview, null, 2) : "(chưa có dữ liệu)"}
           </pre>
         </div>
       </div>

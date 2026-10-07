@@ -21,6 +21,73 @@ type ToolResult = {
   data: Record<string, unknown>;
 };
 
+const TOOL_DEFINITIONS = [
+  {
+    name: "Thông Tin Cá Nhân - thong_tin_ca_nhan",
+    functionName: "thong_tin_ca_nhan",
+    aliases: ["get_personal_info"],
+    description: "Tra cứu thông tin cá nhân, mục tiêu công việc và kỹ năng chính của Nguyễn Văn Thạnh",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lang: {
+          type: "string",
+          enum: ["vi", "en"],
+          default: "vi"
+        }
+      }
+    }
+  },
+  {
+    name: "Kinh Nghiệm SMT - kinh_nghiem_smt",
+    functionName: "kinh_nghiem_smt",
+    aliases: ["get_smt_experience"],
+    description: "Tra cứu lịch sử làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền Line Balance và thiết bị xưởng của Nguyễn Văn Thạnh",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lang: {
+          type: "string",
+          enum: ["vi", "en"],
+          default: "vi"
+        },
+        limit: {
+          type: "number",
+          minimum: 1,
+          maximum: 20,
+          default: 8
+        }
+      }
+    }
+  },
+  {
+    name: "Danh Sách Dự Án - danh_sach_du_an",
+    functionName: "danh_sach_du_an",
+    aliases: ["get_projects"],
+    description: "Tra cứu danh sách các dự án thực tế, phần mềm và sản phẩm tiêu biểu của Nguyễn Văn Thạnh",
+    inputSchema: {
+      type: "object",
+      properties: {
+        lang: {
+          type: "string",
+          enum: ["vi", "en"],
+          default: "vi"
+        },
+        category: {
+          type: "string",
+          enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"]
+        },
+        limit: {
+          type: "number",
+          minimum: 1,
+          maximum: 20,
+          default: 8
+        }
+      }
+    }
+  }
+] as const;
+
 type JourneyRow = {
   id: string;
   company: string;
@@ -99,6 +166,23 @@ function asLimit(input: unknown, fallback = 6) {
   const value = Number(input);
   if (!Number.isFinite(value) || value <= 0) return fallback;
   return Math.min(20, Math.floor(value));
+}
+
+function normalizeToolName(input: string) {
+  const name = input.trim();
+  if (["thong_tin_ca_nhan", "get_personal_info", "Thông Tin Cá Nhân - thong_tin_ca_nhan"].includes(name)) {
+    return "thong_tin_ca_nhan" as const;
+  }
+
+  if (["kinh_nghiem_smt", "get_smt_experience", "Kinh Nghiệm SMT - kinh_nghiem_smt"].includes(name)) {
+    return "kinh_nghiem_smt" as const;
+  }
+
+  if (["danh_sach_du_an", "get_projects", "Danh Sách Dự Án - danh_sach_du_an"].includes(name)) {
+    return "danh_sach_du_an" as const;
+  }
+
+  return "";
 }
 
 async function readSiteFromSupabase(): Promise<SiteData | null> {
@@ -220,8 +304,9 @@ async function readContextData(): Promise<{ site: SiteData; journey: ExperienceD
 async function handleToolCall(name: string, args: Record<string, unknown>): Promise<ToolResult> {
   const { site, journey, projects } = await readContextData();
   const lang = toLanguage(args.lang);
+  const toolName = normalizeToolName(name);
 
-  if (name === "get_personal_info") {
+  if (toolName === "thong_tin_ca_nhan") {
     const profile = site.profile;
     const payload = {
       fullName: profile.fullName,
@@ -240,7 +325,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
     };
   }
 
-  if (name === "get_smt_experience") {
+  if (toolName === "kinh_nghiem_smt") {
     const limit = asLimit(args.limit, 8);
     const items = journey.items.slice(0, limit).map((item) => ({
       id: item.id,
@@ -261,7 +346,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
     };
   }
 
-  if (name === "get_projects") {
+  if (toolName === "danh_sach_du_an") {
     const limit = asLimit(args.limit, 8);
     const category = typeof args.category === "string" ? args.category.trim() : "";
 
@@ -338,66 +423,7 @@ export async function POST(request: Request) {
 
     if (body.method === "tools/list") {
       return jsonOk(id, {
-        tools: [
-          {
-            name: "get_personal_info",
-            description: "Lấy thông tin cá nhân, mục tiêu, kỹ năng chính của Nguyễn Văn Thạnh",
-            inputSchema: {
-              type: "object",
-              properties: {
-                lang: {
-                  type: "string",
-                  enum: ["vi", "en"],
-                  default: "vi"
-                }
-              }
-            }
-          },
-          {
-            name: "get_smt_experience",
-            description: "Lấy quá trình làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền (Line balance) và thiết bị xưởng",
-            inputSchema: {
-              type: "object",
-              properties: {
-                lang: {
-                  type: "string",
-                  enum: ["vi", "en"],
-                  default: "vi"
-                },
-                limit: {
-                  type: "number",
-                  minimum: 1,
-                  maximum: 20,
-                  default: 8
-                }
-              }
-            }
-          },
-          {
-            name: "get_projects",
-            description: "Lấy danh sách các dự án thực tế và sản phẩm tiêu biểu",
-            inputSchema: {
-              type: "object",
-              properties: {
-                lang: {
-                  type: "string",
-                  enum: ["vi", "en"],
-                  default: "vi"
-                },
-                category: {
-                  type: "string",
-                  enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"]
-                },
-                limit: {
-                  type: "number",
-                  minimum: 1,
-                  maximum: 20,
-                  default: 8
-                }
-              }
-            }
-          }
-        ]
+        tools: TOOL_DEFINITIONS
       });
     }
 
