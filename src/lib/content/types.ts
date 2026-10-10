@@ -22,6 +22,7 @@ export type SiteData = {
     displayName: string;
     title: LocalizedText;
     slogan: LocalizedText;
+    muc_tieu: LocalizedText;
     avatarUrl?: string;
     location: string;
     birthDate: string;

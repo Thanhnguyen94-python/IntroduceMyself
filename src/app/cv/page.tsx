@@ -141,7 +141,7 @@ function CvInner() {
 
   const [customName, setCustomName] = useState(site.profile.fullName);
   const [customTitle, setCustomTitle] = useState(pickText(site.profile.title, dataLang));
-  const [customSlogan, setCustomSlogan] = useState(pickText(site.profile.slogan, dataLang));
+  const [customSlogan, setCustomSlogan] = useState(pickText(site.profile.muc_tieu, dataLang));
   const [customEmail, setCustomEmail] = useState(site.profile.email);
   const [customPhone, setCustomPhone] = useState(site.profile.phone);
   const [customLocation, setCustomLocation] = useState(site.profile.location);
@@ -168,8 +168,8 @@ function CvInner() {
 
   useEffect(() => {
     setCustomTitle(pickText(site.profile.title, dataLang));
-    setCustomSlogan(pickText(site.profile.slogan, dataLang));
-  }, [dataLang, site.profile.title, site.profile.slogan]);
+    setCustomSlogan(pickText(site.profile.muc_tieu, dataLang));
+  }, [dataLang, site.profile.title, site.profile.muc_tieu]);
 
   const workItems = useMemo(() => exp.items
     .filter((item) => !isAcademicStage(item.company, item.role.vi, item.role.en, item.id))
