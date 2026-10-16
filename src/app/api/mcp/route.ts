@@ -5,6 +5,9 @@ import { readJourneyData } from "@/lib/journey-store";
 import { readProjectsData } from "@/lib/projects-store";
 import { readSiteData } from "@/lib/site-store";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { TOOL_DEFINITIONS, normalizeToolName } from "@/lib/mcp/tool-definitions";
+import { handleThoiTiet } from "@/lib/mcp/tools/weather";
+import { handleGiaVang } from "@/lib/mcp/tools/gold";
 
 export const dynamic = "force-dynamic";
 
@@ -21,72 +24,72 @@ type ToolResult = {
   data: Record<string, unknown>;
 };
 
-const TOOL_DEFINITIONS = [
-  {
-    name: "Thông Tin Cá Nhân - thong_tin_ca_nhan",
-    functionName: "thong_tin_ca_nhan",
-    aliases: ["get_personal_info"],
-    description: "Tra cứu thông tin cá nhân, mục tiêu công việc và kỹ năng chính của Nguyễn Văn Thạnh",
-    inputSchema: {
-      type: "object",
-      properties: {
-        lang: {
-          type: "string",
-          enum: ["vi", "en"],
-          default: "vi"
-        }
-      }
-    }
-  },
-  {
-    name: "Kinh Nghiệm SMT - kinh_nghiem_smt",
-    functionName: "kinh_nghiem_smt",
-    aliases: ["get_smt_experience"],
-    description: "Tra cứu lịch sử làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền Line Balance và thiết bị xưởng của Nguyễn Văn Thạnh",
-    inputSchema: {
-      type: "object",
-      properties: {
-        lang: {
-          type: "string",
-          enum: ["vi", "en"],
-          default: "vi"
-        },
-        limit: {
-          type: "number",
-          minimum: 1,
-          maximum: 20,
-          default: 8
-        }
-      }
-    }
-  },
-  {
-    name: "Danh Sách Dự Án - danh_sach_du_an",
-    functionName: "danh_sach_du_an",
-    aliases: ["get_projects"],
-    description: "Tra cứu danh sách các dự án thực tế, phần mềm và sản phẩm tiêu biểu của Nguyễn Văn Thạnh",
-    inputSchema: {
-      type: "object",
-      properties: {
-        lang: {
-          type: "string",
-          enum: ["vi", "en"],
-          default: "vi"
-        },
-        category: {
-          type: "string",
-          enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"]
-        },
-        limit: {
-          type: "number",
-          minimum: 1,
-          maximum: 20,
-          default: 8
-        }
-      }
-    }
-  }
-] as const;
+// const TOOL_DEFINITIONS = [
+//   {
+//     name: "Thông Tin Cá Nhân - thong_tin_ca_nhan",
+//     functionName: "thong_tin_ca_nhan",
+//     aliases: ["get_personal_info"],
+//     description: "Tra cứu thông tin cá nhân, mục tiêu công việc và kỹ năng chính của Nguyễn Văn Thạnh",
+//     inputSchema: {
+//       type: "object",
+//       properties: {
+//         lang: {
+//           type: "string",
+//           enum: ["vi", "en"],
+//           default: "vi"
+//         }
+//       }
+//     }
+//   },
+//   {
+//     name: "Kinh Nghiệm SMT - kinh_nghiem_smt",
+//     functionName: "kinh_nghiem_smt",
+//     aliases: ["get_smt_experience"],
+//     description: "Tra cứu lịch sử làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền Line Balance và thiết bị xưởng của Nguyễn Văn Thạnh",
+//     inputSchema: {
+//       type: "object",
+//       properties: {
+//         lang: {
+//           type: "string",
+//           enum: ["vi", "en"],
+//           default: "vi"
+//         },
+//         limit: {
+//           type: "number",
+//           minimum: 1,
+//           maximum: 20,
+//           default: 8
+//         }
+//       }
+//     }
+//   },
+//   {
+//     name: "Danh Sách Dự Án - danh_sach_du_an",
+//     functionName: "danh_sach_du_an",
+//     aliases: ["get_projects"],
+//     description: "Tra cứu danh sách các dự án thực tế, phần mềm và sản phẩm tiêu biểu của Nguyễn Văn Thạnh",
+//     inputSchema: {
+//       type: "object",
+//       properties: {
+//         lang: {
+//           type: "string",
+//           enum: ["vi", "en"],
+//           default: "vi"
+//         },
+//         category: {
+//           type: "string",
+//           enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"]
+//         },
+//         limit: {
+//           type: "number",
+//           minimum: 1,
+//           maximum: 20,
+//           default: 8
+//         }
+//       }
+//     }
+//   }
+// ] as const;
 
 type JourneyRow = {
   id: string;
@@ -187,22 +190,22 @@ function makeBulletLines(items: string[], maxChars = 1000) {
   return toShortText(lines.join("\n"), maxChars);
 }
 
-function normalizeToolName(input: string) {
-  const name = input.trim();
-  if (["thong_tin_ca_nhan", "get_personal_info", "Thông Tin Cá Nhân - thong_tin_ca_nhan"].includes(name)) {
-    return "thong_tin_ca_nhan" as const;
-  }
+// function normalizeToolName(input: string) {
+//   const name = input.trim();
+//   if (["thong_tin_ca_nhan", "get_personal_info", "Thông Tin Cá Nhân - thong_tin_ca_nhan"].includes(name)) {
+//     return "thong_tin_ca_nhan" as const;
+//   }
 
-  if (["kinh_nghiem_smt", "get_smt_experience", "Kinh Nghiệm SMT - kinh_nghiem_smt"].includes(name)) {
-    return "kinh_nghiem_smt" as const;
-  }
+//   if (["kinh_nghiem_smt", "get_smt_experience", "Kinh Nghiệm SMT - kinh_nghiem_smt"].includes(name)) {
+//     return "kinh_nghiem_smt" as const;
+//   }
 
-  if (["danh_sach_du_an", "get_projects", "Danh Sách Dự Án - danh_sach_du_an"].includes(name)) {
-    return "danh_sach_du_an" as const;
-  }
+//   if (["danh_sach_du_an", "get_projects", "Danh Sách Dự Án - danh_sach_du_an"].includes(name)) {
+//     return "danh_sach_du_an" as const;
+//   }
 
-  return "";
-}
+//   return "";
+// }
 
 async function readSiteFromSupabase(): Promise<SiteData | null> {
   const supabase = getSupabaseServerClient();
@@ -411,6 +414,13 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
       }
     };
   }
+  if (toolName === "thoi_tiet") {
+  return await handleThoiTiet(args, lang);
+  }
+
+  if (toolName === "gia_vang") {
+    return await handleGiaVang(args, lang);
+  }
 
   throw new Error(`Unknown tool: ${name}`);
 }
@@ -432,6 +442,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const expectedToken = process.env.MCP_SHARED_SECRET;
+  if (expectedToken) {
+    const provided = request.headers.get("x-mcp-token");
+    if (provided !== expectedToken) {
+      return jsonError(null, -32001, "Unauthorized", 401);
+    }
+  }
   const body = (await request.json().catch(() => null)) as JsonRpcRequest | null;
 
   if (!body || body.jsonrpc !== "2.0" || typeof body.method !== "string") {

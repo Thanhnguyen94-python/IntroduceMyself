@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TOOL_DEFINITIONS } from "@/lib/mcp/tool-definitions";
 
 type RpcResponse = {
   jsonrpc?: string;
@@ -49,78 +50,78 @@ type RobotRuntime = {
 const ROBOTS_STORAGE_KEY = "xiaozhi-robots-v1";
 const defaultEndpoint = "wss://api.xiaozhi.me/mcp/?token=YOUR_TOKEN";
 
-const TOOL_DEFINITIONS = [
-  {
-    name: "Thông Tin Cá Nhân - thong_tin_ca_nhan",
-    functionName: "thong_tin_ca_nhan",
-    aliases: ["get_personal_info"],
-    description: "Tra cứu thông tin cá nhân, mục tiêu công việc và kỹ năng chính của Nguyễn Văn Thạnh",
-    inputSchema: {
-      type: "object",
-      properties: {
-        lang: {
-          type: "string",
-          enum: ["vi", "en"],
-          default: "vi",
-          description: "Ngôn ngữ phản hồi mong muốn"
-        }
-      }
-    }
-  },
-  {
-    name: "Kinh Nghiệm SMT - kinh_nghiem_smt",
-    functionName: "kinh_nghiem_smt",
-    aliases: ["get_smt_experience"],
-    description: "Tra cứu lịch sử làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền Line Balance và thiết bị xưởng của Nguyễn Văn Thạnh",
-    inputSchema: {
-      type: "object",
-      properties: {
-        lang: {
-          type: "string",
-          enum: ["vi", "en"],
-          default: "vi",
-          description: "Ngôn ngữ phản hồi mong muốn"
-        },
-        limit: {
-          type: "number",
-          minimum: 1,
-          maximum: 20,
-          default: 8,
-          description: "Số lượng mục kinh nghiệm cần trả về"
-        }
-      }
-    }
-  },
-  {
-    name: "Danh Sách Dự Án - danh_sach_du_an",
-    functionName: "danh_sach_du_an",
-    aliases: ["get_projects"],
-    description: "Tra cứu danh sách các dự án thực tế, phần mềm và sản phẩm tiêu biểu của Nguyễn Văn Thạnh",
-    inputSchema: {
-      type: "object",
-      properties: {
-        lang: {
-          type: "string",
-          enum: ["vi", "en"],
-          default: "vi",
-          description: "Ngôn ngữ phản hồi mong muốn"
-        },
-        category: {
-          type: "string",
-          enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"],
-          description: "Lọc dự án theo danh mục"
-        },
-        limit: {
-          type: "number",
-          minimum: 1,
-          maximum: 20,
-          default: 8,
-          description: "Số lượng dự án cần trả về"
-        }
-      }
-    }
-  }
-] as const;
+// const TOOL_DEFINITIONS = [
+//   {
+//     name: "Thông Tin Cá Nhân - thong_tin_ca_nhan",
+//     functionName: "thong_tin_ca_nhan",
+//     aliases: ["get_personal_info"],
+//     description: "Tra cứu thông tin cá nhân, mục tiêu công việc và kỹ năng chính của Nguyễn Văn Thạnh",
+//     inputSchema: {
+//       type: "object",
+//       properties: {
+//         lang: {
+//           type: "string",
+//           enum: ["vi", "en"],
+//           default: "vi",
+//           description: "Ngôn ngữ phản hồi mong muốn"
+//         }
+//       }
+//     }
+//   },
+//   {
+//     name: "Kinh Nghiệm SMT - kinh_nghiem_smt",
+//     functionName: "kinh_nghiem_smt",
+//     aliases: ["get_smt_experience"],
+//     description: "Tra cứu lịch sử làm việc, kinh nghiệm lập trình SMT, cân bằng chuyền Line Balance và thiết bị xưởng của Nguyễn Văn Thạnh",
+//     inputSchema: {
+//       type: "object",
+//       properties: {
+//         lang: {
+//           type: "string",
+//           enum: ["vi", "en"],
+//           default: "vi",
+//           description: "Ngôn ngữ phản hồi mong muốn"
+//         },
+//         limit: {
+//           type: "number",
+//           minimum: 1,
+//           maximum: 20,
+//           default: 8,
+//           description: "Số lượng mục kinh nghiệm cần trả về"
+//         }
+//       }
+//     }
+//   },
+//   {
+//     name: "Danh Sách Dự Án - danh_sach_du_an",
+//     functionName: "danh_sach_du_an",
+//     aliases: ["get_projects"],
+//     description: "Tra cứu danh sách các dự án thực tế, phần mềm và sản phẩm tiêu biểu của Nguyễn Văn Thạnh",
+//     inputSchema: {
+//       type: "object",
+//       properties: {
+//         lang: {
+//           type: "string",
+//           enum: ["vi", "en"],
+//           default: "vi",
+//           description: "Ngôn ngữ phản hồi mong muốn"
+//         },
+//         category: {
+//           type: "string",
+//           enum: ["3d-jig", "app-software", "smt-improvement", "ai-iot"],
+//           description: "Lọc dự án theo danh mục"
+//         },
+//         limit: {
+//           type: "number",
+//           minimum: 1,
+//           maximum: 20,
+//           default: 8,
+//           description: "Số lượng dự án cần trả về"
+//         }
+//       }
+//     }
+//   }
+// ] as const;
 
 function createRpcPayload(id: number, method: string, params?: Record<string, unknown>) {
   return {
@@ -320,23 +321,27 @@ export function XiaozhiConnector() {
   }
 
   async function buildMcpContext() {
-    await callMcp("initialize", { clientInfo: { name: "xiaozhi-admin-bridge", version: "1.0.0" } });
-    await callMcp("tools/list");
+  await callMcp("initialize", { clientInfo: { name: "xiaozhi-admin-bridge", version: "1.0.0" } });
+  await callMcp("tools/list");
 
-    const [profile, journey, projects] = await Promise.all([
-      callMcp("tools/call", { name: "thong_tin_ca_nhan", arguments: { lang: "vi" } }),
-      callMcp("tools/call", { name: "kinh_nghiem_smt", arguments: { lang: "vi", limit: 10 } }),
-      callMcp("tools/call", { name: "danh_sach_du_an", arguments: { lang: "vi", limit: 10 } })
-    ]);
+  const [profile, journey, projects, weather, gold] = await Promise.all([
+    callMcp("tools/call", { name: "thong_tin_ca_nhan", arguments: { lang: "vi" } }),
+    callMcp("tools/call", { name: "kinh_nghiem_smt", arguments: { lang: "vi", limit: 10 } }),
+    callMcp("tools/call", { name: "danh_sach_du_an", arguments: { lang: "vi", limit: 10 } }),
+    callMcp("tools/call", { name: "thoi_tiet", arguments: { city: "Hà Nội", lang: "vi" } }).catch(() => null),
+    callMcp("tools/call", { name: "gia_vang", arguments: { lang: "vi" } }).catch(() => null)
+  ]);
 
-    return {
-      source: "introducemyself.local.mcp",
-      timestamp: new Date().toISOString(),
-      profile,
-      journey,
-      projects
-    };
-  }
+  return {
+    source: "introducemyself.local.mcp",
+    timestamp: new Date().toISOString(),
+    profile,
+    journey,
+    projects,
+    weather,
+    gold
+  };
+}
 
   async function syncContextToRobot(robot: RobotConfig) {
     const ws = wsRef.current.get(robot.id);

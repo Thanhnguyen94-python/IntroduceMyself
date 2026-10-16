@@ -482,6 +482,9 @@ export function ManagementDashboardV2() {
           <Link href="/admin/xiaozhi" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
             Kết nối Xiaozhi MCP
           </Link>
+          <Link href="/admin/firmware" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
+            Firmware robot
+          </Link>
           <button
             onClick={async () => {
               await fetch("/api/admin/logout", { method: "POST" });

@@ -1,0 +1,32 @@
+import { NextResponse } from "next/server";
+import { getFirmwareRelease } from "@/lib/firmware-store";
+
+export const dynamic = "force-dynamic";
+
+// Manifest cho ESP Web Tools: nạp file merged (bootloader + partition + app) ở offset 0.
+export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+  try {
+    const release = await getFirmwareRelease(id);
+    if (!release || !release.is_published || !release.merged_url) {
+      return NextResponse.json({ message: "Not found." }, { status: 404 });
+    }
+    return NextResponse.json(
+      {
+        name: release.title || `Xiaozhi ${release.board}`,
+        version: release.version,
+        new_install_prompt_erase: true,
+        builds: [
+          {
+            chipFamily: release.chip || "ESP32-S3",
+            parts: [{ path: release.merged_url, offset: 0 }]
+          }
+        ]
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Cannot build manifest.";
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
