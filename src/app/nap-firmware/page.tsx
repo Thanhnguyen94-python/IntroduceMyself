@@ -6,7 +6,7 @@ import type { FirmwareReleaseView } from "@/lib/firmware-store";
 import { formatBytes } from "@/lib/firmware-image";
 
 // ESP Web Tools: nạp firmware qua Web Serial (Chrome/Edge trên máy tính).
-const ESP_WEB_TOOLS = "https://unpkg.com/esp-web-tools@10.0.1/dist/web/install-button.js?module";
+const ESP_WEB_TOOLS = "https://unpkg.com/esp-web-tools@10.4.0/dist/web/install-button.js?module";
 
 export default function NapFirmwarePage() {
   const [items, setItems] = useState<FirmwareReleaseView[]>([]);
@@ -86,7 +86,7 @@ export default function NapFirmwarePage() {
                   </span>
                 </div>
 
-                {selected.merged_url ? (
+                {selected.can_flash ? (
                   serialSupported ? (
                     createElement(
                       "esp-web-install-button",
@@ -112,12 +112,39 @@ export default function NapFirmwarePage() {
                   </p>
                 )}
 
-                <ol className="list-decimal space-y-1 pl-5 text-sm">
-                  <li>Cắm robot vào máy tính bằng cáp USB có dây dữ liệu (cổng USB của ESP32-S3).</li>
-                  <li>Bấm “Nạp firmware”, chọn cổng COM của robot, chọn “Install” và đồng ý xoá bộ nhớ khi nạp lần đầu.</li>
-                  <li>Nếu không thấy cổng: giữ nút BOOT, nhấn RESET rồi thả BOOT, sau đó thử lại.</li>
-                  <li>Nạp xong, robot phát Wi-Fi để cấu hình mạng như bình thường.</li>
-                </ol>
+                <div className="space-y-2 text-sm">
+                  <h3 className="font-semibold">1. Nạp firmware</h3>
+                  <ol className="list-decimal space-y-1 pl-5">
+                    <li>Đóng các chương trình đang mở cổng COM của robot (Serial Monitor, idf.py monitor, Arduino IDE…).</li>
+                    <li>Cắm robot vào máy tính bằng cáp USB có dây dữ liệu.</li>
+                    <li>
+                      Bấm “Nạp firmware” → chọn cổng COM → “Install”.
+                      <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                        <li>
+                          <b>Robot mới / lỗi nặng:</b> tick “Erase device”: xoá sạch rồi nạp, phải cài lại Wi-Fi.
+                        </li>
+                        <li>
+                          <b>Robot đang dùng, chỉ cập nhật:</b> không tick xoá: giữ Wi-Fi, mật khẩu WebUI và cài đặt.
+                        </li>
+                      </ul>
+                    </li>
+                    <li>Nếu không thấy cổng hoặc báo “Failed to open serial port”: rút cáp cắm lại; vẫn lỗi thì giữ nút BOOT, nhấn RESET, thả BOOT rồi thử lại.</li>
+                  </ol>
+
+                  <h3 className="pt-2 font-semibold">2. Kết nối Wi-Fi (lần đầu hoặc sau khi xoá)</h3>
+                  <ol className="list-decimal space-y-1 pl-5">
+                    <li>Màn hình robot hiện mã QR “Quet QR de cai Wi-Fi”: mở camera điện thoại quét mã để vào Wi-Fi của robot (tên dạng <code>Xiaozhi-XXXX</code>).</li>
+                    <li>Trang cấu hình tự bật lên; nếu không, mở trình duyệt vào <code>http://192.168.4.1</code>.</li>
+                    <li>Chọn Wi-Fi nhà bạn, nhập mật khẩu, bấm kết nối. Robot tự thoát chế độ cài đặt và vào mạng.</li>
+                    <li>Kết nối xong, màn hình hiện QR của WebUI: quét để mở trang điều khiển robot.</li>
+                  </ol>
+
+                  <h3 className="pt-2 font-semibold">3. Gọi robot</h3>
+                  <p>
+                    Nói từ đánh thức <b>“Hi Joy”</b> (đọc “hai joi”), robot đáp lại thì bắt đầu trò chuyện. Nếu robot không phản hồi, mở WebUI → Cài đặt → Cập nhật firmware: có cảnh báo
+                    “dữ liệu giọng nói bị lỗi” thì nạp lại firmware.
+                  </p>
+                </div>
               </div>
 
               {(selected.wiring_image || selected.hardware) && (

@@ -4,6 +4,12 @@ export const FIRMWARE_BUCKET = "firmware";
 
 export type FirmwareChannel = "stable" | "beta";
 
+export type FlashPartRecord = {
+  path: string;
+  offset: number;
+  size: number;
+};
+
 export type FirmwareRelease = {
   id: string;
   board: string;
@@ -19,6 +25,7 @@ export type FirmwareRelease = {
   merged_path: string;
   merged_size: number;
   wiring_image: string;
+  flash_parts: FlashPartRecord[];
   is_published: boolean;
   created_at: string;
   updated_at: string;
@@ -27,10 +34,12 @@ export type FirmwareRelease = {
 export type FirmwareReleaseView = FirmwareRelease & {
   app_url: string;
   merged_url: string;
+  part_urls: Array<{ url: string; offset: number; size: number }>;
+  can_flash: boolean;
 };
 
 const COLUMNS =
-  "id,board,chip,version,channel,title,notes,hardware,app_path,app_size,app_sha256,merged_path,merged_size,wiring_image,is_published,created_at,updated_at";
+  "id,board,chip,version,channel,title,notes,hardware,app_path,app_size,app_sha256,merged_path,merged_size,wiring_image,flash_parts,is_published,created_at,updated_at";
 
 // So sánh phiên bản dạng "2.2.10" > "2.2.9"; phần không phải số so như chuỗi.
 export function compareVersions(a: string, b: string) {
@@ -59,10 +68,15 @@ export function publicFileUrl(path: string) {
 }
 
 export function toView(row: FirmwareRelease): FirmwareReleaseView {
+  const parts = Array.isArray(row.flash_parts) ? row.flash_parts : [];
+  const merged_url = publicFileUrl(row.merged_path);
   return {
     ...row,
+    flash_parts: parts,
     app_url: publicFileUrl(row.app_path),
-    merged_url: publicFileUrl(row.merged_path)
+    merged_url,
+    part_urls: parts.map((part) => ({ url: publicFileUrl(part.path), offset: part.offset, size: part.size })),
+    can_flash: parts.length > 0 || Boolean(merged_url)
   };
 }
 
