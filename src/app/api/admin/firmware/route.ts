@@ -26,6 +26,7 @@ const EDITABLE_FIELDS = [
   "merged_path",
   "merged_size",
   "wiring_image",
+  "flash_parts",
   "is_published"
 ] as const;
 
@@ -111,7 +112,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ message: "Not found." }, { status: 404 });
     }
 
-    const paths = [release.app_path, release.merged_path].filter(Boolean);
+    const paths = [release.app_path, release.merged_path, ...release.flash_parts.map((part) => part.path)].filter(Boolean);
     if (paths.length) {
       await supabase.storage.from(FIRMWARE_BUCKET).remove(paths);
     }

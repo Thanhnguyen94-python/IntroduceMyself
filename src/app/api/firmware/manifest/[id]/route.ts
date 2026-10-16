@@ -8,7 +8,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   const { id } = await context.params;
   try {
     const release = await getFirmwareRelease(id);
-    if (!release || !release.is_published || !release.merged_url) {
+    if (!release || !release.is_published || !release.can_flash) {
       return NextResponse.json({ message: "Not found." }, { status: 404 });
     }
     return NextResponse.json(
@@ -19,7 +19,10 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
         builds: [
           {
             chipFamily: release.chip || "ESP32-S3",
-            parts: [{ path: release.merged_url, offset: 0 }]
+            // Ưu tiên các phần đã tách (không xoá NVS); bản cũ chỉ có file merged thì nạp cả file.
+            parts: release.part_urls.length
+              ? release.part_urls.map((part) => ({ path: part.url, offset: part.offset }))
+              : [{ path: release.merged_url, offset: 0 }]
           }
         ]
       },

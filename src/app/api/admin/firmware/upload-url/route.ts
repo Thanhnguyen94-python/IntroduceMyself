@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // Vercel giới hạn body ~4.5 MB nên file firmware (3-8 MB) không đi qua server:
 // server chỉ cấp signed upload URL, trình duyệt PUT thẳng file lên Supabase Storage.
 
-const KINDS = new Set(["app", "merged", "wiring"]);
+const KINDS = new Set(["app", "merged", "part", "wiring"]);
 
 function slug(value: string) {
   return value

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { FirmwareReleaseView } from "@/lib/firmware-store";
-import { formatBytes, parseAppImage, parseMergedImage, sha256Hex } from "@/lib/firmware-image";
+import { formatBytes, parseAppImage, parseMergedImage, sha256Hex, splitMergedImage, type FlashPart } from "@/lib/firmware-image";
 
 type Draft = {
   id?: string;
@@ -24,6 +24,7 @@ type PendingFile = {
   info: string;
   version: string;
   sha256: string;
+  parts?: FlashPart[];
 };
 
 type Notice = { type: "success" | "error"; text: string } | null;
@@ -61,7 +62,7 @@ function putWithProgress(url: string, file: File, onProgress: (pct: number) => v
   });
 }
 
-async function uploadFile(kind: "app" | "merged" | "wiring", draft: Draft, file: File, onProgress: (pct: number) => void) {
+async function uploadFile(kind: "app" | "merged" | "part" | "wiring", draft: Draft, file: File, onProgress: (pct: number) => void) {
   const res = await fetch("/api/admin/firmware/upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -83,12 +84,15 @@ async function readBinary(file: File, kind: "app" | "merged"): Promise<PendingFi
         : "Không phải file merged (cần file nạp ở offset 0, có bootloader + partition table + app)."
     );
   }
+  const parts = kind === "merged" ? splitMergedImage(bytes) ?? undefined : undefined;
+  const partsInfo = parts ? ` · tách ${parts.length} phần: ${parts.map((p) => `${p.name}@0x${p.offset.toString(16)}`).join(", ")}` : "";
   return {
     file,
     bytes,
+    parts,
     version: info.version,
     sha256: await sha256Hex(bytes),
-    info: `${info.project} v${info.version} · IDF ${info.idf} · build ${info.built} · ${formatBytes(file.size)}`
+    info: `${info.project} v${info.version} · IDF ${info.idf} · build ${info.built} · ${formatBytes(file.size)}${partsInfo}`
   };
 }
 
@@ -180,6 +184,15 @@ export function FirmwareAdmin() {
       if (mergedFile) {
         const up = await uploadFile("merged", draft, mergedFile.file, (p) => setProgress(`Đang tải file merged… ${p}%`));
         Object.assign(body, { merged_path: up.path, merged_size: mergedFile.file.size });
+        // Các phần tách ra dùng cho trang nạp online (không ghi đè NVS, bỏ vùng trống).
+        const flashParts: Array<{ path: string; offset: number; size: number }> = [];
+        for (const [index, part] of (mergedFile.parts ?? []).entries()) {
+          const partFile = new File([part.bytes], `${part.name}.bin`, { type: "application/octet-stream" });
+          const label = `Đang tải phần ${index + 1}/${mergedFile.parts?.length} (${part.name})…`;
+          const upPart = await uploadFile("part", draft, partFile, (p) => setProgress(`${label} ${p}%`));
+          flashParts.push({ path: upPart.path, offset: part.offset, size: part.bytes.length });
+        }
+        body.flash_parts = flashParts;
       }
       if (wiringFile) {
         const up = await uploadFile("wiring", draft, wiringFile, (p) => setProgress(`Đang tải sơ đồ… ${p}%`));
@@ -294,7 +307,10 @@ export function FirmwareAdmin() {
                   <td className="py-2 pr-3">{item.board}</td>
                   <td className="py-2 pr-3 text-xs">
                     <div>App (OTA): {item.app_path ? formatBytes(item.app_size) : "—"}</div>
-                    <div>Merged (nạp online): {item.merged_path ? formatBytes(item.merged_size) : "—"}</div>
+                    <div>
+                      Merged (nạp online): {item.merged_path ? formatBytes(item.merged_size) : "—"}
+                      {item.merged_path && !item.flash_parts.length && <span className="text-amber-600"> · chưa tách phần, hãy chọn lại file merged</span>}
+                    </div>
                     <div>Sơ đồ: {item.wiring_image ? "có" : "—"}</div>
                   </td>
                   <td className="py-2 pr-3">
