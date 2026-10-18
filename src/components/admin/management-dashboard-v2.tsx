@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TextareaHTMLAttributes } from "react";
 import { getSiteData } from "@/lib/content/loaders";
@@ -475,28 +474,10 @@ export function ManagementDashboardV2() {
             Journey: {journeyItems.length} · Projects: {projectItems.length} · Showcase: {showcaseItems.length}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/admin/orders" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
-            Dashboard đơn hàng
-          </Link>
-          <Link href="/admin/xiaozhi" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
-            Kết nối Xiaozhi MCP
-          </Link>
-          <Link href="/admin/firmware" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
-            Firmware robot
-          </Link>
-          <button
-            onClick={async () => {
-              await fetch("/api/admin/logout", { method: "POST" });
-              window.location.href = "/admin/login";
-            }}
-            className="rounded-lg border px-3 py-2 text-sm"
-            style={{ borderColor: "var(--border)" }}
-          >
-            Đăng xuất
-          </button>
-        </div>
-      </div>
+        <a href="/" target="_blank" rel="noreferrer" className="btn-ghost">
+          ↗ Xem Portfolio
+        </a>
+            </div>
 
       <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
         <aside className="card h-fit space-y-2">

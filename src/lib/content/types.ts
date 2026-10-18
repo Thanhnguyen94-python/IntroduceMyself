@@ -31,6 +31,11 @@ export type SiteData = {
     email: string;
     zaloPhone: string;
   };
+  // Quyền riêng tư trên Portfolio công khai (trang /cv vẫn hiển thị đầy đủ).
+  privacy?: {
+    showPhone: boolean;
+    showPersonalInfo: boolean;
+  };
   highlights: LocalizedList;
   skills: {
     group: LocalizedText;

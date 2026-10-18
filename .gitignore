@@ -31,3 +31,6 @@ Thumbs.db
 *.crt
 *.txt
 *.pdf
+
+# TypeScript incremental cache
+*.tsbuildinfo

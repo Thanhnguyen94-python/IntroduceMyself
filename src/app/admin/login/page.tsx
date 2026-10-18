@@ -11,5 +11,9 @@ export default async function AdminLoginPage() {
     redirect("/admin");
   }
 
-  return <AdminLoginForm />;
+  return (
+    <main className="grid min-h-screen place-items-center px-4 py-8">
+      <AdminLoginForm />
+    </main>
+  );
 }

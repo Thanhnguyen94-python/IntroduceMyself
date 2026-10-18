@@ -4,111 +4,128 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
-import { ui } from "@/lib/content/i18n";
 import { ThemeToggle } from "@/components/theme-toggle";
-import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
+import { LangToggle } from "@/components/layout/lang-toggle";
+import { isPageEnabled, type PortfolioPageKey, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
-const menu = [
-  { href: "/tong-quan", key: "overview" as const, pageKey: "overview" as ManagedPageKey },
-  { href: "/hanh-trinh", key: "journey" as const, pageKey: "journey" as ManagedPageKey },
-  { href: "/du-an", key: "projects" as const, pageKey: "projects" as ManagedPageKey },
-  { href: "/san-pham-trung-bay", key: "showcase" as const, pageKey: "showcase" as ManagedPageKey },
-  { href: "/tai-lieu-ky-thuat", key: "docs" as const, pageKey: "docs" as ManagedPageKey }
+// Menu không gian Portfolio (dành cho nhà tuyển dụng). Không chứa link nạp firmware / Project Hub.
+const menu: Array<{ href: string; pageKey: PortfolioPageKey; label: { vi: string; en: string } }> = [
+  { href: "/", pageKey: "overview", label: { vi: "Trang chủ", en: "Home" } },
+  { href: "/hanh-trinh", pageKey: "journey", label: { vi: "Hành trình", en: "Journey" } },
+  { href: "/du-an", pageKey: "projects", label: { vi: "Case Study", en: "Case Studies" } },
+  { href: "/san-pham-trung-bay", pageKey: "showcase", label: { vi: "Sản phẩm", en: "Showcase" } },
+  { href: "/tai-lieu-ky-thuat", pageKey: "docs", label: { vi: "Tài liệu", en: "Documents" } }
 ];
 
-const defaultVisibility: SiteVisibilityConfig = {
-  schemaVersion: 1,
-  pages: {
-    overview: true,
-    journey: true,
-    projects: true,
-    showcase: true,
-    docs: true
-  }
-};
+function isActive(pathname: string, href: string) {
+  if (href === "/") return pathname === "/" || pathname === "/tong-quan";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
-export function SiteHeader() {
+export function PortfolioHeader() {
   const pathname = usePathname();
-  const { lang, setLang } = useLanguage();
-  const [visibility, setVisibility] = useState<SiteVisibilityConfig>(defaultVisibility);
+  const { lang } = useLanguage();
+  const [visibility, setVisibility] = useState<SiteVisibilityConfig>({ schemaVersion: 1, pages: {} });
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-
-    async function loadVisibility() {
-      try {
-        const response = await fetch("/api/site/visibility", { cache: "no-store" });
-        if (!response.ok) return;
-        const payload = (await response.json()) as SiteVisibilityConfig;
-        if (mounted) setVisibility(payload);
-      } catch {
-        // Keep default visibility.
-      }
-    }
-
-    loadVisibility();
+    fetch("/api/site/visibility", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: SiteVisibilityConfig | null) => {
+        if (mounted && payload?.pages) setVisibility(payload);
+      })
+      .catch(() => undefined);
     return () => {
       mounted = false;
     };
   }, []);
 
-  const visibleMenu = useMemo(
-    () => menu.filter((item) => visibility.pages[item.pageKey]),
-    [visibility.pages]
-  );
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => setOpen(false), [pathname]);
+
+  const visibleMenu = useMemo(() => menu.filter((item) => isPageEnabled(visibility, item.pageKey)), [visibility]);
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-white/90 backdrop-blur dark:bg-slate-900/80" style={{ borderColor: "var(--border)" }}>
-      <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4">
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
-          <Link href="/tong-quan" className="min-w-0 flex-1 truncate text-sm font-bold text-brand-600 dark:text-brand-300 sm:text-base">
-            Mr Jay | SMT Engineer
-          </Link>
-          <nav className="hidden gap-2 md:flex">
-            {visibleMenu.map((item) => {
-              const active = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`rounded-lg px-3 py-2 text-sm ${
-                    active ? "bg-brand-600 text-white" : "hover:bg-brand-100 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  {ui.nav[lang][item.key]}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="shrink-0 flex items-center gap-2">
-            <button
-              onClick={() => setLang(lang === "vi" ? "en" : "vi")}
-              className="rounded-lg border px-2 py-1 text-xs"
-              style={{ borderColor: "var(--border)" }}
-            >
-              {lang.toUpperCase()}
-            </button>
-            <ThemeToggle />
-          </div>
-        </div>
+    <header
+      className={`sticky top-0 z-40 border-b transition-shadow ${scrolled ? "glass shadow-sm" : "bg-transparent"}`}
+      style={{ borderColor: scrolled ? "var(--border)" : "transparent" }}
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <Link href="/" className="group flex min-w-0 items-center gap-2">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white shadow-md transition group-hover:rotate-6">
+            MJ
+          </span>
+          <span className="min-w-0 truncate text-sm font-bold sm:text-base">
+            Mr Jay <span className="muted font-medium">· SMT Engineer</span>
+          </span>
+        </Link>
 
-        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 md:hidden">
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Portfolio">
           {visibleMenu.map((item) => {
-            const active = pathname === item.href;
+            const active = isActive(pathname, item.href);
             return (
               <Link
-                key={`mobile-${item.href}`}
+                key={item.href}
                 href={item.href}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
-                  active
-                    ? "bg-brand-600 text-white"
-                    : "border border-slate-200/80 bg-white/70 dark:border-slate-700 dark:bg-slate-800/70"
+                aria-current={active ? "page" : undefined}
+                className={`relative rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  active ? "text-brand-700 dark:text-brand-200" : "muted hover:text-[color:var(--text)]"
                 }`}
               >
-                {ui.nav[lang][item.key]}
+                {item.label[lang]}
+                <span
+                  className={`absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-500 transition-transform duration-300 ${
+                    active ? "scale-x-100" : "scale-x-0"
+                  }`}
+                />
               </Link>
             );
           })}
+        </nav>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <LangToggle />
+          <ThemeToggle />
+          <button
+            className="grid h-9 w-9 place-items-center rounded-xl border md:hidden"
+            style={{ borderColor: "var(--border)" }}
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-label="Menu"
+          >
+            <span className="text-lg leading-none">{open ? "✕" : "☰"}</span>
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`grid overflow-hidden transition-[grid-template-rows] duration-300 md:hidden ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+      >
+        <nav className="min-h-0" aria-label="Portfolio mobile">
+          <div className="glass mx-4 mb-3 space-y-1 rounded-2xl border p-2" style={{ borderColor: "var(--border)" }}>
+            {visibleMenu.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <Link
+                  key={`m-${item.href}`}
+                  href={item.href}
+                  className={`block rounded-xl px-3 py-2.5 text-sm font-medium ${
+                    active ? "bg-brand-600 text-white" : "hover:bg-brand-50 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  {item.label[lang]}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
       </div>
     </header>

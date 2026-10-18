@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function AdminLoginForm() {
   const [username, setUsername] = useState("admin");
@@ -49,13 +50,11 @@ export function AdminLoginForm() {
         placeholder="Username"
         required
       />
-      <input
-        type="password"
+      <PasswordInput
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full rounded-lg border px-3 py-2 text-sm"
-        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
         placeholder="Password"
+        autoComplete="current-password"
         required
       />
 

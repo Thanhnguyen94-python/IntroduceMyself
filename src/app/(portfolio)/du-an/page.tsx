@@ -8,6 +8,7 @@ import type { ProjectsData } from "@/lib/content/types";
 import { pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
+import { HubBadge } from "@/components/hub/hub-links";
 
 const filters = ["all", "3d-jig", "app-software", "smt-improvement", "ai-iot"] as const;
 const filterLabels = {
@@ -81,9 +82,12 @@ export default function DuAnPage() {
                 <span key={tag} className="rounded bg-brand-100 px-2 py-1 text-xs text-brand-700 dark:bg-slate-800 dark:text-brand-200">{tag}</span>
               ))}
             </div>
-            <Link href={`/du-an/${item.slug}`} className="mt-4 inline-block text-sm font-semibold text-brand-600 dark:text-brand-300">
-              {lang === "vi" ? "Xem chi tiết" : "View details"} →
-            </Link>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <Link href={`/du-an/${item.slug}`} className="text-sm font-semibold text-brand-600 dark:text-brand-300">
+                {lang === "vi" ? "Xem chi tiết" : "View details"} →
+              </Link>
+              <HubBadge slug={item.slug} />
+            </div>
           </article>
         ))}
       </div>

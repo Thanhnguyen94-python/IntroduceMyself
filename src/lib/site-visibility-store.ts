@@ -1,10 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
+import { PORTFOLIO_PAGE_KEYS, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { hubVisibilityKey, listHubs } from "@/lib/hubs/registry";
 
 const visibilityPath = path.join(process.cwd(), "src", "content", "pages", "visibility.json");
-const pageKeys: ManagedPageKey[] = ["overview", "journey", "projects", "showcase", "docs"];
 
 type SiteVisibilityRow = {
   page_key: string;
@@ -15,86 +15,58 @@ function isProductionRuntime() {
   return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
 }
 
-function createDefaultVisibility(): SiteVisibilityConfig {
+// Danh sách key quản lý = 5 trang portfolio + 1 key cho mỗi Project Hub.
+async function getManagedKeys(): Promise<string[]> {
+  const hubs = await listHubs();
+  return [...PORTFOLIO_PAGE_KEYS, ...hubs.map((hub) => hubVisibilityKey(hub.slug))];
+}
+
+function buildConfig(keys: string[], source: Record<string, unknown> | undefined): SiteVisibilityConfig {
   return {
     schemaVersion: 1,
-    pages: {
-      overview: true,
-      journey: true,
-      projects: true,
-      showcase: true,
-      docs: true
-    }
+    pages: keys.reduce<Record<string, boolean>>((acc, key) => {
+      const value = source?.[key];
+      acc[key] = typeof value === "boolean" ? value : true;
+      return acc;
+    }, {})
   };
 }
 
 export async function readSiteVisibility(): Promise<SiteVisibilityConfig> {
+  const keys = await getManagedKeys();
   const supabase = getSupabaseServerClient();
 
   if (supabase) {
     const { data, error } = await supabase.from("site_visibility").select("page_key,is_enabled");
 
     if (!error && Array.isArray(data) && data.length > 0) {
-      const base = createDefaultVisibility();
       const rows = data as SiteVisibilityRow[];
-
-      const pages = rows.reduce<Record<ManagedPageKey, boolean>>((acc, row) => {
-        const key = row.page_key as ManagedPageKey;
-        if (pageKeys.includes(key)) {
-          acc[key] = Boolean(row.is_enabled);
-        }
-        return acc;
-      }, { ...base.pages });
-
-      return {
-        schemaVersion: 1,
-        pages
-      };
+      const map = Object.fromEntries(rows.map((row) => [row.page_key, Boolean(row.is_enabled)]));
+      return buildConfig(keys, map);
     }
   }
 
   try {
     const raw = await fs.readFile(visibilityPath, "utf-8");
     const parsed = JSON.parse(raw) as Partial<SiteVisibilityConfig>;
-    const base = createDefaultVisibility();
-
-    return {
-      schemaVersion: Number(parsed?.schemaVersion ?? 1),
-      pages: pageKeys.reduce((acc, key) => {
-        acc[key] = typeof parsed?.pages?.[key] === "boolean" ? parsed.pages[key] : base.pages[key];
-        return acc;
-      }, { ...base.pages })
-    };
+    return buildConfig(keys, parsed?.pages);
   } catch {
-    return createDefaultVisibility();
+    return buildConfig(keys, undefined);
   }
 }
 
 export async function writeSiteVisibility(input: SiteVisibilityConfig): Promise<SiteVisibilityConfig> {
-  const normalized: SiteVisibilityConfig = {
-    schemaVersion: 1,
-    pages: pageKeys.reduce<Record<ManagedPageKey, boolean>>((acc, key) => {
-      acc[key] = Boolean(input?.pages?.[key]);
-      return acc;
-    }, {
-      overview: true,
-      journey: true,
-      projects: true,
-      showcase: true,
-      docs: true
-    })
-  };
+  const keys = await getManagedKeys();
+  const normalized = buildConfig(keys, input?.pages);
 
   const supabase = getSupabaseServerClient();
   if (supabase) {
-    const rows = pageKeys.map((key) => ({
+    const rows = keys.map((key) => ({
       page_key: key,
       is_enabled: normalized.pages[key]
     }));
 
-    const { error } = await supabase
-      .from("site_visibility")
-      .upsert(rows, { onConflict: "page_key" });
+    const { error } = await supabase.from("site_visibility").upsert(rows, { onConflict: "page_key" });
 
     if (!error) {
       return normalized;

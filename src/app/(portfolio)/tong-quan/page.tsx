@@ -133,11 +133,13 @@ export default function TongQuanPage() {
             <p className="mt-3 max-w-3xl text-slate-700 dark:text-slate-200">{pickText(site.profile.slogan, lang)}</p>
 
             <div className="mt-4 grid gap-2 text-sm text-slate-800 dark:text-slate-200 md:grid-cols-2">
-              <p>📞 {site.profile.phone}</p>
+              {site.privacy?.showPhone && <p>📞 {site.profile.phone}</p>}
               <p>✉️ {site.profile.email}</p>
               <p>📍 {site.profile.location}</p>
-              <p>🎂 {site.profile.birthDate}</p>
-              <p className="md:col-span-2">🏠 {lang === "vi" ? "Quê quán" : "Hometown"}: {site.profile.hometown}</p>
+              {site.privacy?.showPersonalInfo && <p>🎂 {site.profile.birthDate}</p>}
+              {site.privacy?.showPersonalInfo && (
+                <p className="md:col-span-2">🏠 {lang === "vi" ? "Quê quán" : "Hometown"}: {site.profile.hometown}</p>
+              )}
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
@@ -150,9 +152,11 @@ export default function TongQuanPage() {
               {/* <a className="rounded-lg border border-brand-300 bg-white/70 px-4 py-2 text-slate-900 dark:border-slate-500 dark:bg-slate-800 dark:text-white" href={`tel:${site.profile.phone}`}>
                 {lang === "vi" ? "Gọi ngay" : "Call now"}
               </a> */}
-              <a className="rounded-lg border border-brand-300 bg-white/70 px-4 py-2 text-slate-900 dark:border-slate-500 dark:bg-slate-800 dark:text-white" href={`https://zalo.me/${site.profile.zaloPhone}`} target="_blank" rel="noreferrer">
-                Zalo
-              </a>
+              {site.privacy?.showPhone && (
+                <a className="rounded-lg border border-brand-300 bg-white/70 px-4 py-2 text-slate-900 dark:border-slate-500 dark:bg-slate-800 dark:text-white" href={`https://zalo.me/${site.profile.zaloPhone}`} target="_blank" rel="noreferrer">
+                  Zalo
+                </a>
+              )}
             </div>
           </div>
         </div>

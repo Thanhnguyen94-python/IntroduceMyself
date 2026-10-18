@@ -61,6 +61,18 @@ export async function verifyAdminCredentials(username: string, password: string)
     const { url, serviceRoleKey, anonKey } = getSupabaseEnv();
 
     if (!url || !serviceRoleKey) {
+      // Chạy local không có .env.local: cho đăng nhập bằng ADMIN_USERNAME/ADMIN_PASSWORD để test.
+      // Production vẫn bắt buộc Supabase.
+      const isLocalDev = process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1";
+      if (isLocalDev) {
+        const envMatched =
+          safeCompare(identifier, envConfig.username.toLowerCase()) && safeCompare(cleanPassword, envConfig.password);
+        if (envMatched) {
+          console.warn("[admin-auth] Supabase chưa cấu hình, đăng nhập local bằng ENV admin credentials.");
+          return { ok: true, reason: "invalid-credentials" };
+        }
+        return { ok: false, reason: "invalid-credentials" };
+      }
       console.error("[admin-auth] Supabase env is missing. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
       return { ok: false, reason: "supabase-not-configured" };
     }
@@ -175,21 +187,35 @@ export function createAdminSessionToken(username: string) {
   return Buffer.from(`${payload}.${signature}`).toString("base64url");
 }
 
-export function verifyAdminSessionToken(token?: string | null) {
-  if (!token) return false;
-
+// Token = base64url("<username>.<expiresAt>.<signature>"). Username có thể chứa dấu "." (email),
+// nên tách 2 phần cuối từ bên phải.
+function parseSessionToken(token?: string | null) {
+  if (!token) return null;
   try {
     const decoded = Buffer.from(token, "base64url").toString("utf-8");
-    const [username, expiresAtRaw, signature] = decoded.split(".");
-    if (!username || !expiresAtRaw || !signature) return false;
+    const sigIdx = decoded.lastIndexOf(".");
+    const expIdx = decoded.lastIndexOf(".", sigIdx - 1);
+    if (sigIdx <= 0 || expIdx <= 0) return null;
+
+    const username = decoded.slice(0, expIdx);
+    const expiresAtRaw = decoded.slice(expIdx + 1, sigIdx);
+    const signature = decoded.slice(sigIdx + 1);
+    if (!username || !expiresAtRaw || !signature) return null;
 
     const expiresAt = Number(expiresAtRaw);
-    if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) return false;
+    if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) return null;
 
-    const payload = `${username}.${expiresAtRaw}`;
-    const expectedSignature = signPayload(payload);
-    return safeCompare(signature, expectedSignature);
+    const expectedSignature = signPayload(`${username}.${expiresAtRaw}`);
+    return safeCompare(signature, expectedSignature) ? { username } : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function verifyAdminSessionToken(token?: string | null) {
+  return parseSessionToken(token) !== null;
+}
+
+export function getAdminSessionUsername(token?: string | null) {
+  return parseSessionToken(token)?.username ?? null;
 }

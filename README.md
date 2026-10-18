@@ -24,9 +24,16 @@ Trọng tâm:
 - Trang 3: `Dự Án` (`/du-an`)
 - Trang 4: `Tài Liệu Kỹ Thuật` (`/tai-lieu-ky-thuat`)
 
-Trang `/` có thể làm landing chuyển tiếp vào `Tổng Quan` hoặc chứa snapshot 4 khối nội dung.
+Cập nhật 2026-10-18: `/` là trang chủ Portfolio, các khối (hero, case study, kỹ năng…) bật/tắt và kéo thả thứ tự trong `/admin/layout`.
 
-Hiện tại đã chốt: `/` tự động chuyển sang `/tong-quan`.
+### 3b) Ba không gian của web
+| Không gian | URL | Người dùng |
+|---|---|---|
+| Portfolio | `/`, `/hanh-trinh`, `/du-an`… | Nhà tuyển dụng (không có link nạp FW) |
+| Project Hub | `/joy`, `/joy/docs/**`, `/joy/flash`, `/joy/updates` | Maker / người dùng robot |
+| Admin (CMS) | `/admin/**` | Chủ site (đăng nhập) |
+
+Chi tiết: `src/app/APP_ROUTING_GUIDE.md`. Thêm dự án mới: `src/content/CONTENT_ARCHITECTURE.md`.
 
 ## 4) Theme chủ đạo
 - Màu chủ đạo: xanh dương SMT.
@@ -63,7 +70,7 @@ Lưu ý quan trọng:
 	- Email: nguyenvanthanh110394@gmail.com
 3. `Tải CV`: PDF sinh động theo dữ liệu (trang `/cv` + in PDF).
 4. `Private Docs`: dùng mật khẩu. (Triển khai so khớp hash SHA-256 qua biến môi trường công khai để dễ cấu hình.)
-5. Route `/` chuyển thẳng sang `/tong-quan`.
+5. ~~Route `/` chuyển thẳng sang `/tong-quan`.~~ → thay bằng trang chủ Portfolio có CMS bố cục.
 6. Bộ tag dự án theo thiết bị SMT.
 7. Chưa có domain riêng.
 
