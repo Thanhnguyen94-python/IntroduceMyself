@@ -31,7 +31,6 @@ type CustomSectionPlacement =
   | "end";
 type CustomSection = { id: string; title: string; content: string; placement: CustomSectionPlacement };
 
-const EXPORT_PASSWORD = "Thanh94@@";
 
 const templateOptions: { value: CvTemplate; labelVi: string; labelEn: string }[] = [
   { value: "midnight", labelVi: "Sidebar Tối", labelEn: "Midnight Sidebar" },
@@ -216,17 +215,7 @@ function CvInner() {
     setCustomSections((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const openExportModal = () => {
-    setPasswordError("");
-    setExportPassword("");
-    setIsPasswordModalOpen(true);
-  };
-
-  const confirmExportPdf = () => {
-    if (exportPassword !== EXPORT_PASSWORD) {
-      setPasswordError(dataLang === "vi" ? "Sai mật khẩu xuất file." : "Incorrect export password.");
-      return;
-    }
+  const goToPrint = () => {
     const params = new URLSearchParams(search.toString());
     params.set("template", template);
     params.set("palette", palette);
@@ -234,6 +223,41 @@ function CvInner() {
     params.set("print", "1");
     router.replace(`${pathname}?${params.toString()}`);
     setIsPasswordModalOpen(false);
+  };
+
+  // Admin đã đăng nhập: xuất ngay. Khách: hỏi mật khẩu, kiểm tra ở server (/api/cv/export-check).
+  const openExportModal = async () => {
+    setPasswordError("");
+    setExportPassword("");
+    const status = (await fetch("/api/cv/export-check", { cache: "no-store" })
+      .then((res) => res.json())
+      .catch(() => ({ admin: false }))) as { admin?: boolean };
+    if (status.admin) {
+      goToPrint();
+      return;
+    }
+    setIsPasswordModalOpen(true);
+  };
+
+  const confirmExportPdf = async () => {
+    const response = await fetch("/api/cv/export-check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: exportPassword })
+    }).catch(() => null);
+    if (!response?.ok) {
+      setPasswordError(
+        response?.status === 429
+          ? dataLang === "vi"
+            ? "Nhập sai quá nhiều lần, thử lại sau 15 phút."
+            : "Too many attempts, try again in 15 minutes."
+          : dataLang === "vi"
+            ? "Sai mật khẩu xuất file."
+            : "Incorrect export password."
+      );
+      return;
+    }
+    goToPrint();
   };
 
   const updateAvatarPositionFromPointer = (clientX: number, clientY: number, currentTarget: HTMLDivElement) => {

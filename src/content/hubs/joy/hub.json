@@ -5,7 +5,56 @@
   "order": 1,
   "status": "beta",
   "caseStudySlug": "chatbot-ai",
-  "cover": "/assets/images/ai-iot/demo_01.jpg",
+  "media": [
+    {
+      "url": "/assets/images/ai-iot/demo_01.jpg",
+      "kind": "auto",
+      "caption": {
+        "vi": "Joy_chi_cot hoàn thiện",
+        "en": "Finished Joy_chi_cot"
+      }
+    },
+    {
+      "url": "/assets/images/ai-iot/demo_02.jpg",
+      "kind": "auto",
+      "caption": {
+        "vi": "Mặt OLED biểu cảm",
+        "en": "Expressive OLED face"
+      }
+    },
+    {
+      "url": "/assets/images/ai-iot/obj_3D_body.jpg",
+      "kind": "auto",
+      "caption": {
+        "vi": "Thân robot thiết kế 3D",
+        "en": "3D-modelled body"
+      }
+    },
+    {
+      "url": "/assets/images/ai-iot/in_3D.mp4",
+      "kind": "video",
+      "caption": {
+        "vi": "In 3D vỏ robot",
+        "en": "3D printing the shell"
+      }
+    }
+  ],
+  "mediaInterval": 5,
+  "autoplayVideo": false,
+  "layout": [
+    {
+      "id": "features",
+      "enabled": true
+    },
+    {
+      "id": "specs-docs",
+      "enabled": true
+    },
+    {
+      "id": "latest",
+      "enabled": true
+    }
+  ],
   "tagline": {
     "vi": "Robot AI trò chuyện bằng giọng nói, chạy trên ESP32-S3",
     "en": "A voice-chat AI robot powered by ESP32-S3"
@@ -22,84 +71,219 @@
   "features": [
     {
       "icon": "🎙️",
-      "title": { "vi": "Trò chuyện bằng giọng nói", "en": "Voice conversation" },
-      "text": { "vi": "Gọi “Hi Joy” để đánh thức, hỏi đáp tự nhiên với mô hình AI trên cloud.", "en": "Say “Hi Joy” to wake it up and chat naturally with a cloud AI model." }
+      "title": {
+        "vi": "Trò chuyện bằng giọng nói",
+        "en": "Voice conversation"
+      },
+      "text": {
+        "vi": "Gọi “Hi Joy” để đánh thức, hỏi đáp tự nhiên với mô hình AI trên cloud.",
+        "en": "Say “Hi Joy” to wake it up and chat naturally with a cloud AI model."
+      }
     },
     {
       "icon": "🙂",
-      "title": { "vi": "Biểu cảm đầu & mặt", "en": "Head & face emotions" },
-      "text": { "vi": "Servo pan-tilt gật/lắc đầu theo cảm xúc, mặt OLED đổi biểu cảm.", "en": "Pan-tilt servos nod/shake with emotion while the OLED face changes expression." }
+      "title": {
+        "vi": "Biểu cảm đầu & mặt",
+        "en": "Head & face emotions"
+      },
+      "text": {
+        "vi": "Servo pan-tilt gật/lắc đầu theo cảm xúc, mặt OLED đổi biểu cảm.",
+        "en": "Pan-tilt servos nod/shake with emotion while the OLED face changes expression."
+      }
     },
     {
       "icon": "🛞",
-      "title": { "vi": "Di chuyển 2 bánh", "en": "Two-wheel drive" },
-      "text": { "vi": "Điều khiển bằng giọng nói, WebUI hoặc tay cầm RC (SBUS).", "en": "Drive by voice, from the WebUI, or with an RC transmitter (SBUS)." }
+      "title": {
+        "vi": "Di chuyển 2 bánh",
+        "en": "Two-wheel drive"
+      },
+      "text": {
+        "vi": "Điều khiển bằng giọng nói, WebUI hoặc tay cầm RC (SBUS).",
+        "en": "Drive by voice, from the WebUI, or with an RC transmitter (SBUS)."
+      }
     },
     {
       "icon": "🌐",
-      "title": { "vi": "WebUI trong mạng nhà", "en": "Local WebUI" },
-      "text": { "vi": "Quét QR trên màn hình để mở trang điều khiển, cài đặt phần cứng, phát nhạc thẻ SD.", "en": "Scan the on-screen QR to open controls, hardware settings and SD-card music." }
+      "title": {
+        "vi": "WebUI trong mạng nhà",
+        "en": "Local WebUI"
+      },
+      "text": {
+        "vi": "Quét QR trên màn hình để mở trang điều khiển, cài đặt phần cứng, phát nhạc thẻ SD.",
+        "en": "Scan the on-screen QR to open controls, hardware settings and SD-card music."
+      }
     },
     {
       "icon": "🛡️",
-      "title": { "vi": "Cảm biến an toàn", "en": "Safety sensors" },
-      "text": { "vi": "Công tắc va chạm LM393 và cảm biến khoảng cách VL6180X chống rơi bàn.", "en": "LM393 bump switches and a VL6180X distance sensor to avoid falling off the desk." }
+      "title": {
+        "vi": "Cảm biến an toàn",
+        "en": "Safety sensors"
+      },
+      "text": {
+        "vi": "Công tắc va chạm LM393 và cảm biến khoảng cách VL6180X chống rơi bàn.",
+        "en": "LM393 bump switches and a VL6180X distance sensor to avoid falling off the desk."
+      }
     },
     {
       "icon": "⬆️",
-      "title": { "vi": "Cập nhật không cần cáp", "en": "Cable-free updates" },
-      "text": { "vi": "Lần đầu nạp qua USB trên web, các lần sau cập nhật OTA ngay trong WebUI.", "en": "First flash over USB from the web, then update over the air from the WebUI." }
+      "title": {
+        "vi": "Cập nhật không cần cáp",
+        "en": "Cable-free updates"
+      },
+      "text": {
+        "vi": "Lần đầu nạp qua USB trên web, các lần sau cập nhật OTA ngay trong WebUI.",
+        "en": "First flash over USB from the web, then update over the air from the WebUI."
+      }
     }
   ],
   "specs": [
-    { "label": { "vi": "Vi điều khiển", "en": "MCU" }, "value": "ESP32-S3 có PSRAM Octal (N16R8 / N8R8)" },
-    { "label": { "vi": "Micro", "en": "Microphone" }, "value": "Mic I2S: ICS-43434 / INMP441" },
-    { "label": { "vi": "Âm thanh ra", "en": "Audio out" }, "value": "MAX98357A + loa 4–8Ω 3W" },
-    { "label": { "vi": "Màn hình", "en": "Display" }, "value": "OLED SSD1306 0.96\"/0.91\"" },
-    { "label": { "vi": "Chuyển động", "en": "Motion" }, "value": "2× servo SG90/MG90S + 2× motor DC (TB6612 / DRV8833)" },
-    { "label": { "vi": "Firmware", "en": "Firmware" }, "value": "xiaozhi-esp32 v2.3.3" }
+    {
+      "label": {
+        "vi": "Vi điều khiển",
+        "en": "MCU"
+      },
+      "value": "ESP32-S3 có PSRAM Octal (N16R8 / N8R8)"
+    },
+    {
+      "label": {
+        "vi": "Micro",
+        "en": "Microphone"
+      },
+      "value": "Mic I2S: ICS-43434 / INMP441"
+    },
+    {
+      "label": {
+        "vi": "Âm thanh ra",
+        "en": "Audio out"
+      },
+      "value": "MAX98357A + loa 4–8Ω 3W"
+    },
+    {
+      "label": {
+        "vi": "Màn hình",
+        "en": "Display"
+      },
+      "value": "OLED SSD1306 0.96\"/0.91\""
+    },
+    {
+      "label": {
+        "vi": "Chuyển động",
+        "en": "Motion"
+      },
+      "value": "2× servo SG90/MG90S + 2× motor DC (TB6612 / DRV8833)"
+    },
+    {
+      "label": {
+        "vi": "Firmware",
+        "en": "Firmware"
+      },
+      "value": "xiaozhi-esp32 v2.3.3"
+    }
   ],
   "docSections": [
-    { "id": "start", "icon": "🚀", "title": { "vi": "Bắt đầu", "en": "Getting started" } },
-    { "id": "hardware", "icon": "🔧", "title": { "vi": "Phần cứng", "en": "Hardware" } },
-    { "id": "troubleshooting", "icon": "🩺", "title": { "vi": "Sửa lỗi", "en": "Troubleshooting" } }
+    {
+      "id": "start",
+      "icon": "🚀",
+      "title": {
+        "vi": "Bắt đầu",
+        "en": "Getting started"
+      }
+    },
+    {
+      "id": "hardware",
+      "icon": "🔧",
+      "title": {
+        "vi": "Phần cứng",
+        "en": "Hardware"
+      }
+    },
+    {
+      "id": "troubleshooting",
+      "icon": "🩺",
+      "title": {
+        "vi": "Sửa lỗi",
+        "en": "Troubleshooting"
+      }
+    }
   ],
   "updates": [
     {
       "version": "2.3.3",
       "date": "2026-10-18",
       "channel": "beta",
-      "title": { "vi": "Sửa treo khi hiện QR WebUI", "en": "Fix freeze when showing WebUI QR" },
+      "title": {
+        "vi": "Sửa treo khi hiện QR WebUI",
+        "en": "Fix freeze when showing WebUI QR"
+      },
       "notes": {
-        "vi": ["Sửa lỗi robot treo khi hiển thị mã QR WebUI.", "Ra mắt Project Hub: tài liệu + trang nạp firmware công khai."],
-        "en": ["Fixed a freeze when displaying the WebUI QR code.", "Launched the Project Hub: docs + public web flasher."]
+        "vi": [
+          "Sửa lỗi robot treo khi hiển thị mã QR WebUI.",
+          "Ra mắt Project Hub: tài liệu + trang nạp firmware công khai."
+        ],
+        "en": [
+          "Fixed a freeze when displaying the WebUI QR code.",
+          "Launched the Project Hub: docs + public web flasher."
+        ]
       }
     },
     {
       "version": "2.3.2",
       "date": "2026-10-16",
-      "title": { "vi": "Nạp firmware qua web & OTA", "en": "Web flashing & OTA" },
+      "title": {
+        "vi": "Nạp firmware qua web & OTA",
+        "en": "Web flashing & OTA"
+      },
       "notes": {
-        "vi": ["Nạp firmware qua trình duyệt (Web Serial).", "Cập nhật OTA trong WebUI: tải file lên hoặc dán link, không cần cáp.", "Giảm dùng RAM để WebUI chạy ổn định."],
-        "en": ["Flash firmware from the browser (Web Serial).", "OTA in the WebUI: upload a file or paste a link, no cable needed.", "Lower RAM usage for a stable WebUI."]
+        "vi": [
+          "Nạp firmware qua trình duyệt (Web Serial).",
+          "Cập nhật OTA trong WebUI: tải file lên hoặc dán link, không cần cáp.",
+          "Giảm dùng RAM để WebUI chạy ổn định."
+        ],
+        "en": [
+          "Flash firmware from the browser (Web Serial).",
+          "OTA in the WebUI: upload a file or paste a link, no cable needed.",
+          "Lower RAM usage for a stable WebUI."
+        ]
       }
     },
     {
       "version": "2.3.1",
       "date": "2026-10-16",
-      "title": { "vi": "Cấu hình phần cứng & cảm biến trên WebUI", "en": "Hardware & sensor settings in the WebUI" },
+      "title": {
+        "vi": "Cấu hình phần cứng & cảm biến trên WebUI",
+        "en": "Hardware & sensor settings in the WebUI"
+      },
       "notes": {
-        "vi": ["Bật/tắt và chọn chân cảm biến va chạm ngay trên WebUI.", "Thu hồi GPIO 18/39/40 để dành cho cảm biến.", "Sửa lỗi thẻ SD."],
-        "en": ["Enable bump sensors and pick their pins from the WebUI.", "Freed GPIO 18/39/40 for sensors.", "Fixed SD card issues."]
+        "vi": [
+          "Bật/tắt và chọn chân cảm biến va chạm ngay trên WebUI.",
+          "Thu hồi GPIO 18/39/40 để dành cho cảm biến.",
+          "Sửa lỗi thẻ SD."
+        ],
+        "en": [
+          "Enable bump sensors and pick their pins from the WebUI.",
+          "Freed GPIO 18/39/40 for sensors.",
+          "Fixed SD card issues."
+        ]
       }
     },
     {
       "version": "2.3.0",
       "date": "2026-10-15",
-      "title": { "vi": "Robot Life & WebUI mới", "en": "Robot Life & new WebUI" },
+      "title": {
+        "vi": "Robot Life & WebUI mới",
+        "en": "Robot Life & new WebUI"
+      },
       "notes": {
-        "vi": ["Robot tự cử động đầu/bánh nhẹ khi đang nói chuyện.", "Chạm 2 lần để đánh thức, tránh chạm nhầm.", "Giao diện WebUI mới, sửa lỗi phát nhạc chồng bài."],
-        "en": ["The robot gently moves its head/wheels while talking.", "Double-tap to wake, avoiding accidental touches.", "New WebUI, fixed overlapping music playback."]
+        "vi": [
+          "Robot tự cử động đầu/bánh nhẹ khi đang nói chuyện.",
+          "Chạm 2 lần để đánh thức, tránh chạm nhầm.",
+          "Giao diện WebUI mới, sửa lỗi phát nhạc chồng bài."
+        ],
+        "en": [
+          "The robot gently moves its head/wheels while talking.",
+          "Double-tap to wake, avoiding accidental touches.",
+          "New WebUI, fixed overlapping music playback."
+        ]
       }
     }
   ],

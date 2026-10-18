@@ -4,7 +4,8 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/[hub]": ["./src/content/hubs/**/*"],
     "/[hub]/**": ["./src/content/hubs/**/*"],
-    "/api/**": ["./src/content/hubs/**/*"]
+    "/api/**": ["./src/content/hubs/**/*"],
+    "/admin/**": ["./src/content/hubs/**/*", "./docs/WEB_USAGE_GUIDE.md"]
   },
   async redirects() {
     return [

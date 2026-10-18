@@ -172,6 +172,10 @@ body {
 .doc-prose .doc-image { @apply block no-underline; }
 .doc-prose figure { @apply my-6; }
 .doc-prose figcaption { @apply mt-2 text-center text-sm; color: var(--muted); }
+.doc-embed { @apply relative my-6 w-full overflow-hidden rounded-xl border bg-black shadow-sm; border-color: var(--border); aspect-ratio: 16 / 9; }
+.doc-embed iframe { @apply absolute inset-0 h-full w-full border-0; }
+.doc-embed-pdf { aspect-ratio: 3 / 4; max-height: 80vh; background: #fff; }
+.doc-video { @apply mx-auto my-6 w-full max-w-3xl rounded-xl border bg-black; border-color: var(--border); }
 .doc-table { @apply overflow-x-auto rounded-xl border; border-color: var(--border); }
 .doc-prose table { @apply w-full border-collapse text-sm; }
 .doc-prose th { @apply whitespace-nowrap px-3 py-2 text-left font-semibold; background: color-mix(in srgb, var(--border) 40%, transparent); }

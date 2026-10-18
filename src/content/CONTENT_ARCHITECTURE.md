@@ -22,7 +22,19 @@ src/content/
          └─ troubleshooting/servo-motor.md, flashing.md
 ```
 
+## Hub sửa trên web (Admin → Danh sách Hub & Docs)
+
+| Môi trường | Bấm "Lưu" sẽ ghi vào | Hiệu lực |
+|---|---|---|
+| Production (có Supabase) | `site_content`: `hub:<slug>` (cấu hình) + `hub-docs:<slug>` (tài liệu) | Ngay lập tức |
+| Local (không có Supabase) | `src/content/hubs/<slug>/hub.json` + `docs/*.md` | Sau khi commit & deploy |
+
+Thứ tự ưu tiên khi đọc: **database → file trong repo**. "Khôi phục bản gốc" = xoá 2 dòng database, quay về file.
+Hướng dẫn cho người dùng: `docs/WEB_USAGE_GUIDE.md` (hiển thị ở `/admin/guide`).
+
 ## Thêm một dự án mới (vd Robot_don_nha)
+
+Cách nhanh nhất: Admin → Danh sách Hub & Docs → **Tạo Project Hub mới**. Hoặc bằng file:
 
 ```bash
 npm run new:hub -- don-nha "Robot_don_nha"

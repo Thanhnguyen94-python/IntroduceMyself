@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "seed:content:supabase": "node scripts/seed-content-to-supabase.mjs",
-    "new:hub": "node scripts/new-hub.mjs"
+    "new:hub": "node scripts/new-hub.mjs",
+    "admin:set-password": "node scripts/set-admin-password.mjs",
+    "secret:generate": "node -e \"console.log(require('crypto').randomBytes(48).toString('base64url'))\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

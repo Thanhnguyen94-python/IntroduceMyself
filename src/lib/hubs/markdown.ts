@@ -1,5 +1,6 @@
 import { Marked, type Tokens } from "marked";
 import type { HubDocTocItem } from "@/lib/hubs/types";
+import { resolveSmartMedia } from "@/lib/smart-media";
 
 export type Frontmatter = Record<string, string>;
 
@@ -24,6 +25,39 @@ export function parseFrontmatter(source: string): { data: Frontmatter; body: str
 
 function escapeAttr(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function decodeEntities(value: string) {
+  return value.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+}
+
+const FRAME = (src: string, title: string) =>
+  `<div class="doc-embed"><iframe src="${escapeAttr(src)}" title="${escapeAttr(title)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+
+// HTML cho 1 media trong tài liệu. mode "embed": link Drive hiện khung xem trước (ảnh/video/PDF đều xem được).
+function renderMediaHtml(rawUrl: string, alt: string, mode: "image" | "embed" = "image") {
+  const media = resolveSmartMedia(decodeEntities(rawUrl));
+  const altText = alt || "media";
+  switch (media.type) {
+    case "youtube":
+      return FRAME(media.embedUrl, altText);
+    case "drive": {
+      // ![video ...](drive) hoặc dòng link trần -> khung xem trước; còn lại hiển thị như ảnh.
+      if (mode === "embed" || /^(video|clip|pdf|tai lieu|tài liệu)/i.test(alt)) return FRAME(media.previewUrl, altText);
+      const src = escapeAttr(media.imageUrl);
+      return `<a href="${escapeAttr(media.canonical)}" target="_blank" rel="noreferrer" class="doc-image"><img src="${src}" alt="${escapeAttr(altText)}" loading="lazy" referrerpolicy="no-referrer" /></a>`;
+    }
+    case "video":
+      return `<video class="doc-video" src="${escapeAttr(media.src)}" controls preload="metadata" playsinline></video>`;
+    case "pdf":
+      return `<div class="doc-embed doc-embed-pdf"><iframe src="${escapeAttr(media.src)}" title="${escapeAttr(altText)}" loading="lazy"></iframe></div>`;
+    case "image": {
+      const src = escapeAttr(media.src);
+      return `<a href="${src}" target="_blank" rel="noreferrer" class="doc-image"><img src="${src}" alt="${escapeAttr(altText)}" loading="lazy" /></a>`;
+    }
+    default:
+      return "";
+  }
 }
 
 export function slugify(input: string) {
@@ -65,17 +99,24 @@ export function renderMarkdown(markdown: string): { html: string; toc: HubDocToc
         }
         return `<h${token.depth} id="${id}"><a class="doc-anchor" href="#${id}" aria-hidden="true">#</a>${inner}</h${token.depth}>\n`;
       },
-      // ![Mô tả](/assets/images/hubs/joy/wiring.png "Chú thích") -> ảnh bấm để phóng to, có chú thích.
+      // ![Mô tả](link "Chú thích"): link có thể là ảnh, file video, YouTube hoặc Google Drive.
       image(token: Tokens.Image) {
-        const src = escapeAttr(token.href);
-        const alt = escapeAttr(token.text);
-        const img = `<a href="${src}" target="_blank" rel="noreferrer" class="doc-image"><img src="${src}" alt="${alt}" loading="lazy" /></a>`;
-        return token.title ? `<figure>${img}<figcaption>${escapeAttr(token.title)}</figcaption></figure>` : img;
+        const body = renderMediaHtml(token.href, token.text);
+        return token.title ? `<figure>${body}<figcaption>${escapeAttr(token.title)}</figcaption></figure>` : body;
       }
     }
   });
 
   let html = marked.parse(markdown, { async: false }) as string;
+
+  // Dòng chỉ chứa 1 link YouTube / Google Drive -> tự nhúng trình xem (không hiện link thô).
+  html = html.replace(/<p><a href="([^"]+)">([^<]*)<\/a><\/p>/g, (whole, href: string, text: string) => {
+    const url = decodeEntities(href);
+    if (decodeEntities(text).trim() !== url.trim()) return whole;
+    const media = resolveSmartMedia(url);
+    if (media.type === "youtube" || media.type === "drive") return renderMediaHtml(url, "", "embed");
+    return whole;
+  });
 
   // Bảng rộng cuộn ngang trên điện thoại thay vì tràn trang.
   html = html.replace(/<table>/g, '<div class="doc-table"><table>').replace(/<\/table>/g, "</table></div>");
@@ -86,8 +127,11 @@ export function renderMarkdown(markdown: string): { html: string; toc: HubDocToc
     return `<blockquote class="callout callout-${c.cls}"><p class="callout-title">${c.icon} ${c.label}</p><p>`;
   });
 
-  // Link ra ngoài mở tab mới.
-  html = html.replace(/<a href="(https?:\/\/[^"]+)"/g, '<a href="$1" target="_blank" rel="noreferrer"');
+  // Media khối (figure / khung nhúng / video) không được nằm trong <p>.
+  html = html.replace(/<p>\s*(<figure>[\s\S]*?<\/figure>|<div class="doc-embed[\s\S]*?<\/div>|<video [\s\S]*?<\/video>)\s*<\/p>/g, "$1");
+
+  // Link ra ngoài mở tab mới (bỏ qua link đã có target).
+  html = html.replace(/<a href="(https?:\/\/[^"]+)"(?! target=)/g, '<a href="$1" target="_blank" rel="noreferrer"');
 
   return { html, toc };
 }

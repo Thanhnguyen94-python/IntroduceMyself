@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { genSaltSync, hashSync } from "bcryptjs";
 import { getAdminUsername } from "@/lib/admin-guard";
-import { verifyAdminCredentials } from "@/lib/admin-session";
+import { hashAdminPassword, verifyAdminCredentials } from "@/lib/admin-session";
+import { checkLoginAllowed, clearLoginFailures, clientKeyFrom, recordLoginFailure } from "@/lib/login-rate-limit";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +13,12 @@ export async function POST(request: Request) {
   const username = await getAdminUsername();
   if (!username) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateKey = clientKeyFrom(request, `admin-password:${username}`);
+  const gate = checkLoginAllowed(rateKey);
+  if (!gate.allowed) {
+    return NextResponse.json({ message: `Nhập sai quá nhiều lần. Thử lại sau ${Math.ceil(gate.retryAfterSec / 60)} phút.` }, { status: 429 });
   }
 
   const body = (await request.json().catch(() => ({}))) as { currentPassword?: string; newPassword?: string };
@@ -42,16 +48,18 @@ export async function POST(request: Request) {
 
   const check = await verifyAdminCredentials(username, currentPassword);
   if (!check.ok) {
+    if (check.reason === "db-query-failed") {
+      return NextResponse.json({ message: "Lỗi database, chưa đổi được mật khẩu. Thử lại sau." }, { status: 503 });
+    }
+    recordLoginFailure(rateKey);
     return NextResponse.json({ message: "Mật khẩu hiện tại không đúng." }, { status: 400 });
   }
+  clearLoginFailures(rateKey);
 
-  // bcryptjs sinh salt "$2b$"; đổi sang "$2a$" (cùng thuật toán) để hàm SQL verify_admin_login (pgcrypto) cũng đọc được.
-  const passwordHash = hashSync(newPassword, genSaltSync(10).replace(/^\$2b\$/, "$2a$"));
   const identifier = username.trim().toLowerCase();
-
   const { data, error } = await supabase
     .from("admin_profiles")
-    .update({ password_hash: passwordHash, updated_at: new Date().toISOString() })
+    .update({ password_hash: hashAdminPassword(newPassword), updated_at: new Date().toISOString() })
     .eq("is_active", true)
     .or(`username.eq.${identifier},email.eq.${identifier}`)
     .select("id");
@@ -61,10 +69,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Không cập nhật được database. Xem log server." }, { status: 500 });
   }
   if (!data?.length) {
-    return NextResponse.json(
-      { message: "Không tìm thấy tài khoản trong admin_profiles (có thể bạn đang đăng nhập bằng tài khoản ENV dự phòng)." },
-      { status: 404 }
-    );
+    return NextResponse.json({ message: "Không tìm thấy tài khoản trong admin_profiles." }, { status: 404 });
   }
 
   return NextResponse.json({ ok: true });

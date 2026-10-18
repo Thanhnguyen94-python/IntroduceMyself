@@ -12,43 +12,9 @@ create index if not exists idx_admin_profiles_username on public.admin_profiles(
 create index if not exists idx_admin_profiles_email on public.admin_profiles(email);
 create index if not exists idx_admin_profiles_is_active on public.admin_profiles(is_active);
 
--- Seed a default admin only if none exists yet
--- Default login: admin / Thanh94@@
-insert into public.admin_profiles (
-  username,
-  email,
-  display_name,
-  role,
-  is_active,
-  password_hash
-)
-select
-  'admin',
-  'admin@local',
-  'Administrator',
-  'admin',
-  true,
-  extensions.crypt('Thanh94@@', extensions.gen_salt('bf'))
-where not exists (
-  select 1 from public.admin_profiles where coalesce(username, '') <> ''
-);
-
--- Ensure any existing row with empty hash gets initialized
-update public.admin_profiles
-set
-  username = coalesce(nullif(trim(username), ''), 'admin'),
-  password_hash = coalesce(nullif(password_hash, ''), extensions.crypt('Thanh94@@', extensions.gen_salt('bf'))),
-  updated_at = now()
-where id in (
-  select id
-  from public.admin_profiles
-  order by created_at asc
-  limit 1
-)
-and (
-  coalesce(username, '') = ''
-  or coalesce(password_hash, '') = ''
-);
+-- Không seed tài khoản/mật khẩu mặc định trong migration (tránh lộ mật khẩu trong mã nguồn).
+-- Tạo hoặc đặt lại mật khẩu admin bằng script (đọc khoá từ .env.local, hỏi mật khẩu ẩn):
+--   npm run admin:set-password -- <username> [email]
 
 create or replace function public.verify_admin_login(p_identifier text, p_password text)
 returns table (

@@ -7,6 +7,7 @@ updated: 2026-10-18
 ---
 
 Toàn bộ chân bên dưới lấy từ file `main/boards/bread-compact-wifi/config.h` của firmware. Nếu bạn nạp firmware từ trang web, **phải đấu đúng bảng này** vì không sửa được chân sau khi build.
+![Sơ đồ đấu dây tổng thể](/assets/images/hubs/joy/wiring.jpg "Hình 1. Sơ đồ đấu dây Joy_chi_cot")
 
 ## Nguồn và GND (quan trọng nhất)
 
@@ -32,7 +33,8 @@ Toàn bộ chân bên dưới lấy từ file `main/boards/bread-compact-wifi/co
 Cấu hình `SD` và `GAIN` của MAX98357A xem trang [Module âm thanh](/joy/docs/hardware/audio-max98357a).
 
 ## Màn hình OLED (I2C)
-
+![OLED 0.96" I2C](/assets/images/hubs/joy/OLED_096.jpg "Hình 2. Màn hình OLED 0.96 inch I2C")
+![OLED 0.91" I2C](/assets/images/hubs/joy/OLED_091.jpg "Hình 2. Màn hình OLED 0.91 inch I2C")
 | Chân OLED | GPIO |
 |---|---|
 | `SDA` | **GPIO41** |

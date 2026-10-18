@@ -25,7 +25,8 @@ const groups: Array<{ title: string; items: Array<{ href: string; label: string;
     items: [
       { href: "/admin/orders", label: "Đơn hàng", icon: "🧾" },
       { href: "/admin/xiaozhi", label: "Xiaozhi MCP", icon: "🔌" },
-      { href: "/admin/account", label: "Đổi mật khẩu", icon: "🔑" }
+      { href: "/admin/account", label: "Đổi mật khẩu", icon: "🔑" },
+      { href: "/admin/guide", label: "Hướng dẫn sử dụng", icon: "📖" }
     ]
   }
 ];

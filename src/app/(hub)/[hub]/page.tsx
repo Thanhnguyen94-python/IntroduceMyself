@@ -4,6 +4,8 @@ import { getHub } from "@/lib/hubs/registry";
 import { listHubDocs } from "@/lib/hubs/docs";
 import { L, LList } from "@/components/ui/localized";
 import { Reveal } from "@/components/ui/reveal";
+import { MediaCarousel } from "@/components/ui/media-carousel";
+import type { HubBlockId } from "@/lib/hubs/types";
 
 type Props = { params: Promise<{ hub: string }> };
 
@@ -15,55 +17,10 @@ export default async function HubHomePage({ params }: Props) {
   const docs = await listHubDocs(hub.slug);
   const latest = hub.updates[0];
 
-  return (
-    <div className="space-y-14">
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border p-6 sm:p-10" style={{ borderColor: "var(--border)" }}>
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-sky-400/20 blur-3xl" />
-        <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
-          <Reveal>
-            <p className="eyebrow">Project Hub · {hub.firmware?.chip ?? "Open hardware"}</p>
-            <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
-              <span className="gradient-text">{hub.name}</span>
-            </h1>
-            <p className="mt-3 text-lg font-medium">
-              <L t={hub.tagline} />
-            </p>
-            <p className="muted mt-3 max-w-2xl">
-              <L t={hub.description} />
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {hub.firmware && (
-                <Link href={`/${hub.slug}/flash`} className="btn-primary">
-                  ⚡ <L t={{ vi: "Nạp firmware ngay", en: "Flash firmware" }} />
-                </Link>
-              )}
-              <Link href={docs[0]?.path ?? `/${hub.slug}/docs`} className="btn-ghost">
-                📘 <L t={{ vi: "Đọc hướng dẫn", en: "Read the docs" }} />
-              </Link>
-            </div>
-            {latest && (
-              <Link href={`/${hub.slug}/updates`} className="chip mt-5 gap-2 hover:border-brand-400">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                v{latest.version} · <L t={latest.title} />
-              </Link>
-            )}
-          </Reveal>
-          {hub.cover && (
-            <Reveal delay={120}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={hub.cover}
-                alt={hub.name}
-                className="animate-float-slow mx-auto max-h-[380px] w-full rounded-3xl border object-cover shadow-2xl"
-                style={{ borderColor: "var(--border)" }}
-              />
-            </Reveal>
-          )}
-        </div>
-      </section>
-
+  // Các khối bên dưới hero, thứ tự + bật/tắt lấy từ hub.layout (Admin → Project Hubs → Bố cục).
+  const blocks: Record<HubBlockId, React.ReactNode> = {
+    features: (
+      <>
       {/* Tính năng */}
       {hub.features.length > 0 && (
         <section>
@@ -90,7 +47,9 @@ export default async function HubHomePage({ params }: Props) {
           </div>
         </section>
       )}
-
+      </>
+    ),
+    "specs-docs": (
       <section className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         {/* Thông số */}
         {hub.specs.length > 0 && (
@@ -140,7 +99,9 @@ export default async function HubHomePage({ params }: Props) {
           </ol>
         </Reveal>
       </section>
-
+    ),
+    latest: (
+      <>
       {latest && (
         <Reveal className="card">
           <p className="eyebrow">
@@ -152,6 +113,58 @@ export default async function HubHomePage({ params }: Props) {
           <LList t={latest.notes} className="muted mt-2 list-disc space-y-1 pl-5 text-sm" />
         </Reveal>
       )}
+      </>
+    )
+  };
+
+  return (
+    <div className="space-y-14">
+      {/* Hero */}
+      <section className="relative overflow-hidden rounded-3xl border p-6 sm:p-10" style={{ borderColor: "var(--border)" }}>
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-sky-400/20 blur-3xl" />
+        <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
+          <Reveal>
+            <p className="eyebrow">Project Hub · {hub.firmware?.chip ?? "Open hardware"}</p>
+            <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
+              <span className="gradient-text">{hub.name}</span>
+            </h1>
+            <p className="mt-3 text-lg font-medium">
+              <L t={hub.tagline} />
+            </p>
+            <p className="muted mt-3 max-w-2xl">
+              <L t={hub.description} />
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {hub.firmware && (
+                <Link href={`/${hub.slug}/flash`} className="btn-primary">
+                  ⚡ <L t={{ vi: "Nạp firmware ngay", en: "Flash firmware" }} />
+                </Link>
+              )}
+              <Link href={docs[0]?.path ?? `/${hub.slug}/docs`} className="btn-ghost">
+                📘 <L t={{ vi: "Đọc hướng dẫn", en: "Read the docs" }} />
+              </Link>
+            </div>
+            {latest && (
+              <Link href={`/${hub.slug}/updates`} className="chip mt-5 gap-2 hover:border-brand-400">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                v{latest.version} · <L t={latest.title} />
+              </Link>
+            )}
+          </Reveal>
+          {hub.media.length > 0 && (
+            <Reveal delay={120}>
+              <MediaCarousel items={hub.media} interval={hub.mediaInterval} autoplayVideo={hub.autoplayVideo} alt={hub.name} />
+            </Reveal>
+          )}
+        </div>
+      </section>
+
+      {hub.layout
+        .filter((block) => block.enabled)
+        .map((block) => (
+          <div key={block.id}>{blocks[block.id]}</div>
+        ))}
     </div>
   );
 }

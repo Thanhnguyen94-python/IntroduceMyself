@@ -5,7 +5,6 @@
   "order": 50,
   "status": "alpha",
   "caseStudySlug": "",
-  "cover": "/assets/images/hubs/__SLUG__/cover.jpg",
   "tagline": {
     "vi": "Một câu giới thiệu ngắn về dự án",
     "en": "A one-line pitch for the project"
@@ -22,25 +21,71 @@
   "features": [
     {
       "icon": "✨",
-      "title": { "vi": "Tính năng 1", "en": "Feature 1" },
-      "text": { "vi": "Mô tả ngắn.", "en": "Short description." }
+      "title": {
+        "vi": "Tính năng 1",
+        "en": "Feature 1"
+      },
+      "text": {
+        "vi": "Mô tả ngắn.",
+        "en": "Short description."
+      }
     }
   ],
   "specs": [
-    { "label": { "vi": "Vi điều khiển", "en": "MCU" }, "value": "ESP32-S3" }
+    {
+      "label": {
+        "vi": "Vi điều khiển",
+        "en": "MCU"
+      },
+      "value": "ESP32-S3"
+    }
   ],
   "docSections": [
-    { "id": "start", "icon": "🚀", "title": { "vi": "Bắt đầu", "en": "Getting started" } },
-    { "id": "hardware", "icon": "🔧", "title": { "vi": "Phần cứng", "en": "Hardware" } },
-    { "id": "troubleshooting", "icon": "🩺", "title": { "vi": "Sửa lỗi", "en": "Troubleshooting" } }
+    {
+      "id": "start",
+      "icon": "🚀",
+      "title": {
+        "vi": "Bắt đầu",
+        "en": "Getting started"
+      }
+    },
+    {
+      "id": "hardware",
+      "icon": "🔧",
+      "title": {
+        "vi": "Phần cứng",
+        "en": "Hardware"
+      }
+    },
+    {
+      "id": "troubleshooting",
+      "icon": "🩺",
+      "title": {
+        "vi": "Sửa lỗi",
+        "en": "Troubleshooting"
+      }
+    }
   ],
   "updates": [
     {
       "version": "0.1.0",
       "date": "__DATE__",
-      "title": { "vi": "Khởi tạo dự án", "en": "Project created" },
-      "notes": { "vi": ["Tạo Project Hub."], "en": ["Project Hub created."] }
+      "title": {
+        "vi": "Khởi tạo dự án",
+        "en": "Project created"
+      },
+      "notes": {
+        "vi": [
+          "Tạo Project Hub."
+        ],
+        "en": [
+          "Project Hub created."
+        ]
+      }
     }
   ],
-  "links": []
+  "links": [],
+  "media": [],
+  "mediaInterval": 5,
+  "autoplayVideo": false
 }
