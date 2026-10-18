@@ -79,6 +79,112 @@ body {
   }
 }
 
+/* ===== Design tokens dùng chung (Portfolio / Hub / Admin) ===== */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-60;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition hover:bg-brand-50 dark:hover:bg-slate-800;
+    border-color: var(--border);
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium;
+    border-color: var(--border);
+    background-color: color-mix(in srgb, var(--surface) 70%, transparent);
+  }
+  .section-title {
+    @apply text-2xl font-bold tracking-tight sm:text-3xl;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-300;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .glass {
+    background-color: color-mix(in srgb, var(--surface) 78%, transparent);
+    backdrop-filter: saturate(160%) blur(12px);
+    -webkit-backdrop-filter: saturate(160%) blur(12px);
+  }
+  .gradient-text {
+    background: linear-gradient(100deg, #0b5fff 0%, #38bdf8 55%, #6366f1 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .input {
+    @apply w-full rounded-lg border px-3 py-2 text-sm;
+    border-color: var(--border);
+    background: var(--surface);
+  }
+}
+
+/* Hiệu ứng xuất hiện khi cuộn (component <Reveal>) */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .animate-float-slow { animation: none; }
+}
+
+/* ===== Nội dung tài liệu (Markdown -> HTML) ===== */
+.doc-prose {
+  line-height: 1.75;
+  font-size: 0.975rem;
+}
+.doc-prose > * + * { margin-top: 1rem; }
+.doc-prose h2 { @apply mt-10 scroll-mt-24 border-b pb-2 text-xl font-bold; border-color: var(--border); }
+.doc-prose h3 { @apply mt-8 scroll-mt-24 text-lg font-semibold; }
+.doc-prose h4 { @apply mt-6 font-semibold; }
+.doc-prose .doc-anchor { @apply mr-2 text-brand-400 no-underline opacity-0 transition; }
+.doc-prose h2:hover .doc-anchor, .doc-prose h3:hover .doc-anchor { opacity: 1; }
+.doc-prose a { @apply font-medium text-brand-600 underline decoration-brand-300 underline-offset-2 dark:text-brand-300; }
+.doc-prose ul { @apply list-disc space-y-1 pl-6; }
+.doc-prose ol { @apply list-decimal space-y-1 pl-6; }
+.doc-prose strong { @apply font-semibold; }
+.doc-prose hr { border-color: var(--border); @apply my-8; }
+.doc-prose :not(pre) > code {
+  @apply rounded-md px-1.5 py-0.5 text-[0.85em];
+  background: color-mix(in srgb, var(--border) 45%, transparent);
+}
+.doc-prose pre {
+  @apply overflow-x-auto rounded-xl p-4 text-[0.85rem] leading-relaxed;
+  background: #0b1220;
+  color: #e2e8f0;
+}
+.doc-prose img { @apply mx-auto max-h-[560px] w-auto max-w-full rounded-xl border shadow-sm transition hover:shadow-lg; border-color: var(--border); background: #fff; }
+.doc-prose .doc-image { @apply block no-underline; }
+.doc-prose figure { @apply my-6; }
+.doc-prose figcaption { @apply mt-2 text-center text-sm; color: var(--muted); }
+.doc-table { @apply overflow-x-auto rounded-xl border; border-color: var(--border); }
+.doc-prose table { @apply w-full border-collapse text-sm; }
+.doc-prose th { @apply whitespace-nowrap px-3 py-2 text-left font-semibold; background: color-mix(in srgb, var(--border) 40%, transparent); }
+.doc-prose td { @apply border-t px-3 py-2 align-top; border-color: var(--border); }
+.doc-prose blockquote { @apply rounded-xl border-l-4 px-4 py-3; border-color: var(--border); background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.doc-prose blockquote > * + * { margin-top: 0.5rem; }
+.doc-prose .callout-title { @apply font-semibold; }
+.doc-prose .callout-note { border-color: #3b82f6; background: rgba(59, 130, 246, 0.08); }
+.doc-prose .callout-tip { border-color: #10b981; background: rgba(16, 185, 129, 0.08); }
+.doc-prose .callout-important { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.08); }
+.doc-prose .callout-warning { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+.doc-prose .callout-danger { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+
 @page {
   size: A4 portrait;
   margin: 8mm;

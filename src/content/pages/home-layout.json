@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "sections": [
+    {
+      "id": "hero",
+      "enabled": true
+    },
+    {
+      "id": "stats",
+      "enabled": true
+    },
+    {
+      "id": "case-studies",
+      "enabled": true
+    },
+    {
+      "id": "highlights",
+      "enabled": true
+    },
+    {
+      "id": "skills",
+      "enabled": true
+    },
+    {
+      "id": "journey",
+      "enabled": true
+    },
+    {
+      "id": "contact",
+      "enabled": true
+    }
+  ],
+  "featuredProjects": [
+    "chatbot-ai",
+    "smt-helper-app",
+    "sqg-cabinet",
+    "smt-improvements"
+  ]
+}

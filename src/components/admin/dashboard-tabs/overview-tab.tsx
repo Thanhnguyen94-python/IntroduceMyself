@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { SiteData } from "@/lib/content/types";
+import type { HubSummary } from "@/lib/hubs/types";
 import { normalizeGoogleDriveImageUrl, resolveMedia } from "@/lib/media-url";
-import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
+import { isPageEnabled, type ManagedPageKey, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
 type Props = {
   visibility: SiteVisibilityConfig;
@@ -23,6 +25,23 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
   const avatarInput = (site.profile.avatarUrl ?? "").trim();
   const avatarMedia = resolveMedia(avatarInput || defaultAvatar);
   const avatarPreview = avatarMedia.type === "image" ? avatarMedia.src : defaultAvatar;
+  const [hubs, setHubs] = useState<HubSummary[]>([]);
+
+  useEffect(() => {
+    fetch("/api/hubs", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { items?: HubSummary[] } | null) => setHubs(payload?.items ?? []))
+      .catch(() => setHubs([]));
+  }, []);
+
+  const toggles: Array<[ManagedPageKey, string]> = [
+    ["overview", "Trang chủ & Tổng quan"],
+    ["journey", "Hành trình"],
+    ["projects", "Dự án (Case Study)"],
+    ["showcase", "Sản phẩm"],
+    ["docs", "Tài liệu"],
+    ...hubs.map((hub): [ManagedPageKey, string] => [`hub:${hub.slug}`, `Project Hub: ${hub.name} (/${hub.slug})`])
+  ];
 
   return (
     <section className="space-y-4">
@@ -71,6 +90,32 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
             </div>
           </div>
         </div>
+        <div className="space-y-2 rounded-lg border p-3" style={{ borderColor: "var(--border)" }}>
+          <p className="text-sm font-semibold">Quyền riêng tư trên Portfolio công khai</p>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>Mặc định ẩn để nhà tuyển dụng chỉ thấy email. Trang /cv vẫn hiển thị đầy đủ.</p>
+          {([
+            ["showPhone", "Hiện số điện thoại & nút Zalo/Call"],
+            ["showPersonalInfo", "Hiện ngày sinh & quê quán"]
+          ] as const).map(([key, label]) => (
+            <label key={key} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={Boolean(site.privacy?.[key])}
+                onChange={(e) =>
+                  setSite({
+                    ...site,
+                    privacy: {
+                      showPhone: site.privacy?.showPhone ?? false,
+                      showPersonalInfo: site.privacy?.showPersonalInfo ?? false,
+                      [key]: e.target.checked
+                    }
+                  })
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </div>
         <div className="flex justify-end">
           <button
             onClick={onSaveSite}
@@ -83,26 +128,19 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
       </div>
 
       <div className="card space-y-3">
-        <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">Hiển thị/Ẩn các trang chính</h2>
+        <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">Hiển thị/Ẩn các trang (Portfolio & Project Hub)</h2>
         <div className="grid gap-2 md:grid-cols-2">
-          {([
-            ["overview", "Tổng quan"],
-            ["journey", "Hành trình"],
-            ["projects", "Dự án"],
-            ["showcase", "Sản phẩm"],
-            ["docs", "Tài liệu"]
-          ] as const).map(([key, label]) => (
+          {toggles.map(([key, label]) => (
             <label key={key} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
               <input
                 type="checkbox"
-                checked={visibility.pages[key]}
+                checked={isPageEnabled(visibility, key)}
                 onChange={(e) => {
-                  const pageKey = key as ManagedPageKey;
                   setVisibility({
                     ...visibility,
                     pages: {
                       ...visibility.pages,
-                      [pageKey]: e.target.checked
+                      [key]: e.target.checked
                     }
                   });
                 }}

@@ -250,8 +250,8 @@ export function FirmwareAdmin() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/nap-firmware" target="_blank" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
-            Trang nạp online ↗
+          <Link href="/joy/flash" target="_blank" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
+            Trang nạp công khai (/joy/flash) ↗
           </Link>
           <Link href="/admin/xiaozhi" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>
             Xiaozhi MCP

@@ -1,0 +1,13 @@
+{
+  "name": "Joy_chi_cot (xiaozhi-esp32 · bread-compact-wifi)",
+  "version": "2.3.3",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        { "path": "joy_chi_cot-merged.bin", "offset": 0 }
+      ]
+    }
+  ]
+}

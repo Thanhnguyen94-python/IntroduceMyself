@@ -2,18 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
-import type { ManagedPageKey, SiteVisibilityConfig } from "@/lib/site-visibility-types";
+import { isPageEnabled, type ManagedPageKey, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
-const defaultVisibility: SiteVisibilityConfig = {
-  schemaVersion: 1,
-  pages: {
-    overview: true,
-    journey: true,
-    projects: true,
-    showcase: true,
-    docs: true
-  }
-};
+const defaultVisibility: SiteVisibilityConfig = { schemaVersion: 1, pages: {} };
 
 export function PageVisibilityGuard({ pageKey, children }: { pageKey: ManagedPageKey; children: React.ReactNode }) {
   const { lang } = useLanguage();
@@ -52,7 +43,7 @@ export function PageVisibilityGuard({ pageKey, children }: { pageKey: ManagedPag
     );
   }
 
-  if (!state.pages?.[pageKey]) {
+  if (!isPageEnabled(state, pageKey)) {
     return (
       <section className="card text-center">
         <h1 className="text-xl font-bold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Đang bảo trì" : "Under maintenance"}</h1>

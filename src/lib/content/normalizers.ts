@@ -21,6 +21,10 @@ export function normalizeSiteData(raw: SiteData): SiteData {
       ...raw.profile,
       avatarUrl: raw.profile?.avatarUrl ?? ""
     },
+    privacy: {
+      showPhone: raw.privacy?.showPhone ?? false,
+      showPersonalInfo: raw.privacy?.showPersonalInfo ?? false
+    },
     highlights: {
       vi: raw.highlights?.vi ?? [],
       en: raw.highlights?.en ?? []

@@ -10,6 +10,7 @@ import { pickList, pickText } from "@/lib/content/i18n";
 import { resolveMedia } from "@/lib/media-url";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
+import { HubCallout, useHubForCaseStudy } from "@/components/hub/hub-links";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -20,6 +21,7 @@ export default function ProjectDetailPage() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
   const project = data.items.find((item) => item.slug === params.slug);
+  const hub = useHubForCaseStudy(params.slug);
 
   useEffect(() => {
     async function loadProjects() {
@@ -93,6 +95,8 @@ export default function ProjectDetailPage() {
       <Link href="/du-an" className="text-sm text-brand-600 dark:text-brand-300">← {lang === "vi" ? "Quay lại danh sách dự án" : "Back to projects"}</Link>
       <h1 className="text-2xl font-bold">{pickText(project.title, lang)}</h1>
       <p style={{ color: "var(--muted)" }}>{pickText(project.summary, lang)}</p>
+
+      {hub && <HubCallout hub={hub} />}
 
       <div className="card">
         <h2 className="mb-3 font-semibold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Mục tiêu" : "Objective"}</h2>
