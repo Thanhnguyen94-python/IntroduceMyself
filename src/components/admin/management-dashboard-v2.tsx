@@ -4,16 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { TextareaHTMLAttributes } from "react";
 import { getSiteData } from "@/lib/content/loaders";
 import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData, SiteData } from "@/lib/content/types";
-import type { ShowcaseData, ShowcaseItem } from "@/lib/showcase-types";
 import type { SiteVisibilityConfig } from "@/lib/site-visibility-types";
 import { normalizeGoogleDriveImageUrl, resolveMedia } from "@/lib/media-url";
 import { OverviewTab } from "@/components/admin/dashboard-tabs/overview-tab";
 import { JourneyTab } from "@/components/admin/dashboard-tabs/journey-tab";
 import { ProjectsTab } from "@/components/admin/dashboard-tabs/projects-tab";
-import { ShowcaseTab } from "@/components/admin/dashboard-tabs/showcase-tab";
 import { MediaTab } from "@/components/admin/dashboard-tabs/media-tab";
 
-type AdminTab = "overview" | "journey" | "projects" | "showcase" | "media";
+type AdminTab = "overview" | "journey" | "projects" | "media";
 const pageSize = 8;
 
 function formatMonthYear(input: string) {
@@ -114,21 +112,6 @@ function createEmptyProjectItem(): ProjectItem {
   };
 }
 
-function createEmptyShowcaseItem(): ShowcaseItem {
-  return {
-    id: `sp-${Date.now()}`,
-    category: "3d",
-    name: { vi: "", en: "" },
-    description: { vi: "", en: "" },
-    image: "",
-    gallery: [],
-    oldPrice: 0,
-    salePrice: 0,
-    stockText: { vi: "", en: "" },
-    tags: []
-  };
-}
-
 export function ManagementDashboardV2() {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [loading, setLoading] = useState(true);
@@ -136,7 +119,6 @@ export function ManagementDashboardV2() {
 
   const [journeyItems, setJourneyItems] = useState<ExperienceItem[]>([]);
   const [projectItems, setProjectItems] = useState<ProjectItem[]>([]);
-  const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
   const [site, setSite] = useState<SiteData>(() => getSiteData());
 
   const [visibility, setVisibility] = useState<SiteVisibilityConfig>({
@@ -146,19 +128,15 @@ export function ManagementDashboardV2() {
 
   const [journeySearch, setJourneySearch] = useState("");
   const [projectsSearch, setProjectsSearch] = useState("");
-  const [showcaseSearch, setShowcaseSearch] = useState("");
 
   const [journeyPage, setJourneyPage] = useState(1);
   const [projectsPage, setProjectsPage] = useState(1);
-  const [showcasePage, setShowcasePage] = useState(1);
 
   const [editingJourney, setEditingJourney] = useState<ExperienceItem | null>(null);
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
-  const [editingShowcase, setEditingShowcase] = useState<ShowcaseItem | null>(null);
 
   const [journeyModalOpen, setJourneyModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
-  const [showcaseModalOpen, setShowcaseModalOpen] = useState(false);
 
   const [savingItem, setSavingItem] = useState(false);
   const [savingVisibility, setSavingVisibility] = useState(false);
@@ -173,23 +151,20 @@ export function ManagementDashboardV2() {
   useEffect(() => {
     async function loadAll() {
       try {
-        const [journeyRes, projectsRes, showcaseRes, visibilityRes, siteRes] = await Promise.all([
+        const [journeyRes, projectsRes, visibilityRes, siteRes] = await Promise.all([
           fetch("/api/journey", { cache: "no-store" }),
           fetch("/api/projects", { cache: "no-store" }),
-          fetch("/api/showcase/products", { cache: "no-store" }),
           fetch("/api/site/visibility", { cache: "no-store" }),
           fetch("/api/site", { cache: "no-store" })
         ]);
 
         const journeyPayload = (await journeyRes.json().catch(() => null)) as ExperienceData | null;
         const projectsPayload = (await projectsRes.json().catch(() => null)) as ProjectsData | null;
-        const showcasePayload = (await showcaseRes.json().catch(() => null)) as ShowcaseData | null;
         const visibilityPayload = (await visibilityRes.json().catch(() => null)) as SiteVisibilityConfig | null;
         const sitePayload = (await siteRes.json().catch(() => null)) as SiteData | null;
 
         if (journeyPayload?.items) setJourneyItems(journeyPayload.items);
         if (projectsPayload?.items) setProjectItems(projectsPayload.items);
-        if (showcasePayload?.items) setShowcaseItems(showcasePayload.items);
         if (visibilityPayload?.pages) setVisibility(visibilityPayload);
         if (sitePayload?.profile) setSite(sitePayload);
       } finally {
@@ -217,23 +192,14 @@ export function ManagementDashboardV2() {
     return projectItems.filter((item) => `${item.title.vi} ${item.title.en} ${item.slug} ${item.category}`.toLowerCase().includes(keyword));
   }, [projectItems, projectsSearch]);
 
-  const filteredShowcase = useMemo(() => {
-    const keyword = showcaseSearch.trim().toLowerCase();
-    if (!keyword) return showcaseItems;
-    return showcaseItems.filter((item) => `${item.name.vi} ${item.name.en} ${item.id} ${item.category} ${item.tags.join(" ")}`.toLowerCase().includes(keyword));
-  }, [showcaseItems, showcaseSearch]);
-
   const pagedJourney = filteredJourney.slice((journeyPage - 1) * pageSize, journeyPage * pageSize);
   const pagedProjects = filteredProjects.slice((projectsPage - 1) * pageSize, projectsPage * pageSize);
-  const pagedShowcase = filteredShowcase.slice((showcasePage - 1) * pageSize, showcasePage * pageSize);
 
   const journeyTotalPages = Math.max(1, Math.ceil(filteredJourney.length / pageSize));
   const projectsTotalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
-  const showcaseTotalPages = Math.max(1, Math.ceil(filteredShowcase.length / pageSize));
 
   useEffect(() => setJourneyPage(1), [journeySearch]);
   useEffect(() => setProjectsPage(1), [projectsSearch]);
-  useEffect(() => setShowcasePage(1), [showcaseSearch]);
 
   async function uploadToStorage(file: File) {
     const [firstUrl = ""] = await uploadManyToStorage([file]);
@@ -390,36 +356,6 @@ export function ManagementDashboardV2() {
     setNotice({ text: "Đã lưu dự án.", type: "success" });
   }
 
-  async function saveShowcaseItem() {
-    if (!editingShowcase) return;
-    setSavingItem(true);
-    const normalizedShowcase: ShowcaseItem = {
-      ...editingShowcase,
-      gallery: editingShowcase.gallery ?? [],
-      image: editingShowcase.gallery?.[0] ?? editingShowcase.image
-    };
-    const exists = showcaseItems.some((it) => it.id === normalizedShowcase.id);
-    const response = await fetch("/api/admin/showcase/products", {
-      method: exists ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item: normalizedShowcase })
-    });
-    setSavingItem(false);
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => ({}))) as { message?: string };
-      setNotice({ text: payload.message ?? "Không lưu được sản phẩm.", type: "error" });
-      return;
-    }
-    setShowcaseItems((prev) => {
-      const idx = prev.findIndex((it) => it.id === normalizedShowcase.id);
-      if (idx >= 0) return prev.map((it, i) => (i === idx ? normalizedShowcase : it));
-      return [...prev, normalizedShowcase];
-    });
-    setShowcaseModalOpen(false);
-    setEditingShowcase(null);
-    setNotice({ text: "Đã lưu sản phẩm.", type: "success" });
-  }
-
   async function deleteJourney(id: string) {
     if (!window.confirm("Xóa mốc hành trình này?")) return;
     const response = await fetch("/api/admin/journey", {
@@ -442,22 +378,10 @@ export function ManagementDashboardV2() {
     setProjectItems((prev) => prev.filter((it) => it.id !== id));
   }
 
-  async function deleteShowcase(id: string) {
-    if (!window.confirm("Xóa sản phẩm này?")) return;
-    const response = await fetch("/api/admin/showcase/products", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id })
-    });
-    if (!response.ok) return;
-    setShowcaseItems((prev) => prev.filter((it) => it.id !== id));
-  }
-
   const tabs: Array<{ key: AdminTab; label: string }> = [
     { key: "overview", label: "Tổng quan & Cài đặt hiển thị" },
     { key: "journey", label: "Quản lý Hành trình" },
     { key: "projects", label: "Quản lý Dự án" },
-    { key: "showcase", label: "Quản lý Sản phẩm" },
     { key: "media", label: "Kho Media Storage" }
   ];
 
@@ -471,7 +395,7 @@ export function ManagementDashboardV2() {
         <div>
           <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-300">Management Dashboard</h1>
           <p className="text-sm" style={{ color: "var(--muted)" }}>
-            Journey: {journeyItems.length} · Projects: {projectItems.length} · Showcase: {showcaseItems.length}
+            Journey: {journeyItems.length} · Projects: {projectItems.length}
           </p>
         </div>
         <a href="/" target="_blank" rel="noreferrer" className="btn-ghost">
@@ -549,26 +473,6 @@ export function ManagementDashboardV2() {
               onAdd={() => { setEditingProject(createEmptyProjectItem()); setProjectModalOpen(true); }}
               onEdit={(item) => { setEditingProject(structuredClone(item)); setProjectModalOpen(true); }}
               onDelete={deleteProject}
-            />
-          )}
-
-          {activeTab === "showcase" && (
-            <ShowcaseTab
-              search={showcaseSearch}
-              setSearch={setShowcaseSearch}
-              items={pagedShowcase}
-              page={showcasePage}
-              totalPages={showcaseTotalPages}
-              onPrevPage={() => setShowcasePage((p) => Math.max(1, p - 1))}
-              onNextPage={() => setShowcasePage((p) => Math.min(showcaseTotalPages, p + 1))}
-              onAdd={() => { setEditingShowcase(createEmptyShowcaseItem()); setShowcaseModalOpen(true); }}
-              onEdit={(item) => {
-                const cloned = structuredClone(item);
-                const gallery = cloned.gallery?.length ? cloned.gallery : (cloned.image ? [cloned.image] : []);
-                setEditingShowcase({ ...cloned, gallery, image: gallery[0] ?? cloned.image });
-                setShowcaseModalOpen(true);
-              }}
-              onDelete={deleteShowcase}
             />
           )}
 
@@ -919,140 +823,6 @@ export function ManagementDashboardV2() {
         </div>
       )}
 
-      {showcaseModalOpen && editingShowcase && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowcaseModalOpen(false)}>
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-4 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-3 text-lg font-semibold">{showcaseItems.some((it) => it.id === editingShowcase.id) ? "Sửa" : "Thêm"} Sản phẩm</h3>
-            <div className="grid gap-3 md:grid-cols-2">
-              <input value={editingShowcase.id} onChange={(e) => setEditingShowcase({ ...editingShowcase, id: e.target.value })} placeholder="ID" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <select value={editingShowcase.category} onChange={(e) => setEditingShowcase({ ...editingShowcase, category: e.target.value as ShowcaseItem["category"] })} className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-                <option value="3d">In 3D</option>
-                <option value="display">Showcase</option>
-              </select>
-              <input value={editingShowcase.name.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, name: { ...editingShowcase.name, vi: e.target.value } })} placeholder="Tên sản phẩm (VI)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <input value={editingShowcase.name.en} onChange={(e) => setEditingShowcase({ ...editingShowcase, name: { ...editingShowcase.name, en: e.target.value } })} placeholder="Product name (EN)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-semibold">Quản lý Album ảnh (Gallery) · gallery[0] là ảnh chính</label>
-                <div className="space-y-2">
-                  {(editingShowcase.gallery ?? []).map((url, index) => (
-                    <div key={`${editingShowcase.id}-gallery-${index}`} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[1fr_88px_auto]" style={{ borderColor: "var(--border)" }}>
-                      <input
-                        value={url}
-                        onChange={(e) => {
-                          const gallery = [...(editingShowcase.gallery ?? [])];
-                          gallery[index] = normalizeImageUrl(e.target.value);
-                          setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
-                        }}
-                        placeholder={`URL ảnh #${index + 1}`}
-                        className="rounded border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-                      />
-                      {url ? (
-                        (() => {
-                          const media = resolveMedia(url);
-                          if (media.type === "youtube") {
-                            return (
-                              <iframe
-                                src={`https://www.youtube.com/embed/${media.youtubeId}`}
-                                title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="h-16 w-[88px] rounded-lg"
-                              />
-                            );
-                          }
-
-                          return <img src={url} alt={`Showcase ${index + 1}`} className="h-16 w-[88px] rounded object-cover" />;
-                        })()
-                      ) : (
-                        <div className="h-16 w-[88px] rounded bg-slate-200 dark:bg-slate-700" />
-                      )}
-                      <div className="flex flex-wrap gap-1">
-                        <button
-                          type="button"
-                          disabled={index === 0}
-                          onClick={() => {
-                            const gallery = moveItem([...(editingShowcase.gallery ?? [])], index, index - 1);
-                            setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? "" });
-                          }}
-                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
-                          style={{ borderColor: "var(--border)" }}
-                        >↑</button>
-                        <button
-                          type="button"
-                          disabled={index === (editingShowcase.gallery ?? []).length - 1}
-                          onClick={() => {
-                            const gallery = moveItem([...(editingShowcase.gallery ?? [])], index, index + 1);
-                            setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? "" });
-                          }}
-                          className="rounded border px-2 py-1 text-xs disabled:opacity-50"
-                          style={{ borderColor: "var(--border)" }}
-                        >↓</button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const gallery = (editingShowcase.gallery ?? []).filter((_, i) => i !== index);
-                            setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? "" });
-                          }}
-                          className="rounded bg-red-500 px-2 py-1 text-xs text-white"
-                        >Xóa</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const gallery = [...(editingShowcase.gallery ?? []), ""];
-                      setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
-                    }}
-                    className="rounded-lg border px-3 py-2 text-xs font-semibold"
-                    style={{ borderColor: "var(--border)" }}
-                  >+ Thêm URL ảnh</button>
-                  <label className="inline-flex cursor-pointer rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white">
-                    Upload nhiều ảnh
-                    <input
-                      type="file"
-                      className="hidden"
-                      multiple
-                      disabled={uploading}
-                      onChange={async (e) => {
-                        const files = Array.from(e.target.files ?? []);
-                        if (!files.length) return;
-                        const urls = await uploadManyToStorage(files);
-                        if (!urls.length) return;
-                        const gallery = [...(editingShowcase.gallery ?? []), ...urls];
-                        setEditingShowcase({ ...editingShowcase, gallery, image: gallery[0] ?? editingShowcase.image });
-                        e.currentTarget.value = "";
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="rounded-lg border p-3 md:col-span-2" style={{ borderColor: "var(--border)" }}>
-                <h4 className="mb-2 text-sm font-semibold">Description / Mô tả</h4>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <AutoTextarea value={editingShowcase.description.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, description: { ...editingShowcase.description, vi: e.target.value } })} placeholder="VI" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-                  <AutoTextarea value={editingShowcase.description.en} onChange={(e) => setEditingShowcase({ ...editingShowcase, description: { ...editingShowcase.description, en: e.target.value } })} placeholder="EN" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-                </div>
-              </div>
-
-              <input type="number" value={editingShowcase.oldPrice} onChange={(e) => setEditingShowcase({ ...editingShowcase, oldPrice: Number(e.target.value || 0) })} placeholder="Giá gốc" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <input type="number" value={editingShowcase.salePrice} onChange={(e) => setEditingShowcase({ ...editingShowcase, salePrice: Number(e.target.value || 0) })} placeholder="Giá sale" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <input value={editingShowcase.stockText.vi} onChange={(e) => setEditingShowcase({ ...editingShowcase, stockText: { ...editingShowcase.stockText, vi: e.target.value } })} placeholder="Trạng thái kho (VI)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <input value={editingShowcase.stockText.en} onChange={(e) => setEditingShowcase({ ...editingShowcase, stockText: { ...editingShowcase.stockText, en: e.target.value } })} placeholder="Stock text (EN)" className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-              <input value={editingShowcase.tags.join(", ")} onChange={(e) => setEditingShowcase({ ...editingShowcase, tags: parseCsv(e.target.value) })} placeholder="Tags (a, b, c)" className="rounded border px-3 py-2 text-sm md:col-span-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }} />
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setShowcaseModalOpen(false)} className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }}>Hủy</button>
-              <button disabled={savingItem} onClick={saveShowcaseItem} className="rounded bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">{savingItem ? "Đang lưu..." : "Lưu"}</button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

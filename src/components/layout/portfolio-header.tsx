@@ -8,12 +8,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/layout/lang-toggle";
 import { isPageEnabled, type PortfolioPageKey, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
-// Menu không gian Portfolio (dành cho nhà tuyển dụng). Không chứa link nạp firmware / Project Hub.
+// Menu không gian Portfolio (dành cho nhà tuyển dụng). Không chứa link nạp firmware / Project Hub / Cửa hàng.
 const menu: Array<{ href: string; pageKey: PortfolioPageKey; label: { vi: string; en: string } }> = [
   { href: "/", pageKey: "overview", label: { vi: "Trang chủ", en: "Home" } },
   { href: "/hanh-trinh", pageKey: "journey", label: { vi: "Hành trình", en: "Journey" } },
   { href: "/du-an", pageKey: "projects", label: { vi: "Case Study", en: "Case Studies" } },
-  { href: "/san-pham-trung-bay", pageKey: "showcase", label: { vi: "Sản phẩm", en: "Showcase" } },
   { href: "/tai-lieu-ky-thuat", pageKey: "docs", label: { vi: "Tài liệu", en: "Documents" } }
 ];
 

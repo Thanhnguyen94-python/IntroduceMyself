@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     shouldNotify(conv.id);
     await notifyAdmin({
       channel: "chat",
-      title: `💬 Chat mới từ ${name}${hub ? ` (Hub /${hub})` : ""}`,
+      title: `💬 Chat mới từ ${name}${hub === "shop" ? " (Cửa hàng)" : hub ? ` (Hub /${hub})` : ""}`,
       fields: [
         ["Liên hệ", contact || "(không để lại)"],
         ["Trang", page || "-"],

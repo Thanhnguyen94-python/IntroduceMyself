@@ -13,7 +13,22 @@ function niceMax(value: number) {
 }
 
 // Cột theo ngày: hover/focus mỗi cột hiện tooltip; nhãn giá trị chỉ ở cột cao nhất.
-export function DailyColumns({ data, title }: { data: Array<{ date: string; views: number; visitors: number }>; title: string }) {
+// Mặc định: views = lượt xem, visitors = khách. Trang cửa hàng dùng lại với views = doanh thu, visitors = số đơn.
+export function DailyColumns({
+  data,
+  title,
+  unit = "lượt xem",
+  secondaryUnit = "khách",
+  valueFormat = "number"
+}: {
+  data: Array<{ date: string; views: number; visitors: number }>;
+  title: string;
+  unit?: string;
+  secondaryUnit?: string;
+  valueFormat?: "number" | "vnd";
+}) {
+  const fmt = (v: number) => (valueFormat === "vnd" ? `${compact(v)}₫` : compact(v));
+  const full = (v: number) => (valueFormat === "vnd" ? `${v.toLocaleString("vi-VN")}₫` : String(v));
   const [hover, setHover] = useState<number | null>(null);
   const [showTable, setShowTable] = useState(false);
   const max = niceMax(Math.max(1, ...data.map((d) => d.views)));
@@ -37,15 +52,15 @@ export function DailyColumns({ data, title }: { data: Array<{ date: string; view
             <thead className="sticky top-0" style={{ background: "var(--surface)" }}>
               <tr className="muted text-left text-xs">
                 <th className="px-3 py-2">Ngày</th>
-                <th className="px-3 py-2 text-right">Lượt xem</th>
-                <th className="px-3 py-2 text-right">Khách</th>
+                <th className="px-3 py-2 text-right first-letter:uppercase">{unit}</th>
+                <th className="px-3 py-2 text-right first-letter:uppercase">{secondaryUnit}</th>
               </tr>
             </thead>
             <tbody>
               {[...data].reverse().map((d) => (
                 <tr key={d.date} className="border-t" style={{ borderColor: "var(--border)" }}>
                   <td className="px-3 py-1.5">{d.date.slice(5).split("-").reverse().join("/")}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{d.views}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{full(d.views)}</td>
                   <td className="px-3 py-1.5 text-right tabular-nums">{d.visitors}</td>
                 </tr>
               ))}
@@ -79,7 +94,7 @@ export function DailyColumns({ data, title }: { data: Array<{ date: string; view
                     onPointerLeave={() => setHover(null)}
                     onFocus={() => setHover(i)}
                     onBlur={() => setHover(null)}
-                    aria-label={`${d.date}: ${d.views} lượt xem, ${d.visitors} khách`}
+                    aria-label={`${d.date}: ${full(d.views)} ${unit}, ${d.visitors} ${secondaryUnit}`}
                   >
                     <span
                       className="block w-full max-w-[24px] rounded-t-[4px] transition-[filter]"
@@ -87,7 +102,7 @@ export function DailyColumns({ data, title }: { data: Array<{ date: string; view
                     />
                     {i === peak && d.views > 0 && !active && (
                       <span className="absolute text-[11px] font-semibold tabular-nums" style={{ bottom: h + 4 }}>
-                        {compact(d.views)}
+                        {fmt(d.views)}
                       </span>
                     )}
                     {active && (
@@ -98,8 +113,12 @@ export function DailyColumns({ data, title }: { data: Array<{ date: string; view
                         // Luôn nằm trong vùng vẽ (tooltip cao ~60px), cột ở mép thì mở vào trong.
                         style={{ bottom: Math.min(h + 8, height - 64), background: "var(--surface)", borderColor: "var(--border)" }}
                       >
-                        <span className="block font-bold tabular-nums">{d.views} lượt xem</span>
-                        <span className="muted block tabular-nums">{d.visitors} khách</span>
+                        <span className="block font-bold tabular-nums">
+                          {full(d.views)} {unit}
+                        </span>
+                        <span className="muted block tabular-nums">
+                          {d.visitors} {secondaryUnit}
+                        </span>
                         <span className="muted block">{d.date.slice(5).split("-").reverse().join("/")}</span>
                       </span>
                     )}

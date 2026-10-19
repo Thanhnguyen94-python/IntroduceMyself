@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveSmartMedia, type MediaKind } from "@/lib/smart-media";
 
 type Props = {
@@ -117,8 +117,18 @@ export function SmartMedia({ url, kind = "auto", alt = "", className = "", fit =
 
   return (
     <div className={box}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={media.src} alt={alt} className={`h-full w-full ${objectFit}`} loading="lazy" onError={() => setBroken(true)} />
+      <PlainImage src={media.src} alt={alt} className={`h-full w-full ${objectFit}`} onBroken={() => setBroken(true)} />
     </div>
   );
+}
+
+// Ảnh render sẵn từ server có thể lỗi trước khi React gắn onError -> kiểm tra thêm lúc mount.
+function PlainImage({ src, alt, className, onBroken }: { src: string; alt: string; className: string; onBroken: () => void }) {
+  const ref = useRef<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const img = ref.current;
+    if (img?.complete && img.naturalWidth === 0) onBroken();
+  }, [src, onBroken]);
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img ref={ref} src={src} alt={alt} className={className} loading="lazy" onError={onBroken} />;
 }

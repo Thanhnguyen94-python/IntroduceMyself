@@ -128,7 +128,7 @@ export async function getAnalyticsSummary(days: number): Promise<AnalyticsSummar
     browsers: rank(rows, (r) => r.browser),
     os: rank(rows, (r) => r.os),
     languages: rank(rows, (r) => r.language?.split("-")[0] ?? null),
-    hubs: rank(rows, (r) => (r.hub ? `/${r.hub}` : "Portfolio")),
+    hubs: rank(rows, (r) => (r.hub === "shop" ? "Cửa hàng /shop" : r.hub ? `/${r.hub}` : "Portfolio")),
     recent: rows.slice(0, 40),
     truncated: rows.length >= MAX_ROWS
   };

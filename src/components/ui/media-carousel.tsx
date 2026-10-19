@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { SmartMedia } from "@/components/ui/smart-media";
 import { useLanguage } from "@/components/providers/language-provider";
 import type { LocalizedText } from "@/lib/content/types";
@@ -12,18 +12,37 @@ export type CarouselItem = { url: string; kind?: MediaKind; caption?: LocalizedT
 // Tạm dừng khi: rê CHUỘT vào (chạm trên điện thoại không tính), người xem đang phát video,
 // người xem bấm ⏸, hoặc tab trình duyệt bị ẩn.
 // Máy bật "giảm chuyển động" (vd Windows tắt Animation effects): vẫn tự chuyển nhưng đổi ảnh tức thì, không hiệu ứng mờ.
+// Slideshow cuộn ra khỏi màn hình cũng tạm dừng (nhiều thẻ sản phẩm không cùng chạy ngầm).
 export function MediaCarousel({
   items,
   interval = 5,
   alt,
   className = "",
-  autoplayVideo = false
+  autoplayVideo = false,
+  frameClassName = "rounded-3xl border shadow-2xl",
+  aspectClassName = "aspect-[4/3]",
+  fit = "cover",
+  startDelay = 0,
+  activeIndex,
+  onIndexChange,
+  children
 }: {
   items: CarouselItem[];
   interval?: number;
   alt: string;
   className?: string;
   autoplayVideo?: boolean;
+  // Khung ngoài & tỉ lệ khung hình (thẻ sản phẩm dùng khung gọn hơn ảnh bìa).
+  frameClassName?: string;
+  aspectClassName?: string;
+  fit?: "cover" | "contain";
+  // Lệch nhịp lần chuyển đầu tiên (ms) để các thẻ trong lưới không đổi ảnh cùng lúc.
+  startDelay?: number;
+  // Điều khiển từ ngoài (vd bấm ảnh nhỏ bên dưới) + báo slide đang hiện.
+  activeIndex?: number;
+  onIndexChange?: (index: number) => void;
+  // Lớp phủ trong khung (nhãn giảm giá, link phủ toàn ảnh...), nằm dưới các nút điều khiển.
+  children?: ReactNode;
 }) {
   const { lang } = useLanguage();
   const [index, setIndex] = useState(0);
@@ -32,6 +51,9 @@ export function MediaCarousel({
   const [userPaused, setUserPaused] = useState(false);
   const [pageHidden, setPageHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [offscreen, setOffscreen] = useState(false);
+  const [firstRun, setFirstRun] = useState(true);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const touchX = useRef<number | null>(null);
   const count = items.length;
   const seconds = Math.max(2, interval);
@@ -50,15 +72,40 @@ export function MediaCarousel({
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setOffscreen(!entry.isIntersecting), { threshold: 0.2 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const go = useCallback((next: number) => setIndex(((next % count) + count) % count), [count]);
 
-  const paused = userPaused || hovered || mediaPlaying || pageHidden;
+  useEffect(() => {
+    if (typeof activeIndex === "number" && activeIndex >= 0 && activeIndex < count) setIndex(activeIndex);
+  }, [activeIndex, count]);
+
+  useEffect(() => {
+    onIndexChange?.(index);
+  }, [index, onIndexChange]);
+
+  // Danh sách ảnh đổi (vd Admin xoá bớt ảnh) -> không để index vượt quá.
+  useEffect(() => {
+    if (index >= count && count > 0) setIndex(0);
+  }, [index, count]);
+
+  const paused = userPaused || hovered || mediaPlaying || pageHidden || offscreen;
 
   useEffect(() => {
     if (count < 2 || paused) return;
-    const timer = window.setTimeout(() => go(index + 1), seconds * 1000);
+    const delay = seconds * 1000 + (firstRun ? startDelay : 0);
+    const timer = window.setTimeout(() => {
+      setFirstRun(false);
+      go(index + 1);
+    }, delay);
     return () => window.clearTimeout(timer);
-  }, [count, paused, seconds, index, go]);
+  }, [count, paused, seconds, index, go, firstRun, startDelay]);
 
   const onPlayingChange = useCallback((playing: boolean) => setMediaPlaying(playing), []);
 
@@ -75,7 +122,8 @@ export function MediaCarousel({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl border shadow-2xl ${className}`}
+      ref={rootRef}
+      className={`group relative overflow-hidden ${frameClassName} ${className}`}
       style={{ borderColor: "var(--border)" }}
       onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
       onPointerLeave={(e) => e.pointerType === "mouse" && setHovered(false)}
@@ -95,7 +143,7 @@ export function MediaCarousel({
       aria-roledescription={count > 1 ? "carousel" : undefined}
       aria-label={alt}
     >
-      <div className="relative aspect-[4/3] w-full">
+      <div className={`relative w-full ${aspectClassName}`}>
         {items.map((item, idx) => {
           const active = idx === index;
           return (
@@ -110,6 +158,7 @@ export function MediaCarousel({
                   url={item.url}
                   kind={item.kind}
                   alt={`${alt} ${idx + 1}`}
+                  fit={fit}
                   autoplay={active && autoplayVideo}
                   onPlayingChange={active ? onPlayingChange : undefined}
                 />
@@ -118,6 +167,8 @@ export function MediaCarousel({
           );
         })}
       </div>
+
+      {children}
 
       {caption && (
         <p className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/70 to-transparent px-4 pb-9 pt-10 text-sm text-white">{caption}</p>
@@ -169,7 +220,7 @@ export function MediaCarousel({
             <span
               key={`progress-${index}`}
               className="carousel-progress absolute bottom-0 left-0 z-20 h-0.5 bg-white/80"
-              style={{ animationDuration: `${seconds}s` }}
+              style={{ animationDuration: `${seconds + (firstRun ? startDelay / 1000 : 0)}s` }}
               aria-hidden
             />
           )}

@@ -38,7 +38,7 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
     ["overview", "Trang chủ & Tổng quan"],
     ["journey", "Hành trình"],
     ["projects", "Dự án (Case Study)"],
-    ["showcase", "Sản phẩm"],
+    ["showcase", "Cửa hàng (/shop)"],
     ["docs", "Tài liệu"],
     ...hubs.map((hub): [ManagedPageKey, string] => [`hub:${hub.slug}`, `Project Hub: ${hub.name} (/${hub.slug})`])
   ];

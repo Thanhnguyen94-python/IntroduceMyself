@@ -3,12 +3,19 @@ import path from "path";
 import { randomUUID } from "crypto";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-// Truy cập bảng đơn giản cho thống kê / chat / hỏi đáp.
+// Truy cập bảng đơn giản cho thống kê / chat / hỏi đáp / cửa hàng.
 //  - Có Supabase: dùng bảng thật (supabase/migrations/202610190001_engagement_analytics_chat.sql).
 //  - Local không có Supabase: lưu tạm vào .data/dev-db.json (đã gitignore) để test được ngay.
 //  - Production không có Supabase: báo lỗi (không âm thầm ghi file trên serverless).
 
-export type TableName = "analytics_visits" | "firmware_flash_events" | "chat_conversations" | "chat_messages" | "doc_comments";
+export type TableName =
+  | "analytics_visits"
+  | "firmware_flash_events"
+  | "chat_conversations"
+  | "chat_messages"
+  | "doc_comments"
+  | "shop_products"
+  | "shop_orders";
 
 type Row = Record<string, unknown> & { id: string; created_at: string };
 
