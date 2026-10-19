@@ -229,9 +229,6 @@ export default function TongQuanPage() {
             <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/du-an">
               {lang === "vi" ? "> Khám phá Dự Án" : "> Explore Projects"}
             </Link>
-            <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/san-pham-trung-bay">
-              {lang === "vi" ? "> Xem Sản Phẩm Trưng Bày" : "> View Showcase"}
-            </Link>
             <Link className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800" style={{ borderColor: "var(--border)" }} href="/tai-lieu-ky-thuat">
               {lang === "vi" ? "> Mở Tài Liệu Kỹ Thuật" : "> Open Technical Docs"}
             </Link>

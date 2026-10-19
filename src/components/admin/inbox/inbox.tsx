@@ -190,7 +190,7 @@ function ChatInbox({ initialId, onChange }: { initialId: string | null; onChange
             </span>
             <span className={`block truncate text-xs ${selected === c.id ? "text-white/85" : "muted"}`}>{c.last_message_preview}</span>
             <span className={`block truncate text-[11px] ${selected === c.id ? "text-white/70" : "muted"}`}>
-              {c.hub ? `Hub /${c.hub}` : "Portfolio"} · {c.page}
+              {c.hub === "shop" ? "Cửa hàng" : c.hub ? `Hub /${c.hub}` : "Portfolio"} · {c.page}
             </span>
           </button>
         ))}

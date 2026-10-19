@@ -10,7 +10,10 @@ const nextConfig = {
   async redirects() {
     return [
       // Link cũ (đã chia sẻ cho người dùng / ghi trong WebUI robot) -> trang nạp công khai mới.
-      { source: "/nap-firmware", destination: "/joy/flash", permanent: false }
+      { source: "/nap-firmware", destination: "/joy/flash", permanent: false },
+      // Trang "Sản phẩm trưng bày" cũ trong Portfolio đã chuyển thành Cửa hàng riêng.
+      { source: "/san-pham-trung-bay", destination: "/shop", permanent: true },
+      { source: "/admin/orders", destination: "/admin/shop/orders", permanent: false }
     ];
   }
 };

@@ -23,8 +23,18 @@ const SUGGESTIONS = {
   hub: {
     vi: ["Không nạp được firmware", "Robot không nghe / không nói", "Hỏi về đấu dây, linh kiện"],
     en: ["Firmware flashing fails", "Robot doesn't hear / speak", "Question about wiring or parts"]
+  },
+  shop: {
+    vi: ["Tư vấn chọn sản phẩm", "Phí ship về chỗ mình bao nhiêu?", "Đặt làm theo bản vẽ riêng"],
+    en: ["Help me choose a product", "How much is shipping?", "Custom build from my drawing"]
   }
 };
+
+// Mở box chat từ nơi khác trên trang (vd nút "Hỏi về sản phẩm này"), có thể điền sẵn câu hỏi.
+export const CHAT_OPEN_EVENT = "mj-chat:open";
+export function openChat(message?: string) {
+  window.dispatchEvent(new CustomEvent(CHAT_OPEN_EVENT, { detail: { message } }));
+}
 
 function timeLabel(iso: string) {
   const d = new Date(iso);
@@ -33,7 +43,7 @@ function timeLabel(iso: string) {
 }
 
 // Box chat với admin: thu gọn / mở / phóng to. variant "portfolio" kèm nút liên hệ nhanh (thay FloatingContact cũ).
-export function ChatWidget({ variant, hub }: { variant: "portfolio" | "hub"; hub?: string }) {
+export function ChatWidget({ variant, hub }: { variant: "portfolio" | "hub" | "shop"; hub?: string }) {
   const { lang } = useLanguage();
   const vi = lang === "vi";
   const pathname = usePathname();
@@ -59,6 +69,16 @@ export function ChatWidget({ variant, hub }: { variant: "portfolio" | "hub"; hub
   useEffect(() => {
     panelRef.current?.toggleAttribute("inert", !open);
   }, [open]);
+
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const message = (event as CustomEvent<{ message?: string }>).detail?.message;
+      if (message) setDraft(message);
+      setOpen(true);
+    };
+    window.addEventListener(CHAT_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(CHAT_OPEN_EVENT, onOpen);
+  }, []);
 
   useEffect(() => {
     const saved = readStoredJson<Session>(STORAGE_KEY);
@@ -212,7 +232,17 @@ export function ChatWidget({ variant, hub }: { variant: "portfolio" | "hub"; hub
             <p className="font-semibold">Mr Jay</p>
             <p className="flex items-center gap-1.5 text-xs text-white/85">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              {variant === "hub" ? (vi ? "Hỗ trợ lắp ráp & nạp firmware" : "Build & firmware support") : vi ? "Thường trả lời trong vài giờ" : "Usually replies within hours"}
+              {variant === "hub"
+                ? vi
+                  ? "Hỗ trợ lắp ráp & nạp firmware"
+                  : "Build & firmware support"
+                : variant === "shop"
+                  ? vi
+                    ? "Tư vấn sản phẩm & đơn hàng"
+                    : "Product & order support"
+                  : vi
+                    ? "Thường trả lời trong vài giờ"
+                    : "Usually replies within hours"}
             </p>
           </div>
           <button
@@ -235,6 +265,10 @@ export function ChatWidget({ variant, hub }: { variant: "portfolio" | "hub"; hub
               ? vi
                 ? "Chào bạn 👋 Gặp khó khi lắp hoặc nạp firmware? Mô tả lỗi (kèm ảnh/link nếu có), Jay sẽ trả lời sớm nhất."
                 : "Hi 👋 Stuck building or flashing? Describe the problem and I'll reply as soon as I can."
+              : variant === "shop"
+                ? vi
+                  ? "Chào bạn 👋 Cần tư vấn sản phẩm, báo giá số lượng hay làm theo yêu cầu? Nhắn ở đây nhé, nhớ để lại SĐT/Zalo để shop gọi lại."
+                  : "Hi 👋 Need product advice, a bulk quote or a custom build? Leave your phone/Zalo so I can call back."
               : vi
                 ? "Chào bạn 👋 Mình là Jay. Bạn cần trao đổi gì cứ nhắn, mình sẽ trả lời sớm nhất."
                 : "Hi 👋 I'm Jay. Leave a message and I'll get back to you soon."}
@@ -330,6 +364,10 @@ export function ChatWidget({ variant, hub }: { variant: "portfolio" | "hub"; hub
                   </a>
                 )}
               </span>
+            ) : variant === "shop" ? (
+              <Link href="/shop/don-hang" className="hover:text-brand-600">
+                📦 {vi ? "Tra cứu đơn hàng" : "Track an order"}
+              </Link>
             ) : (
               <Link href={`/${hub}/docs`} className="hover:text-brand-600">
                 📚 {vi ? "Xem tài liệu sửa lỗi" : "Troubleshooting docs"}

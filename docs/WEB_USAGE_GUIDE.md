@@ -1,15 +1,16 @@
 ---
 title: Hướng dẫn sử dụng Web (Admin)
-description: Đăng nhập, quản lý dự án, chèn ảnh/video, Kho Media, đổi mật khẩu, chat với khách và thống kê.
-updated: 2026-10-18
+description: Đăng nhập, quản lý dự án, chèn ảnh/video, Kho Media, đổi mật khẩu, chat với khách, thống kê và cửa hàng.
+updated: 2026-10-20
 ---
 
-Web có 3 khu vực:
+Web có 4 khu vực:
 
 | Khu vực | Địa chỉ | Dành cho |
 |---|---|---|
 | Portfolio | `/`, `/hanh-trinh`, `/du-an`… | Nhà tuyển dụng |
 | Project Hub | `/joy`, `/joy/docs`, `/joy/flash`… | Người tự lắp robot (maker) |
+| Cửa hàng | `/shop` | Khách mua jig, tool, sản phẩm in 3D |
 | Admin | `/admin` | Chỉ bạn (cần đăng nhập) |
 
 ## 1. Đăng nhập
@@ -228,6 +229,41 @@ Mỗi lần khách nạp ở trang `/<hub>/flash`, web ghi lại 4 mốc:
 
 Xem ở Admin → **📦 Phát hành firmware** (cột *Lượt nạp*) hoặc Admin → **📊 Thống kê truy cập** (bảng chi tiết kèm lỗi gần đây). Nhiều lỗi giống nhau ở một bản → nên viết thêm mục sửa lỗi trong tài liệu.
 
+## 13. Cửa hàng (/shop)
+
+Cửa hàng tách riêng khỏi Portfolio (menu Portfolio không còn mục "Sản phẩm"). Link cũ `/san-pham-trung-bay` tự chuyển sang `/shop`.
+
+**Bật / tắt:** Admin → **Nội dung & hiển thị** → công tắc **Cửa hàng (/shop)**. Khi tắt, khách thấy trang "Đang bảo trì" và không đặt được hàng. Bạn (đã đăng nhập) vẫn xem trước được, có dải vàng báo đang tắt.
+
+### Đăng / sửa sản phẩm — Admin → 🏷️ Sản phẩm
+
+1. Bấm **+ Đăng sản phẩm**, nhập tên (đường dẫn tự tạo theo tên).
+2. **Ảnh / video**: bấm **⬆ Upload nhiều ảnh** hoặc dán link (YouTube, Google Drive, `/assets/...`). Kéo ⋮⋮ để đổi thứ tự; ảnh đầu là ảnh đại diện. Có từ 2 ảnh trở lên thì ảnh tự chuyển như slideshow trên cửa hàng.
+3. **Giá bán / Giá gốc**: giá gốc cao hơn giá bán thì hiện nhãn "-x%". Giá bán để 0 thì hiện "Liên hệ báo giá" (khách nhắn tin thay vì thêm giỏ).
+4. **Tồn kho**: để trống = không giới hạn (làm theo đơn). Có số thì web tự trừ khi khách đặt, tự cộng lại khi đơn bị huỷ / hoàn trả, và chặn đặt quá số còn.
+5. **Phân loại** (Màu, Vật liệu…): khách chọn khi mua, cùng một giá.
+6. **Trạng thái**: *Đang bán* (khách thấy) · *Nháp* (chỉ bạn thấy, dùng **Lưu & xem** để xem trước) · *Tạm ẩn* (ngừng bán, không mất dữ liệu).
+7. Khung bên phải là bản xem trước thẻ sản phẩm.
+
+Trong danh sách có thể sửa nhanh tồn kho, trạng thái, ⭐ nổi bật (hiện đầu trang cửa hàng), đổi thứ tự ↑↓ (nhớ bấm **Lưu thứ tự**), ⧉ nhân bản để đăng mẫu tương tự.
+
+### Xử lý đơn — Admin → 🧾 Đơn hàng
+
+Đơn mới có số đỏ trên menu và được báo qua email / Zalo (cùng cấu hình với chat). Mở đơn để:
+
+- Gọi / Zalo cho khách, **📋 Copy thông tin giao hàng** để dán vào app GHTK / GHN.
+- Bấm nút bước tiếp theo: *Xác nhận → Đóng gói → Đang giao → Đã giao*. Ô **Ghi chú gửi khách** (vd mã vận đơn) hiện trên trang theo dõi đơn của khách; tick **Gửi email báo khách** nếu khách để lại email.
+- Tick **Đã nhận tiền** khi nhận được chuyển khoản / COD.
+- **Ghi chú nội bộ** chỉ bạn thấy.
+
+Khách theo dõi đơn ở `/shop/don-hang` bằng mã đơn (dạng `MJ261020-AB12`) + số điện thoại.
+
+### Cài đặt — Admin → ⚙️ Cài đặt cửa hàng
+
+Tên shop, khẩu hiệu, thanh thông báo trên cùng, slideshow ảnh bìa, danh mục, phí ship và mức miễn phí ship, liên hệ, chính sách đổi trả.
+
+**Nhận chuyển khoản:** tick 🏦, nhập mã ngân hàng (VCB, TCB, MB…), số tài khoản, tên chủ tài khoản. Web hiện mã QR thử 100.000₫ để bạn quét kiểm tra tên. Khi khách chọn chuyển khoản, trang đơn hiện mã VietQR có sẵn số tiền + nội dung = mã đơn.
+
 ## Câu hỏi nhanh
 
 | Câu hỏi | Trả lời |
@@ -236,3 +272,5 @@ Xem ở Admin → **📦 Phát hành firmware** (cột *Lượt nạp*) hoặc A
 | Ảnh Drive không hiện? | Kiểm tra quyền chia sẻ "Bất kỳ ai có đường liên kết". |
 | Muốn bỏ hết chỉnh sửa trên web của 1 hub? | Cuối trang sửa hub → **↺ Khôi phục bản gốc**. |
 | Hub mới không thấy trên Portfolio? | Gán **Case study liên kết** và kiểm tra hub đang bật. |
+| Cửa hàng hiện "Đang bảo trì"? | Bật công tắc **Cửa hàng (/shop)** trong Admin → Nội dung & hiển thị. |
+| Sản phẩm không hiện trên cửa hàng? | Kiểm tra trạng thái là **Đang bán**. |

@@ -26,9 +26,8 @@ export async function PUT(request: Request) {
     revalidatePath("/tong-quan");
     revalidatePath("/hanh-trinh");
     revalidatePath("/du-an");
-    revalidatePath("/san-pham-trung-bay");
     revalidatePath("/tai-lieu-ky-thuat");
-    // Project Hub (/joy, /joy/docs/...) đọc visibility ở server mỗi request nên không cần revalidate.
+    // Project Hub (/joy...) và Cửa hàng (/shop...) đọc visibility ở server mỗi request nên không cần revalidate.
     return NextResponse.json({ ok: true, data: saved });
   } catch (error) {
     console.error("[admin-site-visibility] save failed", error);

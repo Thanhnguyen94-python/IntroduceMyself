@@ -19,7 +19,7 @@ export function siteOrigin(request: Request) {
   return `${proto}://${host}`;
 }
 
-async function sendEmail(to: string, subject: string, html: string, replyTo?: string) {
+export async function sendEmail(to: string, subject: string, html: string, replyTo?: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || !to) return;
   const from = process.env.ORDER_NOTIFY_EMAIL_FROM ?? "onboarding@resend.dev";
@@ -36,7 +36,7 @@ async function postJson(url: string | undefined, payload: unknown) {
 }
 
 export type AdminNotice = {
-  channel: "chat" | "doc-comment";
+  channel: "chat" | "doc-comment" | "order";
   title: string;
   fields: Array<[string, string]>;
   message: string;
@@ -51,7 +51,7 @@ export async function notifyAdmin(notice: AdminNotice) {
     ${notice.fields.map(([k, v]) => `<p><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</p>`).join("")}
     <blockquote style="border-left:4px solid #0B5FFF;padding:8px 12px;background:#f1f6ff;white-space:pre-wrap">${escapeHtml(notice.message)}</blockquote>
     <p><a href="${escapeHtml(notice.link)}">Mở trong Admin để trả lời →</a></p>`;
-  const text = [`💬 ${notice.title}`, ...notice.fields.map(([k, v]) => `${k}: ${v}`), "", notice.message, "", notice.link].join("\n");
+  const text = [`${notice.channel === "order" ? "🛒" : "💬"} ${notice.title}`, ...notice.fields.map(([k, v]) => `${k}: ${v}`), "", notice.message, "", notice.link].join("\n");
 
   const results = await Promise.allSettled([
     sendEmail(to, notice.title, html, isEmail(notice.replyTo) ? notice.replyTo : undefined),
