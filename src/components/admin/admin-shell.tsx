@@ -21,6 +21,13 @@ const groups: Array<{ title: string; items: Array<{ href: string; label: string;
     ]
   },
   {
+    title: "Người dùng",
+    items: [
+      { href: "/admin/inbox", label: "Hộp thư (chat & hỏi đáp)", icon: "💬" },
+      { href: "/admin/analytics", label: "Thống kê truy cập", icon: "📊" }
+    ]
+  },
+  {
     title: "Vận hành",
     items: [
       { href: "/admin/orders", label: "Đơn hàng", icon: "🧾" },
@@ -34,6 +41,19 @@ const groups: Array<{ title: string; items: Array<{ href: string; label: string;
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [inboxCount, setInboxCount] = useState(0);
+
+  // Số tin chat chưa đọc + câu hỏi chờ duyệt, cập nhật 30 giây/lần.
+  useEffect(() => {
+    const load = () =>
+      fetch("/api/admin/chat?count=1", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((d: { unreadChats?: number; pendingComments?: number }) => setInboxCount((d.unreadChats ?? 0) + (d.pendingComments ?? 0)))
+        .catch(() => undefined);
+    load();
+    const timer = window.setInterval(load, 30_000);
+    return () => window.clearInterval(timer);
+  }, [pathname]);
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -60,7 +80,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   }`}
                 >
                   <span>{item.icon}</span>
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {item.href === "/admin/inbox" && inboxCount > 0 && (
+                    <span className="rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">{inboxCount}</span>
+                  )}
                 </Link>
               </li>
             ))}

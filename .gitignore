@@ -34,3 +34,6 @@ Thumbs.db
 
 # TypeScript incremental cache
 *.tsbuildinfo
+
+# Dữ liệu test local (chat/thống kê khi chưa có Supabase)
+.data/

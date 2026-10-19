@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { FirmwareReleaseView } from "@/lib/firmware-store";
+import type { FirmwareStat } from "@/lib/analytics/summary";
 import { formatBytes, parseAppImage, parseMergedImage, sha256Hex, splitMergedImage, type FlashPart } from "@/lib/firmware-image";
 
 type Draft = {
@@ -106,6 +107,7 @@ export function FirmwareAdmin() {
   const [wiringFile, setWiringFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [progress, setProgress] = useState("");
+  const [stats, setStats] = useState<Record<string, FirmwareStat>>({});
 
   async function load() {
     setLoading(true);
@@ -114,6 +116,11 @@ export function FirmwareAdmin() {
     if (res.ok) setItems(data.items ?? []);
     else setNotice({ type: "error", text: data.message || "Không tải được danh sách firmware" });
     setLoading(false);
+    // Số lần nạp theo từng bản (Admin → Thống kê có thêm chi tiết lỗi).
+    fetch("/api/admin/firmware/stats", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((payload: { items?: FirmwareStat[] }) => setStats(Object.fromEntries((payload.items ?? []).map((it) => [it.releaseKey, it]))))
+      .catch(() => undefined);
   }
 
   useEffect(() => {
@@ -290,6 +297,7 @@ export function FirmwareAdmin() {
                 <th className="py-2 pr-3">Board</th>
                 <th className="py-2 pr-3">File</th>
                 <th className="py-2 pr-3">Trạng thái</th>
+                <th className="py-2 pr-3" title="Mở hộp thoại / bắt đầu ghi / thành công / lỗi">Lượt nạp</th>
                 <th className="py-2 pr-3">Ngày</th>
                 <th className="py-2" />
               </tr>
@@ -322,6 +330,15 @@ export function FirmwareAdmin() {
                     >
                       {item.is_published ? "Đã publish" : "Nháp"}
                     </button>
+                  </td>
+                  <td className="py-2 pr-3 text-xs">
+                    {stats[item.id] ? (
+                      <span className="whitespace-nowrap" title={`Mở hộp thoại ${stats[item.id].opened} · Bắt đầu ghi ${stats[item.id].started} · Thành công ${stats[item.id].success} · Lỗi ${stats[item.id].error}`}>
+                        <b className="text-sm">{stats[item.id].success}</b> ✅ · {stats[item.id].error} ❌ · {stats[item.id].opened} mở
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--muted)" }}>chưa có</span>
+                    )}
                   </td>
                   <td className="py-2 pr-3 text-xs">{new Date(item.created_at).toLocaleString("vi-VN")}</td>
                   <td className="py-2 text-right">

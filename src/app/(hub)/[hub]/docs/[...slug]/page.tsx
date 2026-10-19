@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getHub } from "@/lib/hubs/registry";
 import { getHubDoc, listHubDocs } from "@/lib/hubs/docs";
 import { DocToc } from "@/components/hub/doc-toc";
+import { DocComments } from "@/components/hub/doc-comments";
 import { L } from "@/components/ui/localized";
 
 type Props = { params: Promise<{ hub: string; slug: string[] }> };
@@ -73,6 +74,7 @@ export default async function HubDocPage({ params }: Props) {
             </Link>
           )}
         </div>
+        <DocComments hub={hub.slug} path={doc.path} />
       </article>
       <aside className="hidden xl:block">
         <DocToc items={doc.toc} />

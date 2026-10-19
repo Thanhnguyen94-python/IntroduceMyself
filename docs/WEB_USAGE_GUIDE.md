@@ -1,6 +1,6 @@
 ---
 title: Hướng dẫn sử dụng Web (Admin)
-description: Đăng nhập, quản lý dự án, chèn ảnh/video, Kho Media và đổi mật khẩu.
+description: Đăng nhập, quản lý dự án, chèn ảnh/video, Kho Media, đổi mật khẩu, chat với khách và thống kê.
 updated: 2026-10-18
 ---
 
@@ -175,6 +175,58 @@ Admin → **🧩 Bố cục trang chủ**: kéo thả các khối (Giới thiệ
 ## 9. Phát hành firmware
 
 Admin → **📦 Phát hành firmware** → **+ Thêm bản mới** → chọn board (trùng ô *Board* trong tab Thông tin chung của hub) → upload file `.bin` → tick *Publish*. Bản mới hiện ngay ở `/<hub>/flash` và robot thấy khi bấm "Kiểm tra bản mới" trong WebUI.
+
+## 10. Chat với khách & Hỏi đáp tài liệu
+
+Khách có 2 cách liên hệ với bạn:
+
+| Kênh | Khách thấy ở đâu | Bạn trả lời ở đâu |
+|---|---|---|
+| **💬 Box chat** | Nút tròn góc phải dưới, trên mọi trang Portfolio và Hub. Bấm ⤢ để phóng to, — để thu gọn. | Admin → **💬 Hộp thư** → tab *Chat* |
+| **❓ Hỏi đáp** | Cuối mỗi bài tài liệu Hub (mục "Hỏi đáp") | Admin → **💬 Hộp thư** → tab *Hỏi đáp tài liệu* |
+
+**Chat:** chọn cuộc trò chuyện bên trái → gõ trả lời → **Gửi** (hoặc Ctrl+Enter). Có sẵn 3 câu trả lời nhanh. Khách thấy trả lời ngay trong khung chat; nếu khách để lại email, họ nhận thêm email báo. Xong việc bấm **✓ Đánh dấu xong**.
+
+**Hỏi đáp:** câu hỏi mới nằm ở *Chờ duyệt*, chưa ai thấy. Bạn có thể:
+- **Trả lời & duyệt**: câu hỏi và câu trả lời cùng hiện công khai, người sau đọc được luôn.
+- **✓ Duyệt**: chỉ hiện câu hỏi.
+- **Ẩn / Xoá**: với câu hỏi spam hoặc trùng.
+
+Email/Zalo khách để lại **không bao giờ hiển thị công khai**.
+
+> [!TIP]
+> Menu **💬 Hộp thư** có chấm đỏ đếm số tin chưa đọc + câu hỏi chờ duyệt. Muốn nhận thông báo qua email/Zalo khi có tin mới: đặt `RESEND_API_KEY` + `ADMIN_NOTIFY_EMAIL` (hoặc `ZALO_WEBHOOK_URL`) trên Vercel.
+
+## 11. Thống kê truy cập
+
+Admin → **📊 Thống kê truy cập**. Chọn khoảng thời gian ở hàng trên cùng (Hôm nay / 7 / 30 / 90 ngày), mọi số liệu bên dưới đổi theo.
+
+| Số liệu | Ý nghĩa |
+|---|---|
+| Đang online | Số khách hoạt động trong 2 phút gần nhất, tự cập nhật |
+| Lượt xem / Khách | Số trang được mở / số người (trình duyệt) khác nhau |
+| Thời gian / phiên | Trung bình một lần ghé thăm ở lại bao lâu; % chỉ xem 1 trang rồi thoát |
+| Đến từ đâu | Facebook, Google, Zalo… hoặc truy cập trực tiếp. Gắn `?utm_source=ten-nhom` vào link khi chia sẻ để biết nhóm nào mang khách đến |
+| Quốc gia / Thành phố | Vị trí gần đúng (chỉ có trên web thật chạy Vercel) |
+| Thiết bị / Trình duyệt / HĐH | Khách dùng điện thoại hay máy tính, Chrome hay Safari… |
+
+Bấm **Xem dạng bảng** trên biểu đồ để xem số chính xác từng ngày.
+
+> [!NOTE]
+> Thống kê ẩn danh: không cookie theo dõi, không lưu địa chỉ IP, bỏ qua bot và trang Admin. Khách bật "Do Not Track" sẽ không bị ghi.
+
+## 12. Số lần nạp firmware
+
+Mỗi lần khách nạp ở trang `/<hub>/flash`, web ghi lại 4 mốc:
+
+| Mốc | Nghĩa |
+|---|---|
+| Mở hộp thoại | Khách bấm "Nạp firmware" và chọn cổng |
+| Bắt đầu ghi | Bắt đầu xoá/ghi flash (có ghi lại khách có tick *Erase* không) |
+| ✅ Thành công | Ghi xong |
+| ❌ Lỗi | Kèm thông báo lỗi (vd "Failed to open serial port") |
+
+Xem ở Admin → **📦 Phát hành firmware** (cột *Lượt nạp*) hoặc Admin → **📊 Thống kê truy cập** (bảng chi tiết kèm lỗi gần đây). Nhiều lỗi giống nhau ở một bản → nên viết thêm mục sửa lỗi trong tài liệu.
 
 ## Câu hỏi nhanh
 

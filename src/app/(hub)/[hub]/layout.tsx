@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HubHeader } from "@/components/layout/hub-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { ChatWidget } from "@/components/chat/chat-widget";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { MaintenanceNotice } from "@/components/hub/maintenance-notice";
 import { getHub, hubVisibilityKey, listHubs, toHubSummary } from "@/lib/hubs/registry";
 import { readSiteVisibility } from "@/lib/site-visibility-store";
@@ -36,6 +38,8 @@ export default async function HubLayout({ children, params }: Props) {
       <HubHeader hub={toHubSummary(hub)} hasFirmware={Boolean(hub.firmware)} otherHubs={hubs.filter((it) => it.slug !== hub.slug).map(toHubSummary)} />
       <main className="mx-auto max-w-7xl px-4 py-8">{enabled ? children : <MaintenanceNotice />}</main>
       <SiteFooter variant="hub" />
+      {enabled && <ChatWidget variant="hub" hub={hub.slug} />}
+      <AnalyticsTracker hub={hub.slug} />
     </>
   );
 }

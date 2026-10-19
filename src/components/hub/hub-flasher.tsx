@@ -148,7 +148,17 @@ export function HubFlasher({ hubSlug, hubName, board, chip, fallbackManifest }: 
                   {selectedRelease && ` · ${new Date(selectedRelease.updated_at).toLocaleDateString(vi ? "vi-VN" : "en-US")}`}
                 </span>
               </div>
-              {serialSupported && isHttps && <EspInstallButton manifest={selected.manifest} label={vi ? "Nạp firmware" : "Flash firmware"} />}
+              {serialSupported && isHttps && (
+                <EspInstallButton
+                  manifest={selected.manifest}
+                  label={vi ? "Nạp firmware" : "Flash firmware"}
+                  track={
+                    selectedRelease
+                      ? { releaseKey: selectedRelease.id, board: selectedRelease.board, version: selectedRelease.version, hub: hubSlug }
+                      : { releaseKey: `static:${hubSlug}`, board, version: fallback.version, hub: hubSlug }
+                  }
+                />
+              )}
               <ul className="muted list-disc space-y-1 pl-5 text-sm">
                 <li>
                   <b>{vi ? "Robot mới / lỗi nặng:" : "New board / badly broken:"}</b>{" "}

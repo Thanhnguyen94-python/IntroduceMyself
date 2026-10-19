@@ -13,7 +13,7 @@ export function SiteFooter({ variant = "portfolio" }: { variant?: "portfolio" | 
   return (
     <footer className="mt-16 border-t" style={{ borderColor: "var(--border)" }}>
       <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-4 py-6 text-sm sm:flex-row sm:items-center">
-        <p className="muted">
+        <p className="muted" title={vi ? "Web ghi thống kê truy cập ẩn danh: không cookie theo dõi, không lưu địa chỉ IP." : "Anonymous visit statistics: no tracking cookies, no IP addresses stored."}>
           © {year} Mr Jay ·{" "}
           {variant === "portfolio"
             ? vi
@@ -22,6 +22,9 @@ export function SiteFooter({ variant = "portfolio" }: { variant?: "portfolio" | 
             : vi
               ? "Project Hub mã nguồn mở cho maker"
               : "Open project hub for makers"}
+          <span className="block text-xs opacity-80">
+            {vi ? "Thống kê truy cập ẩn danh · không cookie theo dõi · không lưu IP" : "Anonymous analytics · no tracking cookies · no IPs stored"}
+          </span>
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           {variant === "portfolio" ? (

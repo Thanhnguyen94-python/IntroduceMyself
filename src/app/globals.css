@@ -10,7 +10,15 @@
   --border: #cfe1ff;
 }
 
+/* Màu biểu đồ (1 chuỗi số liệu): đã chạy validator dataviz cho cả nền sáng và tối. */
+:root {
+  --viz-1: #2a78d6;
+  --viz-1-wash: rgba(42, 120, 214, 0.12);
+}
+
 .dark {
+  --viz-1: #3987e5;
+  --viz-1-wash: rgba(57, 135, 229, 0.16);
   --bg: #0a1222;
   --surface: #111c33;
   --text: #e5eeff;
