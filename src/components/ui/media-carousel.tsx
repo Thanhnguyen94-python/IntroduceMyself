@@ -8,8 +8,10 @@ import type { MediaKind } from "@/lib/smart-media";
 
 export type CarouselItem = { url: string; kind?: MediaKind; caption?: LocalizedText };
 
-// Slideshow ảnh/video: tự chuyển sau `interval` giây, dừng khi rê chuột, khi đang xem video
-// hoặc khi người dùng bật giảm chuyển động. Vuốt trên điện thoại, phím ← → trên máy tính.
+// Slideshow ảnh/video: tự chuyển sau `interval` giây.
+// Tạm dừng khi: rê CHUỘT vào (chạm trên điện thoại không tính), người xem đang phát video,
+// người xem bấm ⏸, hoặc tab trình duyệt bị ẩn.
+// Máy bật "giảm chuyển động" (vd Windows tắt Animation effects): vẫn tự chuyển nhưng đổi ảnh tức thì, không hiệu ứng mờ.
 export function MediaCarousel({
   items,
   interval = 5,
@@ -27,9 +29,12 @@ export function MediaCarousel({
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [mediaPlaying, setMediaPlaying] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
+  const [pageHidden, setPageHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const touchX = useRef<number | null>(null);
   const count = items.length;
+  const seconds = Math.max(2, interval);
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -39,26 +44,41 @@ export function MediaCarousel({
     return () => query.removeEventListener("change", onChange);
   }, []);
 
+  useEffect(() => {
+    const onVisibility = () => setPageHidden(document.visibilityState === "hidden");
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
   const go = useCallback((next: number) => setIndex(((next % count) + count) % count), [count]);
 
+  const paused = userPaused || hovered || mediaPlaying || pageHidden;
+
   useEffect(() => {
-    if (count < 2 || hovered || mediaPlaying || reducedMotion) return;
-    const timer = window.setTimeout(() => go(index + 1), Math.max(2, interval) * 1000);
+    if (count < 2 || paused) return;
+    const timer = window.setTimeout(() => go(index + 1), seconds * 1000);
     return () => window.clearTimeout(timer);
-  }, [count, hovered, mediaPlaying, reducedMotion, interval, index, go]);
+  }, [count, paused, seconds, index, go]);
 
   const onPlayingChange = useCallback((playing: boolean) => setMediaPlaying(playing), []);
 
   if (!count) return null;
   const current = items[index];
   const caption = current?.caption?.[lang] || current?.caption?.vi;
+  const vi = lang === "vi";
+
+  // Khoảng cách vòng tròn tới slide đang hiện (để render sẵn slide kề bên, kể cả khi quay vòng).
+  const distance = (idx: number) => {
+    const d = Math.abs(idx - index);
+    return Math.min(d, count - d);
+  };
 
   return (
     <div
       className={`group relative overflow-hidden rounded-3xl border shadow-2xl ${className}`}
       style={{ borderColor: "var(--border)" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
+      onPointerLeave={(e) => e.pointerType === "mouse" && setHovered(false)}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touchX.current === null) return;
@@ -81,11 +101,11 @@ export function MediaCarousel({
           return (
             <div
               key={`${item.url}-${idx}`}
-              className={`absolute inset-0 transition-opacity duration-700 ${active ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0"}`}
+              className={`absolute inset-0 ${reducedMotion ? "" : "transition-opacity duration-700"} ${active ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0"}`}
               aria-hidden={!active}
             >
               {/* Chỉ render slide đang hiện + slide kề bên để không tải hết video cùng lúc. */}
-              {(active || Math.abs(idx - index) === 1 || (index === 0 && idx === count - 1)) && (
+              {distance(idx) <= 1 && (
                 <SmartMedia
                   url={item.url}
                   kind={item.kind}
@@ -100,7 +120,7 @@ export function MediaCarousel({
       </div>
 
       {caption && (
-        <p className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/70 to-transparent px-4 pb-8 pt-10 text-sm text-white">{caption}</p>
+        <p className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/70 to-transparent px-4 pb-9 pt-10 text-sm text-white">{caption}</p>
       )}
 
       {count > 1 && (
@@ -109,7 +129,7 @@ export function MediaCarousel({
             type="button"
             onClick={() => go(index - 1)}
             className="absolute left-3 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white opacity-0 transition hover:bg-black/60 focus:opacity-100 group-hover:opacity-100"
-            aria-label="Previous"
+            aria-label={vi ? "Ảnh trước" : "Previous"}
           >
             ‹
           </button>
@@ -117,11 +137,21 @@ export function MediaCarousel({
             type="button"
             onClick={() => go(index + 1)}
             className="absolute right-3 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white opacity-0 transition hover:bg-black/60 focus:opacity-100 group-hover:opacity-100"
-            aria-label="Next"
+            aria-label={vi ? "Ảnh tiếp" : "Next"}
           >
             ›
           </button>
-          <div className="absolute inset-x-0 bottom-3 z-20 flex justify-center gap-1.5">
+
+          <div className="absolute inset-x-0 bottom-3 z-20 flex items-center justify-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setUserPaused((v) => !v)}
+              className="mr-1 grid h-6 w-6 place-items-center rounded-full bg-black/40 text-[10px] text-white hover:bg-black/60"
+              aria-label={userPaused ? (vi ? "Chạy slideshow" : "Play slideshow") : vi ? "Tạm dừng slideshow" : "Pause slideshow"}
+              aria-pressed={userPaused}
+            >
+              {userPaused ? "▶" : "❚❚"}
+            </button>
             {items.map((_, idx) => (
               <button
                 key={idx}
@@ -133,6 +163,16 @@ export function MediaCarousel({
               />
             ))}
           </div>
+
+          {/* Thanh đếm giờ tới slide kế tiếp; key theo index để chạy lại mỗi lần đổi slide. */}
+          {!paused && (
+            <span
+              key={`progress-${index}`}
+              className="carousel-progress absolute bottom-0 left-0 z-20 h-0.5 bg-white/80"
+              style={{ animationDuration: `${seconds}s` }}
+              aria-hidden
+            />
+          )}
         </>
       )}
     </div>

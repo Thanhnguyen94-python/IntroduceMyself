@@ -138,7 +138,18 @@ body {
 .animate-float-slow {
   animation: float-slow 6s ease-in-out infinite;
 }
+/* Thanh tiến trình của slideshow (MediaCarousel). Giảm chuyển động: hiện tĩnh, không chạy. */
+@keyframes carousel-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.carousel-progress {
+  animation-name: carousel-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
 @media (prefers-reduced-motion: reduce) {
+  .carousel-progress { animation: none; width: 100%; opacity: 0.35; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .animate-float-slow { animation: none; }
 }
