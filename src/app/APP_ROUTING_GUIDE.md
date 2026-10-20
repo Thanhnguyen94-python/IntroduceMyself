@@ -10,6 +10,9 @@ src/app/
 │  ├─ layout.tsx               #    PortfolioHeader + Footer + ChatWidget
 │  ├─ page.tsx                 #    "/"  trang chủ, section lấy từ CMS (home_layout)
 │  ├─ tong-quan/ hanh-trinh/ du-an/[slug]/ tai-lieu-ky-thuat/ cv/
+│  └─ tai-lieu-ky-thuat/smt-reports/[report]/  # Mẫu báo cáo SMT (key "smt"): 8d, 4m1e, oee-line-balance,
+│                                             #   yield-pareto, feeder-nozzle. ?blank=1 mẫu trống, &print=1 tự in
+│  └─ tai-lieu-ky-thuat/so-tay/[slug]/         # Sổ tay tra cứu SMT (key "handbook")
 ├─ (hub)/[hub]/                # 2) PROJECT HUB cho maker (vd /joy)
 │  ├─ layout.tsx               #    HubHeader, kiểm tra hub tồn tại + bật/tắt (hub:<slug>)
 │  ├─ page.tsx                 #    /joy           tổng quan dự án
@@ -31,6 +34,7 @@ src/app/
 │     ├─ layout/page.tsx       #    /admin/layout   kéo thả bố cục trang chủ
 │     ├─ hubs/page.tsx         #    /admin/hubs     danh sách hub + tài liệu
 │     ├─ shop/                 #    /admin/shop     tổng quan, sản phẩm, đơn hàng, cài đặt cửa hàng
+│     ├─ smt/                  #    /admin/smt      tổng quan, nhập dữ liệu (data/[dataset]), 8D, xuất báo cáo, sổ tay (handbook), cài đặt
 │     ├─ firmware/ xiaozhi/
 └─ api/                        # Route handler (giữ nguyên đường dẫn cũ)
 ```
@@ -42,6 +46,7 @@ src/app/
 - Slug hub không tồn tại → `notFound()` (404).
 - `/nap-firmware` (link cũ) được redirect sang `/joy/flash` trong `next.config.mjs`.
 - `/san-pham-trung-bay` (link cũ) được redirect sang `/shop`; `/admin/orders` sang `/admin/shop/orders`.
+- `/api/smt/templates/<mẫu>` trả file Excel mẫu trống (link công khai, dùng trên trang Tài liệu).
 - `/api/firmware/latest` **không được đổi đường dẫn**: WebUI của robot gọi API này để kiểm tra OTA.
 - Portfolio **không** chứa link nạp firmware, Project Hub hay Cửa hàng.
 
@@ -53,6 +58,8 @@ src/app/
 |---|---|
 | `overview` | `/` và `/tong-quan` |
 | `journey`, `projects`, `showcase`, `docs` | các trang Portfolio tương ứng |
+| `handbook` | `/tai-lieu-ky-thuat/so-tay/**` |
+| `smt` | `/tai-lieu-ky-thuat/smt-reports/**` và link tải `/api/smt/templates/*` |
 | `hub:<slug>` | toàn bộ `/<slug>/**` (tự sinh cho mỗi hub) |
 
 Key chưa từng lưu mặc định là **bật**.

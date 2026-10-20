@@ -123,7 +123,7 @@ export function ManagementDashboardV2() {
 
   const [visibility, setVisibility] = useState<SiteVisibilityConfig>({
     schemaVersion: 1,
-    pages: { overview: true, journey: true, projects: true, showcase: true, docs: true }
+    pages: { overview: true, journey: true, projects: true, showcase: true, docs: true, smt: true, handbook: true }
   });
 
   const [journeySearch, setJourneySearch] = useState("");
