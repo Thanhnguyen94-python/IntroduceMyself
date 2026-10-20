@@ -3,7 +3,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-// Truy cập bảng đơn giản cho thống kê / chat / hỏi đáp / cửa hàng.
+// Truy cập bảng đơn giản cho thống kê / chat / hỏi đáp / cửa hàng / báo cáo SMT.
 //  - Có Supabase: dùng bảng thật (supabase/migrations/202610190001_engagement_analytics_chat.sql).
 //  - Local không có Supabase: lưu tạm vào .data/dev-db.json (đã gitignore) để test được ngay.
 //  - Production không có Supabase: báo lỗi (không âm thầm ghi file trên serverless).
@@ -15,7 +15,15 @@ export type TableName =
   | "chat_messages"
   | "doc_comments"
   | "shop_products"
-  | "shop_orders";
+  | "shop_orders"
+  | "smt_production_logs"
+  | "smt_defect_logs"
+  | "smt_cycle_times"
+  | "smt_8d_reports"
+  | "smt_4m_changes"
+  | "smt_assets"
+  | "smt_asset_logs"
+  | "smt_handbook";
 
 type Row = Record<string, unknown> & { id: string; created_at: string };
 
@@ -24,6 +32,7 @@ export type Query = {
   in?: [string, string[]];
   gte?: [string, string];
   gt?: [string, string];
+  lte?: [string, string];
   order?: [string, "asc" | "desc"];
   limit?: number;
   columns?: string;
@@ -71,6 +80,7 @@ function matches(row: Row, q: Query) {
   if (q.in && !q.in[1].includes(String(row[q.in[0]]))) return false;
   if (q.gte && !(String(row[q.gte[0]] ?? "") >= q.gte[1])) return false;
   if (q.gt && !(String(row[q.gt[0]] ?? "") > q.gt[1])) return false;
+  if (q.lte && !(String(row[q.lte[0]] ?? "") <= q.lte[1])) return false;
   return true;
 }
 
@@ -113,6 +123,7 @@ export async function selectRows<T = Row>(table: TableName, q: Query = {}): Prom
     if (q.in) query = query.in(q.in[0], q.in[1]);
     if (q.gte) query = query.gte(q.gte[0], q.gte[1]);
     if (q.gt) query = query.gt(q.gt[0], q.gt[1]);
+    if (q.lte) query = query.lte(q.lte[0], q.lte[1]);
     if (q.order) query = query.order(q.order[0], { ascending: q.order[1] === "asc" });
     query = query.limit(q.limit ?? 1000);
     const { data, error } = await query;
@@ -163,5 +174,6 @@ export async function deleteRows(table: TableName, eq: Record<string, string>): 
     // Mô phỏng "on delete cascade" của chat_messages / doc_comments con.
     if (table === "chat_conversations" && eq.id) db.chat_messages = (db.chat_messages ?? []).filter((m) => m.conversation_id !== eq.id);
     if (table === "doc_comments" && eq.id) db.doc_comments = (db.doc_comments ?? []).filter((c) => c.parent_id !== eq.id);
+    if (table === "smt_assets" && eq.id) db.smt_asset_logs = (db.smt_asset_logs ?? []).filter((l) => l.asset_id !== eq.id);
   }, true);
 }

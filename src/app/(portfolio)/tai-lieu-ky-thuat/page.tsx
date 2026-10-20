@@ -6,6 +6,8 @@ import { getDocsData } from "@/lib/content/loaders";
 import { pickText } from "@/lib/content/i18n";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PageVisibilityGuard } from "@/components/page-visibility-guard";
+import { SmtTemplateShelf } from "@/components/smt/template-shelf";
+import { HandbookShelf } from "@/components/handbook/handbook-shelf";
 
 const PASSWORD_HASH =
   process.env.NEXT_PUBLIC_PRIVATE_DOCS_PASSWORD_HASH ??
@@ -47,6 +49,9 @@ export default function TaiLieuPage() {
     <PageVisibilityGuard pageKey="docs">
       <section className="space-y-6">
       <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-300">{lang === "vi" ? "Thư viện tài liệu kỹ thuật" : "Technical Knowledge Library"}</h1>
+
+      <HandbookShelf />
+      <SmtTemplateShelf />
 
       <div className="card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <input

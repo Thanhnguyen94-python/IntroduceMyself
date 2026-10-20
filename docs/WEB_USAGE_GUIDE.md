@@ -264,12 +264,57 @@ Tên shop, khẩu hiệu, thanh thông báo trên cùng, slideshow ảnh bìa, d
 
 **Nhận chuyển khoản:** tick 🏦, nhập mã ngân hàng (VCB, TCB, MB…), số tài khoản, tên chủ tài khoản. Web hiện mã QR thử 100.000₫ để bạn quét kiểm tra tên. Khi khách chọn chuyển khoản, trang đơn hiện mã VietQR có sẵn số tiền + nội dung = mã đơn.
 
+## 14. Mẫu báo cáo SMT (/tai-lieu-ky-thuat/smt-reports)
+
+Bộ 5 mẫu báo cáo kỹ sư SMT: **8D**, **4M1E**, **OEE & Line Balance**, **Yield & Defect Pareto**, **Feeder & Nozzle**. Khách xem báo cáo mẫu, tải Excel trống (có sẵn công thức, danh sách chọn) hoặc in PDF. Trang Tài liệu có kệ "Bộ mẫu báo cáo SMT" dẫn tới đây.
+
+**Bật / tắt:** Admin → **Nội dung & hiển thị** → công tắc **Mẫu báo cáo SMT**. Khi tắt, trang và link tải Excel đều báo "Đang bảo trì" (bạn đã đăng nhập vẫn xem được).
+
+**Dữ liệu trên trang công khai** (Admin → ⚙️ Cài đặt SMT): mặc định **Demo** (số liệu mô phỏng, an toàn). Chọn **Thực tế** thì trang công khai dùng số liệu bạn nhập nhưng đã bỏ work order, ghi chú, nguyên nhân, người phụ trách; 8D và 4M chỉ hiện bản ghi có tick **Công khai**.
+
+### Nhập dữ liệu — Admin → ⌨️ Nhập dữ liệu
+
+6 bộ dữ liệu: Nhật ký sản xuất (theo ca), Nhật ký lỗi, Cycle time trạm, Thay đổi 4M1E, Danh mục Feeder / Nozzle, Nhật ký Feeder / Nozzle.
+
+- **+ Thêm dòng** → điền → **Lưu & nhập tiếp** (giữ lại ngày, ca, line, model để nhập nhanh nhiều dòng).
+- **Dán từ Excel**: copy vùng ô (có hoặc không có dòng tiêu đề) rồi dán. Không có tiêu đề thì thứ tự cột phải giống file **Mẫu nhập .xlsx**. Có 1 dòng sai thì không dòng nào được ghi, web báo đúng dòng sai.
+- Nhật ký Feeder / Nozzle: cột feeder có thể ghi mã S/N (vd `FD-001`), không cần id.
+- **⬇ Xuất .xlsx** tải đúng các dòng đang lọc.
+
+### Báo cáo 8D — Admin → 🧭 Báo cáo 8D
+
+**+ Mở 8D mới** → nhập tiêu đề → đi qua các bước D0 → D8 (bước đã có nội dung có dấu ✓). D4 có Fishbone 6M và 5 Why cho 2 nhánh: vì sao **xảy ra** và vì sao **lọt**. Bấm **💾 Lưu** (mã 8D tự sinh dạng `8D-2610-01`). Tab **👁 Xem / In** để in PDF hoặc tải Excel.
+
+### Xuất báo cáo — Admin → 📊 Xuất báo cáo
+
+Chọn mẫu và kỳ báo cáo → **Excel (số liệu)** hoặc **In / Lưu PDF** (trong hộp thoại in chọn "Save as PDF"). Bản in có ô ký Người lập / Kiểm tra / Phê duyệt. Tick **Xem bằng dữ liệu demo** để xem thử khi chưa nhập dữ liệu.
+
+### Cài đặt — Admin → ⚙️ Cài đặt SMT
+
+Line (mã, tên, danh sách trạm theo thứ tự, takt time), ca làm việc, danh mục mã lỗi (gắn công đoạn để Pareto tự chia theo In kem / Gắn / Reflow…), mục tiêu OEE / FPY / DPMO / mispick.
+
+## 15. Sổ tay SMT (/tai-lieu-ky-thuat/so-tay)
+
+Sổ tay tra cứu ~54 tham số / khái niệm SMT chia 8 nhóm (Chất lượng & SPC, Năng suất, In kem, Gắn linh kiện, Reflow, Vật tư/MSL/ESD, Kiểm tra & IPC, Giải quyết vấn đề). Mỗi mục có: ý nghĩa, công thức, bảng ngưỡng tham khảo, lưu ý thực tế, mục liên quan; một số mục có **máy tính** (Cpk, DPMO ↔ Sigma, Area ratio, OEE, Takt/UPH, RTY, MTBF, MSL). Trang Tài liệu có thẻ "Sổ tay tra cứu SMT" dẫn tới đây.
+
+**Bật / tắt:** Admin → **Nội dung & hiển thị** → công tắc **Sổ tay SMT**.
+
+### Chỉnh sửa — Admin → 📘 Sổ tay SMT
+
+1. Lần đầu, web đang hiện **bộ mặc định viết sẵn** (nằm trong code). Bấm **📥 Nạp bộ mặc định để chỉnh sửa** để chép vào database – sau đó mới sửa / thêm / ẩn được.
+2. **Sửa** một mục: tiêu đề Việt/Anh, ký hiệu, nhóm, thứ tự, công thức, bảng ngưỡng (Tốt / Lưu ý / Nguy cơ / Tham khảo), máy tính kèm theo, nội dung Markdown (có xem trước song song), tags, mục liên quan, tiêu chuẩn tham chiếu. Bấm **💾 Lưu**.
+3. **+ Thêm mục**: mục mới mặc định là *Nháp* (chỉ admin thấy). Đổi trạng thái sang *Hiện công khai* khi viết xong; trong danh sách bấm ✓ Hiện / ◌ Nháp để đổi nhanh.
+4. Lỡ xoá mục mặc định: bấm **↺ Nạp mục mặc định còn thiếu** (không ghi đè mục bạn đã sửa).
+
+Nội dung chi tiết viết bằng Markdown giống tài liệu Hub: `### Tiêu đề`, bảng `| a | b |`, hộp ghi chú `> [!TIP]`, `> [!WARNING]`, ảnh / YouTube / Drive.
+
 ## Câu hỏi nhanh
 
 | Câu hỏi | Trả lời |
 |---|---|
 | Sửa trên web có mất khi deploy code mới không? | Không. Dữ liệu sửa trên web nằm trong database, deploy không ghi đè. |
 | Ảnh Drive không hiện? | Kiểm tra quyền chia sẻ "Bất kỳ ai có đường liên kết". |
+| Trang Mẫu báo cáo SMT có lộ số liệu nhà máy không? | Không, mặc định hiện số liệu demo. Chỉ khi bạn chọn "Thực tế" trong Cài đặt SMT mới dùng số liệu thật (đã bỏ thông tin nhạy cảm). |
 | Muốn bỏ hết chỉnh sửa trên web của 1 hub? | Cuối trang sửa hub → **↺ Khôi phục bản gốc**. |
 | Hub mới không thấy trên Portfolio? | Gán **Case study liên kết** và kiểm tra hub đang bật. |
 | Cửa hàng hiện "Đang bảo trì"? | Bật công tắc **Cửa hàng (/shop)** trong Admin → Nội dung & hiển thị. |

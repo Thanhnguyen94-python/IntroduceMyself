@@ -1,12 +1,13 @@
-// 5 trang Portfolio cố định (giữ nguyên như trước).
-export type PortfolioPageKey = "overview" | "journey" | "projects" | "showcase" | "docs";
+// Các trang Portfolio cố định. "smt" = Mẫu báo cáo SMT (/tai-lieu-ky-thuat/smt-reports),
+// "handbook" = Sổ tay SMT (/tai-lieu-ky-thuat/so-tay).
+export type PortfolioPageKey = "overview" | "journey" | "projects" | "showcase" | "docs" | "smt" | "handbook";
 
 // Mỗi Project Hub có key riêng dạng "hub:<slug>" (vd "hub:joy"), sinh tự động từ thư mục hub.
 export type HubPageKey = `hub:${string}`;
 
 export type ManagedPageKey = PortfolioPageKey | HubPageKey;
 
-export const PORTFOLIO_PAGE_KEYS: PortfolioPageKey[] = ["overview", "journey", "projects", "showcase", "docs"];
+export const PORTFOLIO_PAGE_KEYS: PortfolioPageKey[] = ["overview", "journey", "projects", "showcase", "docs", "smt", "handbook"];
 
 export type SiteVisibilityConfig = {
   schemaVersion: number;

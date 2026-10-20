@@ -30,6 +30,17 @@ const groups: Array<{ title: string; items: Array<{ href: string; label: string;
     ]
   },
   {
+    title: "Báo cáo SMT",
+    items: [
+      { href: "/admin/smt", label: "Tổng quan SMT", icon: "📈", exact: true },
+      { href: "/admin/smt/data", label: "Nhập dữ liệu", icon: "⌨️" },
+      { href: "/admin/smt/8d", label: "Báo cáo 8D", icon: "🧭" },
+      { href: "/admin/smt/reports", label: "Xuất báo cáo", icon: "📊" },
+      { href: "/admin/smt/handbook", label: "Sổ tay SMT", icon: "📘" },
+      { href: "/admin/smt/settings", label: "Cài đặt SMT", icon: "⚙️" }
+    ]
+  },
+  {
     title: "Người dùng",
     items: [
       { href: "/admin/inbox", label: "Hộp thư (chat & hỏi đáp)", icon: "💬" },
@@ -122,6 +133,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </a>
         <a href="/shop" target="_blank" rel="noreferrer" className="muted block rounded-xl px-3 py-2 hover:bg-brand-50 dark:hover:bg-slate-800">
           ↗ Xem Cửa hàng
+        </a>
+        <a href="/tai-lieu-ky-thuat/smt-reports" target="_blank" rel="noreferrer" className="muted block rounded-xl px-3 py-2 hover:bg-brand-50 dark:hover:bg-slate-800">
+          ↗ Xem Mẫu báo cáo SMT
         </a>
         <button onClick={logout} className="block w-full rounded-xl px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10">
           ⎋ Đăng xuất

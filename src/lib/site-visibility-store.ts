@@ -15,7 +15,7 @@ function isProductionRuntime() {
   return process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
 }
 
-// Danh sách key quản lý = 5 trang portfolio + 1 key cho mỗi Project Hub.
+// Danh sách key quản lý = các trang portfolio + 1 key cho mỗi Project Hub.
 async function getManagedKeys(): Promise<string[]> {
   const hubs = await listHubs();
   return [...PORTFOLIO_PAGE_KEYS, ...hubs.map((hub) => hubVisibilityKey(hub.slug))];
