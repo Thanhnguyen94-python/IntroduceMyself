@@ -49,7 +49,7 @@ Tài liệu này giúp bạn biết **muốn sửa mục nào thì vào file nà
 - Ảnh đại diện box đầu: [public/assets/images/profile-mr-jay.jpg](public/assets/images/profile-mr-jay.jpg)
 - Ảnh nền SMT: [public/assets/images/smt-bg.png](public/assets/images/smt-bg.png)
 - CSS nền: [src/app/globals.css](src/app/globals.css)
-- Giao diện box đầu: [src/app/tong-quan/page.tsx](src/app/tong-quan/page.tsx)
+- Giao diện box đầu (Hero trang chủ): [src/components/home/home-sections.tsx](src/components/home/home-sections.tsx)
 
 ## 9) Chạy thử nhanh sau khi sửa
 ```bash

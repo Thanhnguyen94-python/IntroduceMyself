@@ -308,6 +308,28 @@ Sổ tay tra cứu ~54 tham số / khái niệm SMT chia 8 nhóm (Chất lượn
 
 Nội dung chi tiết viết bằng Markdown giống tài liệu Hub: `### Tiêu đề`, bảng `| a | b |`, hộp ghi chú `> [!TIP]`, `> [!WARNING]`, ảnh / YouTube / Drive.
 
+## 16. SMT Workspace (/smt)
+
+Không gian riêng (header riêng, không lẫn trang giới thiệu bản thân), có link qua lại với Portfolio (menu **SMT Dashboard** và chân trang "← Hồ sơ Mr Jay").
+
+| Trang | Nội dung |
+|---|---|
+| `/smt` | KPI nhà máy, so sánh 3 cấp line (Cơ bản / M-AOI / Pro), OEE theo tuần, Pareto lỗi, dừng máy, so sánh theo quý |
+| `/smt/line`, `/smt/line/L05` | Sơ đồ trạm, OEE & Line balance, Yield & Pareto, Feeder/Nozzle, 8D · 4M · công việc của line |
+| `/smt/bao-cao/...` | 5 mẫu báo cáo chạy trên dữ liệu đang xem (Excel / PDF) |
+| `/smt/cong-viec` | Giao việc, Kanban, ô **Cần theo dõi** (quá hạn, chờ nghiệm thu, bị chặn, đến hẹn hỏi lại, 7 ngày im lặng) |
+| `/smt/doi-ngu` | Chấm điểm kỹ sư theo quý, công thức hiển thị ngay trên trang |
+
+**Demo / Thực tế:** nút ở góc phải header. Lựa chọn lưu trong cookie **của trình duyệt bạn**, nên bạn xem Demo thì khách vẫn xem đúng chế độ mặc định của họ.
+- Khách: mặc định theo Cài đặt SMT → "Trang công khai dùng dữ liệu". Công việc / đánh giá kỹ sư **thực tế** chỉ admin xem được.
+- Admin: sửa công việc ở chế độ Demo chỉ ghi vào dữ liệu demo (`is_demo = true`) → "sân tập" thoải mái, không đụng dữ liệu thật.
+
+**Tạo dữ liệu demo:** Admin → 🧪 **Dữ liệu demo & dung lượng** → **+ Tạo dữ liệu demo** (≈ 61.000 dòng: 10 line, từ đầu quý cách đây 2 quý đến hôm nay, có 8 kỹ sư và ~210 công việc). Chưa tạo thì /smt vẫn xem được (tính tạm trong bộ nhớ) nhưng chưa giao việc thử được. **↻ Tạo lại** = xoá demo cũ và sinh lại theo ngày hôm nay. Trang này cũng hiện dung lượng database so với 500 MB của gói Free và cách sao lưu.
+
+**Bật / tắt:** Admin → **Nội dung & hiển thị** → công tắc **SMT Workspace (/smt)**.
+
+**Line thật:** khai báo ở Admin → ⚙️ Cài đặt SMT. Đặt tên trạm `M-AOI` (trước `Reflow`) và `AXI` để trang tự xếp cấp line; feeder/nozzle gắn với line khi cột **Máy** bắt đầu bằng mã line (vd `L1 · Mounter 2`).
+
 ## Câu hỏi nhanh
 
 | Câu hỏi | Trả lời |
@@ -318,4 +340,6 @@ Nội dung chi tiết viết bằng Markdown giống tài liệu Hub: `### Tiêu
 | Muốn bỏ hết chỉnh sửa trên web của 1 hub? | Cuối trang sửa hub → **↺ Khôi phục bản gốc**. |
 | Hub mới không thấy trên Portfolio? | Gán **Case study liên kết** và kiểm tra hub đang bật. |
 | Cửa hàng hiện "Đang bảo trì"? | Bật công tắc **Cửa hàng (/shop)** trong Admin → Nội dung & hiển thị. |
+| Mình xem Demo có làm khách thấy Demo theo không? | Không. Nút Demo / Thực tế lưu trong cookie riêng trình duyệt của bạn. |
+| Link `/tong-quan` cũ (QR trên CV đã in)? | Vẫn dùng được, tự chuyển về Trang chủ. |
 | Sản phẩm không hiện trên cửa hàng? | Kiểm tra trạng thái là **Đang bán**. |

@@ -23,7 +23,6 @@ export async function PUT(request: Request) {
 
     const saved = await writeSiteVisibility(payload);
     revalidatePath("/");
-    revalidatePath("/tong-quan");
     revalidatePath("/hanh-trinh");
     revalidatePath("/du-an");
     revalidatePath("/tai-lieu-ky-thuat");

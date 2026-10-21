@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { PasswordInput } from "@/components/ui/password-input";
 
-export function AdminLoginForm() {
+// next: trang quay lại sau khi đăng nhập (đã được lọc chỉ nhận đường dẫn nội bộ ở trang login).
+export function AdminLoginForm({ next = "/admin" }: { next?: string }) {
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -29,7 +30,7 @@ export function AdminLoginForm() {
         return;
       }
 
-      window.location.href = "/admin";
+      window.location.href = next;
     } finally {
       setLoading(false);
     }

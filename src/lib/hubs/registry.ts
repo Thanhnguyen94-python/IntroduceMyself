@@ -13,7 +13,7 @@ export const HUBS_DIR = path.join(process.cwd(), "src", "content", "hubs");
 
 export const HUB_SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 // Slug trùng route tĩnh / thư mục public sẽ không bao giờ mở được hub.
-export const RESERVED_HUB_SLUGS = new Set(["admin", "api", "assets", "firmware", "cv", "du-an", "hanh-trinh", "san-pham-trung-bay", "shop", "tai-lieu-ky-thuat", "tong-quan", "_next"]);
+export const RESERVED_HUB_SLUGS = new Set(["admin", "api", "assets", "firmware", "cv", "du-an", "hanh-trinh", "san-pham-trung-bay", "shop", "smt", "tai-lieu-ky-thuat", "tong-quan", "_next"]);
 
 const emptyText = { vi: "", en: "" };
 const BLOCK_IDS: HubBlockId[] = ["features", "specs-docs", "latest"];

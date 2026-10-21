@@ -23,7 +23,10 @@ export type TableName =
   | "smt_4m_changes"
   | "smt_assets"
   | "smt_asset_logs"
-  | "smt_handbook";
+  | "smt_handbook"
+  | "smt_engineers"
+  | "smt_tasks"
+  | "smt_task_updates";
 
 type Row = Record<string, unknown> & { id: string; created_at: string };
 
@@ -75,8 +78,9 @@ function withDev<T>(fn: (db: Record<string, Row[]>) => T | Promise<T>, write: bo
   return run;
 }
 
+// Cột boolean thêm sau (vd is_demo) không có trong dòng cũ của file dev -> coi là false như default của DB.
 function matches(row: Row, q: Query) {
-  if (q.eq) for (const [k, v] of Object.entries(q.eq)) if ((row[k] ?? null) !== v) return false;
+  if (q.eq) for (const [k, v] of Object.entries(q.eq)) if ((row[k] ?? (typeof v === "boolean" ? false : null)) !== v) return false;
   if (q.in && !q.in[1].includes(String(row[q.in[0]]))) return false;
   if (q.gte && !(String(row[q.gte[0]] ?? "") >= q.gte[1])) return false;
   if (q.gt && !(String(row[q.gt[0]] ?? "") > q.gt[1])) return false;
@@ -115,22 +119,70 @@ export async function insertRow<T extends object>(table: TableName, row: T): Pro
   }, true);
 }
 
+// PostgREST của Supabase trả tối đa 1.000 dòng / request -> limit lớn hơn thì đọc nhiều trang song song.
+const PAGE = 1000;
+
 export async function selectRows<T = Row>(table: TableName, q: Query = {}): Promise<T[]> {
   const supabase = client();
+  const limit = q.limit ?? 1000;
   if (supabase) {
-    let query = supabase.from(table).select(q.columns ?? "*");
-    if (q.eq) for (const [k, v] of Object.entries(q.eq)) query = v === null ? query.is(k, null) : query.eq(k, v);
-    if (q.in) query = query.in(q.in[0], q.in[1]);
-    if (q.gte) query = query.gte(q.gte[0], q.gte[1]);
-    if (q.gt) query = query.gt(q.gt[0], q.gt[1]);
-    if (q.lte) query = query.lte(q.lte[0], q.lte[1]);
-    if (q.order) query = query.order(q.order[0], { ascending: q.order[1] === "asc" });
-    query = query.limit(q.limit ?? 1000);
-    const { data, error } = await query;
-    if (error) throw new Error(`[${table}] select: ${error.message}`);
-    return (data ?? []) as T[];
+    const build = (count: boolean) => {
+      let query = supabase.from(table).select(q.columns ?? "*", count ? { count: "exact" } : undefined);
+      if (q.eq) for (const [k, v] of Object.entries(q.eq)) query = v === null ? query.is(k, null) : query.eq(k, v);
+      if (q.in) query = query.in(q.in[0], q.in[1]);
+      if (q.gte) query = query.gte(q.gte[0], q.gte[1]);
+      if (q.gt) query = query.gt(q.gt[0], q.gt[1]);
+      if (q.lte) query = query.lte(q.lte[0], q.lte[1]);
+      // Thêm id để thứ tự giữa các trang ổn định (không trùng / sót dòng cùng ngày).
+      if (q.order) query = query.order(q.order[0], { ascending: q.order[1] === "asc" }).order("id");
+      return query;
+    };
+    const first = await build(limit > PAGE).range(0, Math.min(limit, PAGE) - 1);
+    if (first.error) throw new Error(`[${table}] select: ${first.error.message}`);
+    const rows = (first.data ?? []) as T[];
+    const total = Math.min(limit, first.count ?? rows.length);
+    if (total <= rows.length) return rows;
+    const pages = await Promise.all(
+      Array.from({ length: Math.ceil((total - PAGE) / PAGE) }, (_, i) => build(false).range(PAGE * (i + 1), Math.min(total, PAGE * (i + 2)) - 1))
+    );
+    for (const page of pages) {
+      if (page.error) throw new Error(`[${table}] select: ${page.error.message}`);
+      rows.push(...((page.data ?? []) as T[]));
+    }
+    return rows;
   }
-  return withDev((db) => sortRows((db[table] ?? []).filter((r) => matches(r, q)), q).slice(0, q.limit ?? 1000) as T[], false);
+  return withDev((db) => sortRows((db[table] ?? []).filter((r) => matches(r, q)), q).slice(0, limit) as T[], false);
+}
+
+// Ghi nhiều dòng một lần (nhập Excel, tạo dữ liệu demo). Không trả dữ liệu về để nhẹ request.
+export async function insertMany(table: TableName, rows: Array<Record<string, unknown>>): Promise<number> {
+  if (!rows.length) return 0;
+  const supabase = client();
+  if (supabase) {
+    for (let i = 0; i < rows.length; i += PAGE) {
+      const { error } = await supabase.from(table).insert(rows.slice(i, i + PAGE));
+      if (error) throw new Error(`[${table}] insert: ${error.message}`);
+    }
+    return rows.length;
+  }
+  return withDev((db) => {
+    const now = new Date().toISOString();
+    (db[table] ??= []).push(...rows.map((r) => ({ id: randomUUID(), created_at: now, ...r }) as Row));
+    return rows.length;
+  }, true);
+}
+
+// Đếm số dòng khớp (không tải dữ liệu).
+export async function countRows(table: TableName, eq: Record<string, string | number | boolean> = {}): Promise<number> {
+  const supabase = client();
+  if (supabase) {
+    let query = supabase.from(table).select("id", { count: "exact", head: true });
+    for (const [k, v] of Object.entries(eq)) query = query.eq(k, v);
+    const { count, error } = await query;
+    if (error) throw new Error(`[${table}] count: ${error.message}`);
+    return count ?? 0;
+  }
+  return withDev((db) => (db[table] ?? []).filter((r) => matches(r, { eq })).length, false);
 }
 
 export async function getRow<T = Row>(table: TableName, id: string): Promise<T | null> {
@@ -160,7 +212,7 @@ export async function updateRows(table: TableName, eq: Record<string, string | n
   }, true);
 }
 
-export async function deleteRows(table: TableName, eq: Record<string, string>): Promise<void> {
+export async function deleteRows(table: TableName, eq: Record<string, string | boolean>): Promise<void> {
   const supabase = client();
   if (supabase) {
     let query = supabase.from(table).delete();
@@ -175,5 +227,7 @@ export async function deleteRows(table: TableName, eq: Record<string, string>): 
     if (table === "chat_conversations" && eq.id) db.chat_messages = (db.chat_messages ?? []).filter((m) => m.conversation_id !== eq.id);
     if (table === "doc_comments" && eq.id) db.doc_comments = (db.doc_comments ?? []).filter((c) => c.parent_id !== eq.id);
     if (table === "smt_assets" && eq.id) db.smt_asset_logs = (db.smt_asset_logs ?? []).filter((l) => l.asset_id !== eq.id);
+    if (table === "smt_tasks" && eq.id) db.smt_task_updates = (db.smt_task_updates ?? []).filter((u) => u.task_id !== eq.id);
+    if (table === "smt_engineers" && eq.id) for (const t of db.smt_tasks ?? []) if (t.assignee_id === eq.id) t.assignee_id = null;
   }, true);
 }

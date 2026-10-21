@@ -15,7 +15,6 @@ async function ensureAdminSession() {
 
 function revalidateJourneyPages() {
   revalidatePath("/hanh-trinh");
-  revalidatePath("/tong-quan");
   revalidatePath("/cv");
 }
 

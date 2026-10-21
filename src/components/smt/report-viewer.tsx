@@ -124,8 +124,8 @@ export function ReportViewer({ slug, bundle, settings, from, to, source, fixedRa
       {source === "demo" && !blank && (
         <p className="muted text-xs">
           {t(
-            `* Số liệu mô phỏng 2 line SMT (${dmy(from)} → ${dmy(to)}) để minh hoạ mẫu báo cáo, không phải dữ liệu thật của nhà máy.`,
-            `* Simulated data for 2 SMT lines (${dmy(from)} → ${dmy(to)}) to illustrate the template — not real factory data.`
+            `* Số liệu mô phỏng ${settings.lines.length} line SMT (${dmy(from)} → ${dmy(to)}) để minh hoạ mẫu báo cáo, không phải dữ liệu thật của nhà máy.`,
+            `* Simulated data for ${settings.lines.length} SMT lines (${dmy(from)} → ${dmy(to)}) to illustrate the template — not real factory data.`
           )}
         </p>
       )}

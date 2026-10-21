@@ -15,7 +15,7 @@ export function ReportWorkbench({ initialSlug }: { initialSlug: ReportSlug }) {
   const [to, setTo] = useState(todayVn());
   const [demo, setDemo] = useState(false);
   const [settings, setSettings] = useState<SmtSettings>(DEFAULT_SMT_SETTINGS);
-  const [data, setData] = useState<{ bundle: SmtDataBundle; from: string; to: string } | null>(null);
+  const [data, setData] = useState<{ bundle: SmtDataBundle; from: string; to: string; settings?: SmtSettings } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -32,9 +32,10 @@ export function ReportWorkbench({ initialSlug }: { initialSlug: ReportSlug }) {
     setError("");
     fetch(`/api/admin/smt/bundle?from=${from}&to=${to}${demo ? "&demo=1" : ""}`, { cache: "no-store" })
       .then(async (r) => {
-        const d = (await r.json()) as { bundle?: SmtDataBundle; from?: string; to?: string; message?: string };
+        const d = (await r.json()) as { bundle?: SmtDataBundle; from?: string; to?: string; settings?: SmtSettings; message?: string };
         if (!r.ok || !d.bundle) throw new Error(d.message ?? "Không đọc được dữ liệu.");
-        if (alive) setData({ bundle: d.bundle, from: d.from!, to: d.to! });
+        // Demo có cấu hình 10 line riêng -> dùng settings đi kèm thay vì cài đặt line thật.
+        if (alive) setData({ bundle: d.bundle, from: d.from!, to: d.to!, settings: d.settings });
       })
       .catch((e: Error) => alive && setError(e.message))
       .finally(() => alive && setLoading(false));
@@ -98,7 +99,7 @@ export function ReportWorkbench({ initialSlug }: { initialSlug: ReportSlug }) {
         <p className="card muted text-sm">Đang tải dữ liệu…</p>
       ) : data ? (
         <div className={loading ? "opacity-60" : ""}>
-          <ReportViewer key={`${slug}-${data.from}-${data.to}-${demo}`} slug={slug} bundle={data.bundle} settings={settings} from={data.from} to={data.to} source={demo ? "demo" : "live"} fixedRange />
+          <ReportViewer key={`${slug}-${data.from}-${data.to}-${demo}`} slug={slug} bundle={data.bundle} settings={data.settings ?? settings} from={data.from} to={data.to} source={demo ? "demo" : "live"} fixedRange />
         </div>
       ) : null}
     </section>

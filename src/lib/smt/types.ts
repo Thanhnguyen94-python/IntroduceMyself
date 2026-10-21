@@ -13,7 +13,8 @@ export const SMT_PROCESSES: Array<{ id: SmtProcess; vi: string; en: string }> = 
   { id: "other", vi: "Khác", en: "Other" }
 ];
 
-export const DETECT_POINTS = ["SPI", "AOI", "AXI", "ICT", "FCT", "Visual", "Customer"] as const;
+// M-AOI = AOI đặt sau Mounter, trước lò: bắt lỗi gắn linh kiện khi còn sửa dễ (chưa hàn).
+export const DETECT_POINTS = ["SPI", "M-AOI", "AOI", "AXI", "ICT", "FCT", "Visual", "Customer"] as const;
 
 export type ProductionLog = {
   id: string;

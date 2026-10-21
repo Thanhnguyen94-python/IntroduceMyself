@@ -27,8 +27,7 @@ export default async function SmtReportsPage() {
   const access = await smtAccess();
   if (!access.open) return <SmtMaintenance />;
 
-  const settings = await readSmtSettings();
-  const { bundle, source, from, to } = await loadPublicBundle(settings);
+  const { bundle, settings, source, from, to } = await loadPublicBundle(await readSmtSettings());
   const oee = oeeOf(filterProduction(bundle.production, { from, to }));
   const quality = buildYieldReport(bundle.production, bundle.defects, settings, { from, to });
   const critical = buildAssetHealth(bundle.assets, bundle.assetLogs, settings, { from, to }).filter((a) => a.health === "critical").length;

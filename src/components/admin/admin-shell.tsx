@@ -37,6 +37,7 @@ const groups: Array<{ title: string; items: Array<{ href: string; label: string;
       { href: "/admin/smt/8d", label: "Báo cáo 8D", icon: "🧭" },
       { href: "/admin/smt/reports", label: "Xuất báo cáo", icon: "📊" },
       { href: "/admin/smt/handbook", label: "Sổ tay SMT", icon: "📘" },
+      { href: "/admin/smt/demo", label: "Dữ liệu demo & dung lượng", icon: "🧪" },
       { href: "/admin/smt/settings", label: "Cài đặt SMT", icon: "⚙️" }
     ]
   },

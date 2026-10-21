@@ -13,6 +13,8 @@ const nextConfig = {
       { source: "/nap-firmware", destination: "/joy/flash", permanent: false },
       // Trang "Sản phẩm trưng bày" cũ trong Portfolio đã chuyển thành Cửa hàng riêng.
       { source: "/san-pham-trung-bay", destination: "/shop", permanent: true },
+      // Trang Tổng quan cũ đã gộp vào Trang chủ. Giữ redirect cho CV đã in / link đã chia sẻ (mã QR cũ).
+      { source: "/tong-quan", destination: "/", permanent: true },
       { source: "/admin/orders", destination: "/admin/shop/orders", permanent: false }
     ];
   }
