@@ -12,6 +12,7 @@ import { readDemoMeta, type DemoMeta } from "@/lib/smt/demo-meta";
 import { demoTeam } from "@/lib/smt/demo-team";
 import { listDataset, loadBundle, readSmtSettings, sanitizeBundle } from "@/lib/smt/store";
 import { SMT_MODE_COOKIE, type SmtMode } from "@/lib/smt/mode";
+import { ALL_MODULES, moduleSet, type ModuleSet } from "@/lib/smt/modules";
 import { addDays, todayVn } from "@/lib/smt/types";
 import type { Asset, AssetLog, ChangeLog, CycleTime, DefectLog, EightDReport, ProductionLog, SmtDataBundle, SmtSettings } from "@/lib/smt/types";
 import type { Engineer, Task, TaskUpdate } from "@/lib/smt/team-types";
@@ -45,6 +46,10 @@ export type WorkspaceCtx = {
   // Demo đã lưu trong DB? (chưa -> tính tạm trong bộ nhớ, không sửa được)
   stored: boolean;
   canEdit: boolean;
+  // Nhóm nội dung đang hiện (Phạm vi quản lý trong Cài đặt SMT). Demo hiện đủ, trừ khi admin bật "áp dụng cả Demo".
+  modules: ModuleSet;
+  // Phạm vi của dữ liệu thật (nhập liệu, báo cáo ngày/tuần luôn dùng dữ liệu thật).
+  liveModules: ModuleSet;
 };
 
 // cache(): layout + page trong cùng 1 request chỉ đọc cookie / cài đặt 1 lần.
@@ -76,7 +81,9 @@ export const workspaceContext = cache(async (): Promise<WorkspaceCtx> => {
     meta,
     today: demo ? (meta?.to ?? todayVn()) : todayVn(),
     stored,
-    canEdit: staff && stored
+    canEdit: staff && stored,
+    modules: moduleSet(demo && !liveSettings.modulesInDemo ? ALL_MODULES : liveSettings.modules),
+    liveModules: moduleSet(liveSettings.modules)
   };
 });
 

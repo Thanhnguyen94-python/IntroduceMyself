@@ -1,4 +1,5 @@
 import { SmtMaintenance } from "@/components/smt/smt-notices";
+import { ModuleOff } from "@/components/smt-workspace/module-off";
 import { AdminOnly } from "@/components/smt-workspace/admin-only";
 import { TaskBoard } from "@/components/smt-workspace/task-board";
 import { can } from "@/lib/smt/permissions";
@@ -12,6 +13,7 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 export default async function SmtTasksPage({ searchParams }: Props) {
   const ctx = await workspaceContext();
   if (!ctx.open) return <SmtMaintenance />;
+  if (!ctx.modules.team) return <ModuleOff isAdmin={ctx.isAdmin} />;
   if (!ctx.demo && !ctx.actor) return <AdminOnly next="/smt/cong-viec" what={{ vi: "Công việc", en: "tasks" }} />;
   const sp = await searchParams;
   const team = await loadTeam(ctx);

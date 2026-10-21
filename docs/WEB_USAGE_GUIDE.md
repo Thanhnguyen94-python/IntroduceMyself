@@ -348,6 +348,20 @@ Không gian riêng (header riêng, không lẫn trang giới thiệu bản thân
 
 **Line thật:** khai báo ở Admin → ⚙️ Cài đặt SMT. Đặt tên trạm `M-AOI` (trước `Reflow`) và `AXI` để trang tự xếp cấp line; feeder/nozzle gắn với line khi cột **Máy** bắt đầu bằng mã line (vd `L1 · Mounter 2`).
 
+### Phạm vi quản lý (chỉ hiện phần số liệu bạn có)
+
+Admin → ⚙️ Cài đặt SMT → **Phạm vi quản lý**. Chọn nhanh **Quản lý kỹ sư** / **Quản lý sản xuất** / **Giám đốc bộ phận (đầy đủ)**, hoặc tick từng nhóm:
+
+| Nhóm | Gồm |
+|---|---|
+| 👥 Đội ngũ & công việc | Công việc, Đội ngũ (KPI kỹ sư), việc trong báo cáo ngày/tuần |
+| ⚙️ Hiệu suất & thiết bị | OEE (A·P·Q), dừng máy, cycle time, feeder/nozzle, 4M |
+| 🎯 Chất lượng | FPY, DPMO, Pareto lỗi, lỗi lọt khách hàng, 8D |
+| 📦 Sản lượng | Số board, board/ngày, sản lượng theo line / quý |
+| 📊 So sánh cấp line & theo quý | Khối "Đầu tư thiết bị có đáng không", bảng so sánh theo quý |
+
+Nhóm tắt thì ô KPI, cột bảng, biểu đồ, tab line, mẫu báo cáo, mục menu và thẻ nhập liệu tương ứng đều ẩn. **Chỉ ẩn hiển thị**: dữ liệu đã nhập vẫn còn, bật lại là thấy đủ. Mặc định Demo vẫn hiện đầy đủ; tick **Áp dụng cả khi xem Demo** để xem trước trang thật của bạn trông thế nào.
+
 ## Câu hỏi nhanh
 
 | Câu hỏi | Trả lời |

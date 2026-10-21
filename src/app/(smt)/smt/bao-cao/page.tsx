@@ -1,4 +1,6 @@
 import { SmtMaintenance } from "@/components/smt/smt-notices";
+import { ModuleOff } from "@/components/smt-workspace/module-off";
+import { REPORT_MODULE } from "@/lib/smt/modules";
 import Link from "next/link";
 import { L } from "@/components/ui/localized";
 import { REPORT_TEMPLATES } from "@/lib/smt/catalog";
@@ -11,6 +13,8 @@ export const metadata = { title: "Báo cáo" };
 export default async function SmtReportsIndexPage() {
   const ctx = await workspaceContext();
   if (!ctx.open) return <SmtMaintenance />;
+  const templates = REPORT_TEMPLATES.filter((r) => ctx.modules[REPORT_MODULE[r.slug]]);
+  if (!templates.length) return <ModuleOff isAdmin={ctx.isAdmin} />;
   return (
     <div className="space-y-4">
       <div>
@@ -22,7 +26,7 @@ export default async function SmtReportsIndexPage() {
         </p>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {REPORT_TEMPLATES.map((r) => (
+        {templates.map((r) => (
           <Link key={r.slug} href={`/smt/bao-cao/${r.slug}`} className="card block space-y-2 hover:border-brand-400">
             <p className="text-2xl" aria-hidden>
               {r.icon}

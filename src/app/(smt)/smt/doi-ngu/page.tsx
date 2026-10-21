@@ -1,4 +1,5 @@
 import { SmtMaintenance } from "@/components/smt/smt-notices";
+import { ModuleOff } from "@/components/smt-workspace/module-off";
 import { AdminOnly } from "@/components/smt-workspace/admin-only";
 import { TeamView } from "@/components/smt-workspace/team-view";
 import { quarterStart } from "@/lib/smt/demo";
@@ -18,6 +19,7 @@ const quarterLabel = (start: string) => `Q${Math.floor((Number(start.slice(5, 7)
 export default async function SmtTeamPage({ searchParams }: Props) {
   const ctx = await workspaceContext();
   if (!ctx.open) return <SmtMaintenance />;
+  if (!ctx.modules.team) return <ModuleOff isAdmin={ctx.isAdmin} />;
   if (!ctx.demo && !ctx.actor) return <AdminOnly next="/smt/doi-ngu" what={{ vi: "Đánh giá kỹ sư", en: "team scores" }} />;
   // Kỹ sư (dữ liệu thật) chỉ thấy điểm của chính mình; điểm vẫn tính trên cả đội (trung vị khối lượng).
   const onlyMine = !ctx.demo && !can(ctx.actor, "team.viewAll") ? (ctx.actor?.engineerId ?? "none") : null;

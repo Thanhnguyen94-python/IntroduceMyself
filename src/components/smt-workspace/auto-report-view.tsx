@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/smt/smt-charts";
 import type { AutoReport } from "@/lib/smt/auto-reports";
+import { hasFactoryData, type ModuleSet } from "@/lib/smt/modules";
 import { num, pct } from "@/lib/smt/types";
 
 const when = (iso: string) => new Date(iso).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
@@ -75,10 +76,22 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-export function AutoReportDetail({ report }: { report: AutoReport }) {
+// Ẩn khối theo Phạm vi quản lý (dữ liệu thật): công việc -> team; sản xuất -> board / OEE / FPY theo nhóm.
+export function AutoReportDetail({ report, modules: m }: { report: AutoReport; modules: ModuleSet }) {
   const t = useT();
   const p = report.payload;
   const k = p.tasks;
+  const prod = hasFactoryData(m) ? p.production : null;
+  const prodSummary = prod
+    ? [
+        m.production && `${num(prod.boards)} board`,
+        m.equipment && `OEE ${pct(prod.oee)}`,
+        m.quality && `FPY ${pct(prod.fpy, 2)}`,
+        m.quality && `${t("lỗi nhiều nhất", "top defects")}: ${prod.topDefects.map((d) => `${d.code} (${d.qty})`).join(", ") || "—"}`
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
   return (
     <div className="space-y-4">
       <div>
@@ -90,21 +103,23 @@ export function AutoReportDetail({ report }: { report: AutoReport }) {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {[
-          [t("Việc mới giao", "Assigned"), k.assigned],
-          [t("Nghiệm thu xong", "Accepted"), k.done.length],
-          [t("Gửi nghiệm thu", "Submitted"), k.submitted],
-          [t("Bị trả lại", "Returned"), k.returned.length],
-          [t("Đang quá hạn", "Overdue now"), k.overdue.length],
-          [t("Chờ duyệt / nghiệm thu", "Pending approval/review"), k.proposals + k.awaitingReview]
-        ].map(([label, v]) => (
-          <div key={String(label)} className="card">
-            <p className="muted text-xs">{label}</p>
-            <p className="text-2xl font-semibold tabular-nums">{v}</p>
-          </div>
-        ))}
-      </div>
+      {m.team && (
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {[
+            [t("Việc mới giao", "Assigned"), k.assigned],
+            [t("Nghiệm thu xong", "Accepted"), k.done.length],
+            [t("Gửi nghiệm thu", "Submitted"), k.submitted],
+            [t("Bị trả lại", "Returned"), k.returned.length],
+            [t("Đang quá hạn", "Overdue now"), k.overdue.length],
+            [t("Chờ duyệt / nghiệm thu", "Pending approval/review"), k.proposals + k.awaitingReview]
+          ].map(([label, v]) => (
+            <div key={String(label)} className="card">
+              <p className="muted text-xs">{label}</p>
+              <p className="text-2xl font-semibold tabular-nums">{v}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {report.ai_summary && (
         <Block title={t("Tóm tắt thảo luận (AI)", "Discussion summary (AI)")}>
@@ -114,66 +129,70 @@ export function AutoReportDetail({ report }: { report: AutoReport }) {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Block title={t("Việc quá hạn", "Overdue tasks")}>
-          <ul className="space-y-1 text-sm">
-            {k.overdue.slice(0, 15).map((x) => (
-              <li key={x.code}>
-                <b className="font-mono">{x.code}</b> {x.title} <span className="muted">· {x.who} · {t("hạn", "due")} {x.due.split("-").reverse().join("/")}</span>
-              </li>
-            ))}
-            {!k.overdue.length && <li className="muted">{t("Không có. 👍", "None. 👍")}</li>}
-          </ul>
-        </Block>
-        <Block title={t("Không cập nhật trong kỳ", "No updates this period")}>
-          <p className="muted text-xs">{t("Có việc “Đang làm” nhưng không ghi tiến độ / ghi chú nào.", "Has in-progress tasks but logged nothing.")}</p>
-          <ul className="space-y-1 text-sm">
-            {k.silent.map((x) => (
-              <li key={x.name}>
-                {x.name} <span className="muted">· {x.open} {t("việc đang mở", "open tasks")}</span>
-              </li>
-            ))}
-            {!k.silent.length && <li className="muted">{t("Mọi người đều đã cập nhật.", "Everyone updated.")}</li>}
-          </ul>
-        </Block>
-        <Block title={t("Nghiệm thu / trả lại", "Accepted / returned")}>
-          <ul className="space-y-1 text-sm">
-            {k.done.map((x) => (
-              <li key={x.code}>
-                ✓ <b className="font-mono">{x.code}</b> {x.title} <span className="muted">· {x.who}</span> {x.late && <span className="text-amber-700 dark:text-amber-300">· {t("trễ hạn", "late")}</span>}
-              </li>
-            ))}
-            {k.returned.map((x, i) => (
-              <li key={`${x.code}-${i}`}>
-                ↩ <b className="font-mono">{x.code}</b> {x.title} <span className="muted">· {x.who} · {x.note}</span>
-              </li>
-            ))}
-            {!k.done.length && !k.returned.length && <li className="muted">—</li>}
-          </ul>
-        </Block>
-        <Block title={t("Theo từng kỹ sư", "By engineer")}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="muted text-left text-xs">
-                <th className="py-1">{t("Kỹ sư", "Engineer")}</th>
-                <th className="py-1 text-right">{t("Cập nhật", "Updates")}</th>
-                <th className="py-1 text-right">{t("Xong", "Done")}</th>
-                <th className="py-1 text-right">{t("Đang mở", "Open")}</th>
-                <th className="py-1 text-right">{t("Quá hạn", "Overdue")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {k.perEngineer.map((e) => (
-                <tr key={e.name} className="border-t" style={{ borderColor: "var(--border)" }}>
-                  <td className="py-1">{e.name}</td>
-                  <td className="py-1 text-right tabular-nums">{e.updates}</td>
-                  <td className="py-1 text-right tabular-nums">{e.done}</td>
-                  <td className="py-1 text-right tabular-nums">{e.open}</td>
-                  <td className={`py-1 text-right tabular-nums ${e.overdue ? "font-semibold text-red-600 dark:text-red-400" : ""}`}>{e.overdue}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Block>
+        {m.team && (
+          <>
+            <Block title={t("Việc quá hạn", "Overdue tasks")}>
+              <ul className="space-y-1 text-sm">
+                {k.overdue.slice(0, 15).map((x) => (
+                  <li key={x.code}>
+                    <b className="font-mono">{x.code}</b> {x.title} <span className="muted">· {x.who} · {t("hạn", "due")} {x.due.split("-").reverse().join("/")}</span>
+                  </li>
+                ))}
+                {!k.overdue.length && <li className="muted">{t("Không có. 👍", "None. 👍")}</li>}
+              </ul>
+            </Block>
+            <Block title={t("Không cập nhật trong kỳ", "No updates this period")}>
+              <p className="muted text-xs">{t("Có việc “Đang làm” nhưng không ghi tiến độ / ghi chú nào.", "Has in-progress tasks but logged nothing.")}</p>
+              <ul className="space-y-1 text-sm">
+                {k.silent.map((x) => (
+                  <li key={x.name}>
+                    {x.name} <span className="muted">· {x.open} {t("việc đang mở", "open tasks")}</span>
+                  </li>
+                ))}
+                {!k.silent.length && <li className="muted">{t("Mọi người đều đã cập nhật.", "Everyone updated.")}</li>}
+              </ul>
+            </Block>
+            <Block title={t("Nghiệm thu / trả lại", "Accepted / returned")}>
+              <ul className="space-y-1 text-sm">
+                {k.done.map((x) => (
+                  <li key={x.code}>
+                    ✓ <b className="font-mono">{x.code}</b> {x.title} <span className="muted">· {x.who}</span> {x.late && <span className="text-amber-700 dark:text-amber-300">· {t("trễ hạn", "late")}</span>}
+                  </li>
+                ))}
+                {k.returned.map((x, i) => (
+                  <li key={`${x.code}-${i}`}>
+                    ↩ <b className="font-mono">{x.code}</b> {x.title} <span className="muted">· {x.who} · {x.note}</span>
+                  </li>
+                ))}
+                {!k.done.length && !k.returned.length && <li className="muted">—</li>}
+              </ul>
+            </Block>
+            <Block title={t("Theo từng kỹ sư", "By engineer")}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="muted text-left text-xs">
+                    <th className="py-1">{t("Kỹ sư", "Engineer")}</th>
+                    <th className="py-1 text-right">{t("Cập nhật", "Updates")}</th>
+                    <th className="py-1 text-right">{t("Xong", "Done")}</th>
+                    <th className="py-1 text-right">{t("Đang mở", "Open")}</th>
+                    <th className="py-1 text-right">{t("Quá hạn", "Overdue")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {k.perEngineer.map((e) => (
+                    <tr key={e.name} className="border-t" style={{ borderColor: "var(--border)" }}>
+                      <td className="py-1">{e.name}</td>
+                      <td className="py-1 text-right tabular-nums">{e.updates}</td>
+                      <td className="py-1 text-right tabular-nums">{e.done}</td>
+                      <td className="py-1 text-right tabular-nums">{e.open}</td>
+                      <td className={`py-1 text-right tabular-nums ${e.overdue ? "font-semibold text-red-600 dark:text-red-400" : ""}`}>{e.overdue}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Block>
+          </>
+        )}
         <Block title={t("Thảo luận", "Discussion")}>
           <p className="text-sm">
             {num(p.chat.messages)} {t("tin nhắn", "messages")} · {p.chat.issuesOpened} {t("vấn đề mới", "new issues")} · {p.chat.issuesResolved} {t("đã xử lý", "resolved")}
@@ -189,24 +208,22 @@ export function AutoReportDetail({ report }: { report: AutoReport }) {
             {!p.chat.openIssues.length && <li className="muted">—</li>}
           </ul>
         </Block>
-        {p.production && (
-          <Block title={t("Sản xuất", "Production")}>
-            <p className="text-sm">
-              {num(p.production.boards)} board · OEE {pct(p.production.oee)} · FPY {pct(p.production.fpy, 2)} · {t("lỗi nhiều nhất", "top defects")}: {p.production.topDefects.map((d) => `${d.code} (${d.qty})`).join(", ") || "—"}
-            </p>
-            {p.production.missing.length > 0 && (
+        {prod && (
+          <Block title={m.production ? t("Sản xuất", "Production") : t("Hiệu suất & chất lượng", "Performance & quality")}>
+            <p className="text-sm">{prodSummary}</p>
+            {prod.missing.length > 0 && (
               <p className="text-sm text-amber-700 dark:text-amber-300">
-                ! {t("Chưa nhập nhật ký sản xuất ngày cuối kỳ", "No production log for the last day")}: {p.production.missing.join(", ")}
+                ! {t("Chưa nhập nhật ký sản xuất ngày cuối kỳ", "No production log for the last day")}: {prod.missing.join(", ")}
               </p>
             )}
             <table className="w-full text-sm">
               <tbody>
-                {p.production.lines.filter((l) => l.boards).map((l) => (
+                {prod.lines.filter((l) => l.boards).map((l) => (
                   <tr key={l.line} className="border-t" style={{ borderColor: "var(--border)" }}>
                     <td className="py-1">{l.line}</td>
-                    <td className="py-1 text-right tabular-nums">{num(l.boards)}</td>
-                    <td className="py-1 text-right tabular-nums">OEE {pct(l.oee)}</td>
-                    <td className="py-1 text-right tabular-nums">FPY {pct(l.fpy, 2)}</td>
+                    {m.production && <td className="py-1 text-right tabular-nums">{num(l.boards)}</td>}
+                    {m.equipment && <td className="py-1 text-right tabular-nums">OEE {pct(l.oee)}</td>}
+                    {m.quality && <td className="py-1 text-right tabular-nums">FPY {pct(l.fpy, 2)}</td>}
                   </tr>
                 ))}
               </tbody>

@@ -28,7 +28,7 @@ export default async function SmtWorkspaceLayout({ children }: { children: React
   return (
     <>
       <Suspense>
-        <WorkspaceHeader mode={ctx.mode} liveAllowed={ctx.liveAllowed} user={user} stored={ctx.stored} demoTo={ctx.demo ? ctx.today : null} adminPreview={!ctx.enabled && Boolean(ctx.actor)} pending={pending} />
+        <WorkspaceHeader mode={ctx.mode} liveAllowed={ctx.liveAllowed} user={user} stored={ctx.stored} demoTo={ctx.demo ? ctx.today : null} adminPreview={!ctx.enabled && Boolean(ctx.actor)} pending={pending} modules={ctx.modules} />
       </Suspense>
       {/* Mỗi trang tự kiểm tra ctx.open (trang Đăng nhập luôn mở để đội nội bộ vào được khi trang tắt với khách). */}
       <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>

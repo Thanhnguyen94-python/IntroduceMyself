@@ -1,3 +1,4 @@
+import { ALL_MODULES } from "@/lib/smt/modules";
 import type { SmtSettings } from "@/lib/smt/types";
 
 // Cài đặt mặc định: 2 line SMT điển hình + danh mục lỗi theo thuật ngữ IPC-A-610.
@@ -28,5 +29,7 @@ export const DEFAULT_SMT_SETTINGS: SmtSettings = {
   ],
   targets: { oee: 0.85, fpy: 0.98, dpmo: 100, mispickRate: 0.003, availability: 0.9 },
   publicSource: "demo",
-  publicDays: 30
+  publicDays: 30,
+  modules: ALL_MODULES,
+  modulesInDemo: false
 };

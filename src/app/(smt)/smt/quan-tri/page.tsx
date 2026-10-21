@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { L } from "@/components/ui/localized";
 import { AccountsPanel, ChannelsPanel, DeleteRequestsPanel, SchedulePanel } from "@/components/smt-workspace/manage-panels";
@@ -26,7 +27,13 @@ export default async function SmtManagePage() {
         </h1>
         <p className="muted text-sm">
           {admin ? (
-            <L t={{ vi: "Line, trạm, mục tiêu KPI vẫn sửa ở Admin → Cài đặt SMT.", en: "Lines, stations and KPI targets are still edited in Admin → SMT settings." }} />
+            <>
+              <L t={{ vi: "Line, trạm, mục tiêu KPI và Phạm vi quản lý (nhóm nội dung hiện trên /smt) sửa ở ", en: "Lines, stations, KPI targets and the management scope are edited in " }} />
+              <Link href="/admin/smt/settings#pham-vi" className="underline">
+                <L t={{ vi: "Admin → Cài đặt SMT", en: "Admin → SMT settings" }} />
+              </Link>
+              .
+            </>
           ) : (
             <L t={{ vi: "Bạn đang đăng nhập với quyền Trợ lý.", en: "You are signed in as Assistant." }} />
           )}

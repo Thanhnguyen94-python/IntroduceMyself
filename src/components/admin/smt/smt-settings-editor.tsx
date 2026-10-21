@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Field } from "@/components/admin/fields";
+import { MODULE_PRESETS, SMT_MODULES, presetOf, type SmtModule } from "@/lib/smt/modules";
 import { SMT_PROCESSES } from "@/lib/smt/types";
 import type { SmtSettings } from "@/lib/smt/types";
 
@@ -39,6 +40,12 @@ export function SmtSettingsEditor() {
   }
 
   const setTarget = (k: keyof SmtSettings["targets"], v: number) => setS({ ...s, targets: { ...s.targets, [k]: v } });
+  const preset = presetOf(s.modules);
+  // Giữ ít nhất 1 nhóm (bỏ hết thì /smt không còn gì để hiện).
+  const toggleModule = (id: SmtModule) => {
+    const next = s.modules.includes(id) ? s.modules.filter((x) => x !== id) : [...s.modules, id];
+    if (next.length) setS({ ...s, modules: next });
+  };
 
   return (
     <section className="space-y-4">
@@ -70,6 +77,41 @@ export function SmtSettingsEditor() {
         <Field label="Ca làm việc" hint="Cách nhau bởi dấu phẩy">
           <input className="input" value={s.shifts.join(", ")} onChange={(e) => setS({ ...s, shifts: e.target.value.split(",").map((x) => x.trim()) })} />
         </Field>
+      </div>
+
+      <div id="pham-vi" className="card scroll-mt-24 space-y-3">
+        <div>
+          <h2 className="font-semibold">Phạm vi quản lý (nội dung hiện trên /smt)</h2>
+          <p className="muted text-sm">Chỉ hiện nhóm số liệu bạn thực sự có, để báo cáo không bị trống / lủng. Ẩn chỉ là ẩn hiển thị: dữ liệu đã nhập vẫn giữ, bật lại là thấy đủ. Áp dụng cho mọi người xem /smt.</p>
+        </div>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Mẫu chọn nhanh">
+          {MODULE_PRESETS.map((p) => (
+            <button key={p.id} type="button" aria-pressed={preset === p.id} onClick={() => setS({ ...s, modules: p.modules })} className={`chip ${preset === p.id ? "!border-brand-500 bg-brand-50 font-semibold text-brand-700 dark:bg-slate-800 dark:text-brand-200" : ""}`}>
+              {p.vi}
+            </button>
+          ))}
+          {preset === "custom" && <span className="chip !border-brand-500 font-semibold">Tuỳ chỉnh</span>}
+        </div>
+        <div className="grid gap-2 md:grid-cols-2">
+          {SMT_MODULES.map((m) => (
+            <label key={m.id} className="flex cursor-pointer items-start gap-2 rounded-xl border p-3 text-sm" style={{ borderColor: "var(--border)" }}>
+              <input type="checkbox" className="mt-1" checked={s.modules.includes(m.id)} onChange={() => toggleModule(m.id)} />
+              <span>
+                <b>
+                  {m.icon} {m.vi}
+                </b>
+                <span className="muted block text-xs">{m.desc}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" className="mt-1" checked={s.modulesInDemo} onChange={(e) => setS({ ...s, modulesInDemo: e.target.checked })} />
+          <span>
+            Áp dụng cả khi xem <b>Demo</b>
+            <span className="muted block text-xs">Tắt (mặc định): Demo luôn hiện đầy đủ để giới thiệu. Bật: xem trước trang thật của bạn trông thế nào với dữ liệu demo.</span>
+          </span>
+        </label>
       </div>
 
       <div className="card grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
