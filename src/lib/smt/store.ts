@@ -6,6 +6,7 @@ import { DEFAULT_SMT_SETTINGS } from "@/lib/smt/defaults";
 import { buildDemoBundle } from "@/lib/smt/demo";
 import { DEMO_SMT_SETTINGS } from "@/lib/smt/demo-config";
 import { readDemoMeta } from "@/lib/smt/demo-meta";
+import { normalizeModules } from "@/lib/smt/modules";
 import { DATASETS, SmtValidationError, normalizeRow, type DatasetKey } from "@/lib/smt/datasets";
 import { addDays, emptyEightDContent, todayVn, SMT_PROCESSES } from "@/lib/smt/types";
 import type { EightDContent, EightDReport, SmtDataBundle, SmtSettings } from "@/lib/smt/types";
@@ -64,7 +65,9 @@ export function normalizeSmtSettings(input: Partial<SmtSettings> | null): SmtSet
       dpmo: Math.max(0, Number(t.dpmo) || d.targets.dpmo)
     },
     publicSource: s.publicSource === "live" ? "live" : "demo",
-    publicDays: Math.max(7, Math.min(180, Math.round(Number(s.publicDays) || d.publicDays)))
+    publicDays: Math.max(7, Math.min(180, Math.round(Number(s.publicDays) || d.publicDays))),
+    modules: normalizeModules(s.modules),
+    modulesInDemo: Boolean(s.modulesInDemo)
   };
 }
 

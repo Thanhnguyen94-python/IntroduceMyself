@@ -1,4 +1,6 @@
 import { SmtMaintenance } from "@/components/smt/smt-notices";
+import { ModuleOff } from "@/components/smt-workspace/module-off";
+import { REPORT_MODULE } from "@/lib/smt/modules";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -24,6 +26,7 @@ export default async function SmtWorkspaceReportPage({ params, searchParams }: P
   if (!template) notFound();
   const ctx = await workspaceContext();
   if (!ctx.open) return <SmtMaintenance />;
+  if (!ctx.modules[REPORT_MODULE[template.slug]]) return <ModuleOff isAdmin={ctx.isAdmin} />;
   const sp = await searchParams;
   const to = ctx.today;
   const from = addDays(to, -29);

@@ -1,4 +1,6 @@
 import { SmtMaintenance } from "@/components/smt/smt-notices";
+import { ModuleOff } from "@/components/smt-workspace/module-off";
+import { hasFactoryData } from "@/lib/smt/modules";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { L } from "@/components/ui/localized";
@@ -20,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SmtLinePage({ params, searchParams }: Props) {
   const ctx = await workspaceContext();
   if (!ctx.open) return <SmtMaintenance />;
+  if (!hasFactoryData(ctx.modules)) return <ModuleOff isAdmin={ctx.isAdmin} />;
   const code = (await params).code.toUpperCase();
   const line = ctx.settings.lines.find((l) => l.code === code);
   // Line demo (L01-L10) và line thật (Cài đặt SMT) khác nhau: báo rõ thay vì 404 khi đổi chế độ.
@@ -37,14 +40,14 @@ export default async function SmtLinePage({ params, searchParams }: Props) {
   }
   const range = workspaceRange(ctx, (await searchParams).range);
   // Công việc thực tế là dữ liệu nội bộ: chỉ người trong đội (đã đăng nhập); demo thì ai cũng xem được.
-  const showTasks = ctx.demo || Boolean(ctx.actor);
+  const showTasks = ctx.modules.team && (ctx.demo || Boolean(ctx.actor));
   const [data, team] = await Promise.all([loadLineData(ctx, code, range.from, range.to), showTasks ? loadTeam(ctx) : null]);
   const tasks = team ? team.tasks.filter((x) => x.line === code).sort((a, b) => b.assigned_on.localeCompare(a.assigned_on)) : null;
 
   return (
     <div className="space-y-4">
       <RangeTabs value={range.key} ranges={RANGES} />
-      <LineDetail line={line} tier={lineTier(line)} settings={ctx.settings} from={range.from} to={range.to} data={data} tasks={tasks} engineers={team?.engineers ?? []} />
+      <LineDetail modules={ctx.modules} line={line} tier={lineTier(line)} settings={ctx.settings} from={range.from} to={range.to} data={data} tasks={tasks} engineers={team?.engineers ?? []} />
     </div>
   );
 }

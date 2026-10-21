@@ -1,5 +1,6 @@
 // Kiểu dữ liệu Hệ thống báo cáo SMT. Dùng chung client + server (không import gì của Node).
 // Tên trường = tên cột Supabase (snake_case) để Excel / API / DB khớp nhau 1-1.
+import type { SmtModule } from "@/lib/smt/modules";
 
 export type SmtProcess = "print" | "placement" | "reflow" | "inspection" | "manual" | "material" | "other";
 
@@ -191,6 +192,9 @@ export type SmtSettings = {
   // Trang công khai dùng dữ liệu demo (mặc định) hay số liệu thật đã tổng hợp.
   publicSource: "demo" | "live";
   publicDays: number;
+  // Phạm vi quản lý: nhóm nội dung hiện trên /smt (xem modules.ts). Demo luôn hiện đủ trừ khi bật modulesInDemo.
+  modules: SmtModule[];
+  modulesInDemo: boolean;
 };
 
 // Gói dữ liệu đưa vào các báo cáo (server -> client).

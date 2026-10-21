@@ -8,18 +8,19 @@ import { LangToggle } from "@/components/layout/lang-toggle";
 import { useT } from "@/components/smt/smt-charts";
 import { SMT_MODE_COOKIE, type SmtMode } from "@/lib/smt/mode";
 import { ROLE_LABEL, type SmtRole } from "@/lib/smt/permissions";
+import { hasFactoryData, type ModuleSet } from "@/lib/smt/modules";
 
 // Khung trang SMT Workspace (/smt): header riêng, nút Demo / Thực tế, băng thông báo chế độ.
 
-type ChromeProps = { mode: SmtMode; liveAllowed: boolean; user: { name: string; role: SmtRole } | null; stored: boolean; demoTo: string | null; adminPreview: boolean; pending: number };
+type ChromeProps = { mode: SmtMode; liveAllowed: boolean; user: { name: string; role: SmtRole } | null; stored: boolean; demoTo: string | null; adminPreview: boolean; pending: number; modules: ModuleSet };
 
-// roles: ai thấy mục menu (bỏ trống = mọi người).
-const NAV: Array<{ href: string; vi: string; en: string; exact?: boolean; roles?: SmtRole[] }> = [
-  { href: "/smt", vi: "Tổng quan", en: "Overview", exact: true },
-  { href: "/smt/line", vi: "Line", en: "Lines" },
-  { href: "/smt/bao-cao", vi: "Báo cáo", en: "Reports" },
-  { href: "/smt/cong-viec", vi: "Công việc", en: "Tasks" },
-  { href: "/smt/doi-ngu", vi: "Đội ngũ", en: "Team" },
+// roles: ai thấy mục menu (bỏ trống = mọi người). show: ẩn theo Phạm vi quản lý (Cài đặt SMT).
+const NAV: Array<{ href: string; vi: string; en: string; exact?: boolean; roles?: SmtRole[]; show?: (m: ModuleSet) => boolean }> = [
+  { href: "/smt", vi: "Tổng quan", en: "Overview", exact: true, show: hasFactoryData },
+  { href: "/smt/line", vi: "Line", en: "Lines", show: hasFactoryData },
+  { href: "/smt/bao-cao", vi: "Báo cáo", en: "Reports", show: (m) => m.equipment || m.quality },
+  { href: "/smt/cong-viec", vi: "Công việc", en: "Tasks", show: (m) => m.team },
+  { href: "/smt/doi-ngu", vi: "Đội ngũ", en: "Team", show: (m) => m.team },
   { href: "/smt/chat", vi: "Thảo luận", en: "Chat", roles: ["admin", "assistant", "engineer"] },
   { href: "/smt/bao-cao-tu-dong", vi: "Báo cáo ngày/tuần", en: "Daily/weekly", roles: ["admin", "assistant", "engineer"] },
   { href: "/smt/nhap-lieu", vi: "Nhập liệu", en: "Data entry", roles: ["admin", "assistant"] },
@@ -55,10 +56,10 @@ export function ModeSwitch({ mode, liveAllowed }: { mode: SmtMode; liveAllowed: 
   );
 }
 
-export function WorkspaceHeader({ mode, liveAllowed, user, stored, demoTo, adminPreview, pending }: ChromeProps) {
+export function WorkspaceHeader({ mode, liveAllowed, user, stored, demoTo, adminPreview, pending, modules }: ChromeProps) {
   const t = useT();
   const isAdmin = user?.role === "admin";
-  const nav = NAV.filter((n) => !n.roles || (user && n.roles.includes(user.role)));
+  const nav = NAV.filter((n) => (!n.roles || (user && n.roles.includes(user.role))) && (!n.show || n.show(modules)));
   const pathname = usePathname();
   const search = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -71,7 +72,7 @@ export function WorkspaceHeader({ mode, liveAllowed, user, stored, demoTo, admin
     <>
       <header className="glass smt-no-print sticky top-0 z-40 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/smt" className="flex min-w-0 items-center gap-2">
+          <Link href={hasFactoryData(modules) ? "/smt" : "/smt/cong-viec"} className="flex min-w-0 items-center gap-2">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-600 to-sky-400 text-lg shadow-md" aria-hidden>
               🏭
             </span>

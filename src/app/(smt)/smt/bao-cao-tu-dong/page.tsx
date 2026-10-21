@@ -26,7 +26,7 @@ export default async function AutoReportsPage({ searchParams }: { searchParams: 
     <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
       <AutoReportList reports={reports.map(({ id, kind, slot, period_from, period_to }) => ({ id, kind, slot, period_from, period_to }))} selected={selected?.id} canRun={can(ctx.actor, "schedule.edit")} schedule={schedule} />
       {selected ? (
-        <AutoReportDetail report={selected} />
+        <AutoReportDetail report={selected} modules={ctx.liveModules} />
       ) : (
         <section className="card text-sm">
           <L t={{ vi: "Chưa có báo cáo nào. Báo cáo đầu tiên sẽ được tạo ở mốc chốt kế tiếp.", en: "No reports yet. The first one will be created at the next scheduled time." }} />

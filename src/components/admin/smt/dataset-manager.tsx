@@ -17,7 +17,8 @@ type Option = { value: string; label: string };
 // Nhập / sửa / xoá dữ liệu 1 bộ (nhật ký sản xuất, lỗi, cycle time, 4M, feeder...).
 // Định nghĩa cột lấy từ lib/smt/datasets.ts nên form, bảng, mẫu Excel và API luôn khớp nhau.
 // base: đường dẫn trang danh sách (Admin: /admin/smt/data, Trợ lý: /smt/nhap-lieu).
-export function DatasetManager({ dataset, base = "/admin/smt/data" }: { dataset: DatasetKey; base?: string }) {
+// tabs: các bộ dữ liệu hiện trên thanh chọn (trong /smt lọc theo Phạm vi quản lý; mặc định đủ).
+export function DatasetManager({ dataset, base = "/admin/smt/data", tabs = TABULAR_DATASETS }: { dataset: DatasetKey; base?: string; tabs?: DatasetKey[] }) {
   const def = DATASETS[dataset];
   const fields = def.fields.filter((f) => f.type !== "json");
   const hasDate = dataset !== "assets";
@@ -234,7 +235,7 @@ export function DatasetManager({ dataset, base = "/admin/smt/data" }: { dataset:
       </div>
 
       <nav className="flex flex-wrap gap-2 text-sm" aria-label="Bộ dữ liệu">
-        {TABULAR_DATASETS.map((k) => (
+        {tabs.map((k) => (
           <Link key={k} href={`${base}/${k}`} aria-current={k === dataset ? "page" : undefined} className={`chip ${k === dataset ? "!border-brand-500 bg-brand-50 font-semibold text-brand-700 dark:bg-slate-800 dark:text-brand-200" : ""}`}>
             {DATASETS[k].icon} {DATASETS[k].label}
           </Link>
