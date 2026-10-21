@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/smt/smt-charts";
 import { TaskForm, type TaskDraft } from "@/components/smt-workspace/task-form";
+import { deleteOrRequest } from "@/components/smt-workspace/delete-request";
 import { followUps, taskPoints } from "@/lib/smt/team-metrics";
 import { OPEN_STATUSES, TASK_CATEGORIES, categoryOf, priorityOf, statusOf, type Engineer, type Task, type TaskStatus, type TaskUpdate } from "@/lib/smt/team-types";
 import { addDays, daysBetween, dmy } from "@/lib/smt/types";
@@ -11,7 +12,11 @@ import { addDays, daysBetween, dmy } from "@/lib/smt/types";
 // Bảng công việc của đội kỹ sư: "Cần theo dõi" (để không quên việc đã giao), Kanban, danh sách, chi tiết.
 // Người xem không phải admin: chỉ đọc. Admin: giao việc, cập nhật, nghiệm thu / trả lại.
 
-type Props = { engineers: Engineer[]; tasks: Task[]; updates: TaskUpdate[]; today: string; canEdit: boolean; editHint: string; lines: string[]; initialLine?: string; initialEngineer?: string };
+// Quyền của người đang xem (xem permissions.ts): manage = giao / sửa mọi việc (admin, trợ lý),
+// review = nghiệm thu / chấm điểm (admin), engineerId = kỹ sư cập nhật việc của mình, propose = đề xuất việc.
+export type BoardPerm = { manage: boolean; review: boolean; engineerId: string | null; propose: boolean; demo: boolean };
+
+type Props = { engineers: Engineer[]; tasks: Task[]; updates: TaskUpdate[]; today: string; perm: BoardPerm; editHint: string; lines: string[]; initialLine?: string; initialEngineer?: string; initialTitle?: string };
 
 const BOARD: TaskStatus[] = ["todo", "doing", "blocked", "review", "done"];
 type Watch = "overdue" | "review" | "blocked" | "followUp" | "dueSoon" | "stale";
@@ -31,7 +36,7 @@ async function api(method: string, body?: unknown, query = "") {
   return data;
 }
 
-export function TaskBoard({ engineers, tasks, updates, today, canEdit, editHint, lines, initialLine = "", initialEngineer = "" }: Props) {
+export function TaskBoard({ engineers, tasks, updates, today, perm, editHint, lines, initialLine = "", initialEngineer = "", initialTitle = "" }: Props) {
   const t = useT();
   const router = useRouter();
   const [view, setView] = useState<"board" | "list">("board");
@@ -42,7 +47,10 @@ export function TaskBoard({ engineers, tasks, updates, today, canEdit, editHint,
   const [watch, setWatch] = useState<Watch | null>(null);
   const [allDone, setAllDone] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [form, setForm] = useState<TaskDraft | null>(null);
+  const newDraft = (): TaskDraft => ({ title: initialTitle, category: "other", priority: "medium", difficulty: 2, assignee_id: perm.manage ? eng || null : perm.engineerId, line, assigned_on: today, due_on: addDays(today, 7), estimate_h: 4 });
+  // Mở sẵn form khi đến từ "→ Việc" trong chat (?title=...).
+  const [form, setForm] = useState<TaskDraft | null>(() => (initialTitle && (perm.manage || perm.propose) ? newDraft() : null));
+  const canAct = (task: Task) => perm.manage || Boolean(perm.engineerId && task.assignee_id === perm.engineerId);
 
   const person = (id: string | null) => engineers.find((e) => e.id === id);
   const follow = useMemo(() => followUps(tasks, updates, today), [tasks, updates, today]);
@@ -67,7 +75,6 @@ export function TaskBoard({ engineers, tasks, updates, today, canEdit, editHint,
     router.refresh();
   }
 
-  const newDraft = (): TaskDraft => ({ title: "", category: "other", priority: "medium", difficulty: 2, assignee_id: eng || null, line, assigned_on: today, due_on: addDays(today, 7), estimate_h: 4 });
 
   return (
     <div className="space-y-4">
@@ -78,9 +85,9 @@ export function TaskBoard({ engineers, tasks, updates, today, canEdit, editHint,
             {tasks.filter((x) => OPEN_STATUSES.includes(x.status)).length} {t("việc đang mở", "open tasks")} · {tasks.filter((x) => x.status === "done").length} {t("đã xong", "done")} · {engineers.filter((e) => e.active).length} {t("kỹ sư", "engineers")}
           </p>
         </div>
-        {canEdit ? (
-          <button type="button" className="btn-primary" onClick={() => setForm(newDraft())}>
-            + {t("Giao việc", "Assign task")}
+        {perm.manage || perm.propose ? (
+          <button type="button" className="btn-primary" onClick={() => setForm(newDraft())} title={perm.manage ? undefined : t("Việc phát sinh của bạn, chờ quản lý duyệt mới tính điểm", "Your ad-hoc task; counts after approval")}>
+            + {perm.manage ? t("Giao việc", "Assign task") : t("Đề xuất việc", "Propose task")}
           </button>
         ) : (
           <p className="muted max-w-sm text-right text-xs">{editHint}</p>
@@ -217,12 +224,12 @@ export function TaskBoard({ engineers, tasks, updates, today, canEdit, editHint,
 
       {open && (
         <Drawer onClose={() => setOpenId(null)}>
-          <TaskDetail task={open} who={person(open.assignee_id)} updates={updates.filter((u) => u.task_id === open.id)} today={today} canEdit={canEdit} onEdit={() => setForm({ ...open })} onDone={() => router.refresh()} onDeleted={() => (setOpenId(null), router.refresh())} />
+          <TaskDetail task={open} who={person(open.assignee_id)} updates={updates.filter((u) => u.task_id === open.id)} today={today} perm={perm} canAct={canAct(open)} onEdit={() => setForm({ ...open })} onDone={() => router.refresh()} onDeleted={() => (setOpenId(null), router.refresh())} />
         </Drawer>
       )}
       {form && (
         <Drawer onClose={() => setForm(null)}>
-          <TaskForm initial={form} engineers={engineers} lines={lines} onCancel={() => setForm(null)} onSave={save} />
+          <TaskForm initial={form} engineers={engineers} lines={lines} proposal={!perm.manage} onCancel={() => setForm(null)} onSave={save} />
         </Drawer>
       )}
     </div>
@@ -262,7 +269,10 @@ function TaskCard({ task, who, today, onOpen }: { task: Task; who?: Engineer; to
         </span>
         {(task.priority === "urgent" || task.priority === "high") && <span className="rounded border px-1 font-sans font-semibold" style={{ borderColor: "var(--border)" }}>{task.priority === "urgent" ? "‼" : "!"} {t(pri.vi, pri.en)}</span>}
       </span>
-      <span className="mt-1 block font-medium leading-snug">{task.title}</span>
+      <span className="mt-1 block font-medium leading-snug">
+        {task.approved === false && <span className="mr-1 rounded border border-dashed px-1 text-[10px] font-semibold" style={{ borderColor: "var(--viz-1)" }}>{t("Đề xuất", "Proposed")}</span>}
+        {task.title}
+      </span>
       {task.status !== "done" && task.status !== "todo" && (
         <span className="mt-2 block h-1.5 rounded-full" style={{ background: "var(--viz-1-wash)" }} aria-label={`${task.progress}%`}>
           <span className="block h-1.5 rounded-r-[4px]" style={{ width: `${Math.max(3, task.progress)}%`, background: "var(--viz-1)" }} />
@@ -294,7 +304,7 @@ function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () 
   );
 }
 
-function TaskDetail({ task, who, updates, today, canEdit, onEdit, onDone, onDeleted }: { task: Task; who?: Engineer; updates: TaskUpdate[]; today: string; canEdit: boolean; onEdit: () => void; onDone: () => void; onDeleted: () => void }) {
+function TaskDetail({ task, who, updates, today, perm, canAct, onEdit, onDone, onDeleted }: { task: Task; who?: Engineer; updates: TaskUpdate[]; today: string; perm: BoardPerm; canAct: boolean; onEdit: () => void; onDone: () => void; onDeleted: () => void }) {
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -319,12 +329,21 @@ function TaskDetail({ task, who, updates, today, canEdit, onEdit, onDone, onDele
     }
   }
 
+  // Đổi tiến độ và ghi giờ có thể cùng lúc: gửi 2 lần để không mất số giờ.
+  async function saveUpdate() {
+    if (progress !== task.progress) await run({ progress, note });
+    if (hours) await run({ action: "note", note: progress !== task.progress ? "" : note, hours });
+    else if (progress === task.progress) await run({ action: "note", note });
+  }
+
   async function remove() {
     if (!confirm(t(`Xoá ${task.code}?`, `Delete ${task.code}?`))) return;
     setBusy(true);
     try {
-      await api("DELETE", undefined, `?id=${task.id}`);
-      onDeleted();
+      // Trợ lý chưa được cho phép xoá -> gửi yêu cầu cho admin.
+      const r = await deleteOrRequest(`/api/smt/tasks?id=${task.id}`, { kind: "task", ids: [task.id], label: `${task.code} ${task.title}`, demo: perm.demo });
+      if (r === "deleted") onDeleted();
+      else setBusy(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Thất bại.");
       setBusy(false);
@@ -367,7 +386,18 @@ function TaskDetail({ task, who, updates, today, canEdit, onEdit, onDone, onDele
         </div>
       )}
 
-      {canEdit && (
+      {task.approved === false && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-2 text-sm" style={{ borderColor: "var(--viz-1)" }}>
+          💡 {t("Việc kỹ sư tự đề xuất – chưa tính điểm cho tới khi được duyệt.", "Engineer-proposed task – not scored until approved.")}
+          {perm.manage && (
+            <button type="button" className="btn-primary ml-auto" disabled={busy} onClick={() => run({ approved: true })}>
+              ✓ {t("Duyệt việc", "Approve")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {canAct && (
         <section className="space-y-3 rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
           <div className="flex flex-wrap gap-2">
             {task.status === "todo" && (
@@ -390,13 +420,14 @@ function TaskDetail({ task, who, updates, today, canEdit, onEdit, onDone, onDele
                 📥 {t("Gửi nghiệm thu", "Submit for review")}
               </button>
             )}
-            {!isOpen && (
+            {!isOpen && perm.manage && (task.status !== "done" || perm.review) && (
               <button type="button" className="btn-ghost" disabled={busy} onClick={() => run({ status: "doing", note: note || t("Mở lại", "Reopened") })}>
                 ↺ {t("Mở lại", "Reopen")}
               </button>
             )}
           </div>
-          {task.status === "review" && (
+          {task.status === "review" && !perm.review && <p className="muted text-sm">📥 {t("Đang chờ quản lý nghiệm thu.", "Waiting for the manager's review.")}</p>}
+          {task.status === "review" && perm.review && (
             <div className="flex flex-wrap items-center gap-2 rounded-lg p-2" style={{ background: "var(--viz-1-wash)" }}>
               <span className="text-sm font-semibold">{t("Nghiệm thu", "Review")}:</span>
               <select className="input w-auto" value={score} onChange={(e) => setScore(Number(e.target.value))} aria-label={t("Điểm", "Score")}>
@@ -427,15 +458,19 @@ function TaskDetail({ task, who, updates, today, canEdit, onEdit, onDone, onDele
             <input type="number" min={0} step={0.5} className="input" value={hours} onChange={(e) => setHours(Number(e.target.value))} aria-label={t("Giờ đã làm", "Hours spent")} title={t("Giờ đã làm thêm", "Hours spent")} />
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn-primary" disabled={busy || (!note.trim() && !hours && progress === task.progress)} onClick={() => (progress !== task.progress ? run({ progress, note }) : run({ action: "note", note, hours }))}>
+            <button type="button" className="btn-primary" disabled={busy || (!note.trim() && !hours && progress === task.progress)} onClick={saveUpdate}>
               {t("Lưu cập nhật", "Save update")}
             </button>
-            <button type="button" className="btn-ghost" onClick={onEdit}>
-              ✎ {t("Sửa", "Edit")}
-            </button>
-            <button type="button" className="btn-ghost ml-auto text-red-600" onClick={remove} disabled={busy}>
-              🗑
-            </button>
+            {perm.manage && (
+              <button type="button" className="btn-ghost" onClick={onEdit}>
+                ✎ {t("Sửa", "Edit")}
+              </button>
+            )}
+            {(perm.manage || (task.approved === false && canAct)) && (
+              <button type="button" className="btn-ghost ml-auto text-red-600" onClick={remove} disabled={busy} title={perm.manage ? t("Xoá", "Delete") : t("Huỷ đề xuất", "Withdraw proposal")}>
+                🗑
+              </button>
+            )}
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </section>

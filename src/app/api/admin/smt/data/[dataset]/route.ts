@@ -1,24 +1,27 @@
 import { NextResponse } from "next/server";
-import { isAdminRequest } from "@/lib/admin-guard";
-import { SmtValidationError, isDatasetKey, parseDate, type DatasetKey } from "@/lib/smt/datasets";
+import { currentActor } from "@/lib/smt/accounts";
+import { apiFail } from "@/lib/smt/api-helpers";
+import { isDatasetKey, parseDate, type DatasetKey } from "@/lib/smt/datasets";
+import { assertCanDelete } from "@/lib/smt/delete-grants";
+import { can, type SmtActor } from "@/lib/smt/permissions";
 import { deleteDatasetRow, insertDatasetRows, listDataset, updateDatasetRow } from "@/lib/smt/store";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ dataset: string }> };
 
-async function guard(ctx: Ctx): Promise<{ key: DatasetKey } | { error: NextResponse }> {
-  if (!(await isAdminRequest())) return { error: NextResponse.json({ message: "Unauthorized" }, { status: 401 }) };
+// Dùng chung cho Admin (/admin/smt/data) và Trợ lý SMT (/smt/nhap-lieu). Chỉ dữ liệu THẬT.
+// Trợ lý xoá cần admin cho phép (delete-grants.ts). Mỗi dòng ghi lại người nhập / sửa (created_by, updated_by).
+async function guard(ctx: Ctx): Promise<{ key: DatasetKey; actor: SmtActor } | { error: NextResponse }> {
+  const actor = await currentActor();
+  if (!can(actor, "data.write")) return { error: NextResponse.json({ message: "Unauthorized" }, { status: 401 }) };
   const { dataset } = await ctx.params;
   if (!isDatasetKey(dataset)) return { error: NextResponse.json({ message: "Không có bộ dữ liệu này." }, { status: 404 }) };
-  return { key: dataset };
+  return { key: dataset, actor: actor! };
 }
 
-// Lỗi nhập liệu -> 400 (hiện cho người nhập), lỗi khác -> 500.
-function fail(error: unknown, fallback: string) {
-  const status = error instanceof SmtValidationError ? 400 : 500;
-  return NextResponse.json({ message: error instanceof Error ? error.message : fallback }, { status });
-}
+// Lỗi nhập liệu -> 400 (hiện cho người nhập), cần xin quyền xoá -> 403 need_grant, lỗi khác -> 500.
+const fail = apiFail;
 
 // GET ?from=YYYY-MM-DD&to=YYYY-MM-DD&line=L1&limit=1000
 export async function GET(request: Request, ctx: Ctx) {
@@ -44,7 +47,7 @@ export async function POST(request: Request, ctx: Ctx) {
   const rows = body?.rows ?? (body?.row ? [body.row] : []);
   if (!rows.length) return NextResponse.json({ message: "Không có dữ liệu." }, { status: 400 });
   try {
-    const items = await insertDatasetRows(g.key, rows);
+    const items = await insertDatasetRows(g.key, rows, g.actor.name);
     return NextResponse.json({ ok: true, items, count: items.length });
   } catch (error) {
     return fail(error, "Lưu thất bại.");
@@ -59,7 +62,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
   if (!body?.id) return NextResponse.json({ message: "Missing id." }, { status: 400 });
   const { id, ...patch } = body;
   try {
-    const item = await updateDatasetRow(g.key, String(id), patch);
+    const item = await updateDatasetRow(g.key, String(id), patch, g.actor.name);
     if (!item) return NextResponse.json({ message: "Không tìm thấy bản ghi." }, { status: 404 });
     return NextResponse.json({ ok: true, item });
   } catch (error) {
@@ -74,6 +77,7 @@ export async function DELETE(request: Request, ctx: Ctx) {
   const ids = new URL(request.url).searchParams.getAll("id").filter(Boolean).slice(0, 500);
   if (!ids.length) return NextResponse.json({ message: "Missing id." }, { status: 400 });
   try {
+    await assertCanDelete(g.actor);
     for (const id of ids) await deleteDatasetRow(g.key, id);
     return NextResponse.json({ ok: true, count: ids.length });
   } catch (error) {

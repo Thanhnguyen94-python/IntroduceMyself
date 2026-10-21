@@ -88,6 +88,9 @@ export type Task = {
   quality_score: number | null;
   rework_count: number;
   follow_up_on: string | null;
+  // false = kỹ sư tự đề xuất, chờ admin / trợ lý duyệt (chưa tính điểm). Dòng cũ không có cột = đã duyệt.
+  approved?: boolean;
+  created_by?: string;
   updated_at?: string;
 };
 

@@ -7,17 +7,23 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/layout/lang-toggle";
 import { useT } from "@/components/smt/smt-charts";
 import { SMT_MODE_COOKIE, type SmtMode } from "@/lib/smt/mode";
+import { ROLE_LABEL, type SmtRole } from "@/lib/smt/permissions";
 
 // Khung trang SMT Workspace (/smt): header riêng, nút Demo / Thực tế, băng thông báo chế độ.
 
-type ChromeProps = { mode: SmtMode; liveAllowed: boolean; isAdmin: boolean; stored: boolean; demoTo: string | null; adminPreview: boolean };
+type ChromeProps = { mode: SmtMode; liveAllowed: boolean; user: { name: string; role: SmtRole } | null; stored: boolean; demoTo: string | null; adminPreview: boolean; pending: number };
 
-const NAV = [
+// roles: ai thấy mục menu (bỏ trống = mọi người).
+const NAV: Array<{ href: string; vi: string; en: string; exact?: boolean; roles?: SmtRole[] }> = [
   { href: "/smt", vi: "Tổng quan", en: "Overview", exact: true },
   { href: "/smt/line", vi: "Line", en: "Lines" },
   { href: "/smt/bao-cao", vi: "Báo cáo", en: "Reports" },
   { href: "/smt/cong-viec", vi: "Công việc", en: "Tasks" },
-  { href: "/smt/doi-ngu", vi: "Đội ngũ", en: "Team" }
+  { href: "/smt/doi-ngu", vi: "Đội ngũ", en: "Team" },
+  { href: "/smt/chat", vi: "Thảo luận", en: "Chat", roles: ["admin", "assistant", "engineer"] },
+  { href: "/smt/bao-cao-tu-dong", vi: "Báo cáo ngày/tuần", en: "Daily/weekly", roles: ["admin", "assistant", "engineer"] },
+  { href: "/smt/nhap-lieu", vi: "Nhập liệu", en: "Data entry", roles: ["admin", "assistant"] },
+  { href: "/smt/quan-tri", vi: "Quản trị", en: "Manage", roles: ["admin", "assistant"] }
 ];
 
 export function ModeSwitch({ mode, liveAllowed }: { mode: SmtMode; liveAllowed: boolean }) {
@@ -49,8 +55,10 @@ export function ModeSwitch({ mode, liveAllowed }: { mode: SmtMode; liveAllowed: 
   );
 }
 
-export function WorkspaceHeader({ mode, liveAllowed, isAdmin, stored, demoTo, adminPreview }: ChromeProps) {
+export function WorkspaceHeader({ mode, liveAllowed, user, stored, demoTo, adminPreview, pending }: ChromeProps) {
   const t = useT();
+  const isAdmin = user?.role === "admin";
+  const nav = NAV.filter((n) => !n.roles || (user && n.roles.includes(user.role)));
   const pathname = usePathname();
   const search = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -72,31 +80,50 @@ export function WorkspaceHeader({ mode, liveAllowed, isAdmin, stored, demoTo, ad
               <span className="muted block truncate text-[11px] leading-tight">{t("Sản xuất · Chất lượng · Đội ngũ", "Production · Quality · Team")}</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="SMT">
-            {NAV.map((n) => (
-              <Link key={n.href} href={withRange(n.href)} aria-current={active(n.href, n.exact) ? "page" : undefined} className={`rounded-xl px-3 py-2 text-sm font-medium transition ${active(n.href, n.exact) ? "bg-brand-600 text-white shadow-sm" : "muted hover:bg-brand-50 hover:text-[color:var(--text)] dark:hover:bg-slate-800"}`}>
+          <nav className="hidden items-center gap-1 xl:flex" aria-label="SMT">
+            {nav.map((n) => (
+              <Link key={n.href} href={withRange(n.href)} aria-current={active(n.href, n.exact) ? "page" : undefined} className={`rounded-xl px-2.5 py-2 text-sm font-medium transition ${active(n.href, n.exact) ? "bg-brand-600 text-white shadow-sm" : "muted hover:bg-brand-50 hover:text-[color:var(--text)] dark:hover:bg-slate-800"}`}>
                 {t(n.vi, n.en)}
               </Link>
             ))}
           </nav>
           <div className="flex shrink-0 items-center gap-2">
             <ModeSwitch mode={mode} liveAllowed={liveAllowed} />
+            {isAdmin && pending > 0 && (
+              <Link href="/smt/quan-tri#xoa" className="relative grid h-9 w-9 place-items-center rounded-xl border" style={{ borderColor: "var(--border)" }} aria-label={t(`${pending} yêu cầu xoá chờ duyệt`, `${pending} delete requests pending`)} title={t("Yêu cầu xoá chờ duyệt", "Delete requests pending")}>
+                🔔
+                <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">{pending}</span>
+              </Link>
+            )}
+            {user ? (
+              <Link href="/smt/tai-khoan" className="hidden max-w-[150px] items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs md:flex" style={{ borderColor: "var(--border)" }} title={t(ROLE_LABEL[user.role].vi, ROLE_LABEL[user.role].en)}>
+                <span aria-hidden>👤</span>
+                <span className="truncate font-semibold">{user.name}</span>
+              </Link>
+            ) : (
+              <Link href="/smt/dang-nhap" className="hidden rounded-xl border px-2.5 py-1.5 text-xs font-semibold md:block" style={{ borderColor: "var(--border)" }}>
+                {t("Đăng nhập", "Sign in")}
+              </Link>
+            )}
             <span className="hidden sm:contents">
               <LangToggle />
               <ThemeToggle />
             </span>
-            <button type="button" onClick={() => setOpen((v) => !v)} className="grid h-9 w-9 place-items-center rounded-xl border lg:hidden" style={{ borderColor: "var(--border)" }} aria-expanded={open} aria-label="Menu">
+            <button type="button" onClick={() => setOpen((v) => !v)} className="grid h-9 w-9 place-items-center rounded-xl border xl:hidden" style={{ borderColor: "var(--border)" }} aria-expanded={open} aria-label="Menu">
               ☰
             </button>
           </div>
         </div>
         {open && (
-          <nav className="mx-auto grid max-w-7xl gap-1 px-4 pb-3 lg:hidden" aria-label="SMT mobile">
-            {NAV.map((n) => (
+          <nav className="mx-auto grid max-w-7xl gap-1 px-4 pb-3 xl:hidden" aria-label="SMT mobile">
+            {nav.map((n) => (
               <Link key={n.href} href={withRange(n.href)} onClick={() => setOpen(false)} className={`rounded-xl px-3 py-2 text-sm font-medium ${active(n.href, n.exact) ? "bg-brand-600 text-white" : ""}`}>
                 {t(n.vi, n.en)}
               </Link>
             ))}
+            <Link href={user ? "/smt/tai-khoan" : "/smt/dang-nhap"} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2 text-sm font-medium md:hidden">
+              👤 {user ? user.name : t("Đăng nhập", "Sign in")}
+            </Link>
             <div className="flex gap-2 pt-1 sm:hidden">
               <LangToggle />
               <ThemeToggle />
@@ -123,7 +150,7 @@ export function WorkspaceHeader({ mode, liveAllowed, isAdmin, stored, demoTo, ad
           )}
         </p>
       ) : (
-        !isAdmin && (
+        !user && (
           <p className="smt-no-print border-b px-4 py-1.5 text-center text-xs" style={{ borderColor: "var(--border)" }}>
             {t("Số liệu thực tế đã tổng hợp (ẩn ghi chú, work order, người phụ trách).", "Aggregated live figures (notes, work orders and owners hidden).")}
           </p>

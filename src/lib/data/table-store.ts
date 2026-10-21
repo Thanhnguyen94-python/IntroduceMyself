@@ -26,7 +26,12 @@ export type TableName =
   | "smt_handbook"
   | "smt_engineers"
   | "smt_tasks"
-  | "smt_task_updates";
+  | "smt_task_updates"
+  | "smt_accounts"
+  | "smt_delete_requests"
+  | "smt_chat_channels"
+  | "smt_chat_messages"
+  | "smt_auto_reports";
 
 type Row = Record<string, unknown> & { id: string; created_at: string };
 
@@ -55,11 +60,38 @@ export function isStorageAvailable() {
 const DEV_FILE = path.join(process.cwd(), ".data", "dev-db.json");
 let devQueue: Promise<unknown> = Promise.resolve();
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Chưa có file -> DB rỗng. File đọc lỗi (đang bị ghi dở / khoá tạm trên Windows) -> thử lại, KHÔNG trả về rỗng
+// (trả rỗng rồi ghi lại sẽ xoá sạch dữ liệu local).
 async function readDev(): Promise<Record<string, Row[]>> {
-  try {
-    return JSON.parse(await fs.readFile(DEV_FILE, "utf-8")) as Record<string, Row[]>;
-  } catch {
-    return {};
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return JSON.parse(await fs.readFile(DEV_FILE, "utf-8")) as Record<string, Row[]>;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+      if (attempt >= 8) throw error;
+      await sleep(40 * (attempt + 1));
+    }
+  }
+}
+
+// Ghi ra file tạm rồi đổi tên: người đọc luôn thấy file cũ hoặc file mới hoàn chỉnh, không bao giờ thấy file dở.
+async function writeDev(db: Record<string, Row[]>) {
+  await fs.mkdir(path.dirname(DEV_FILE), { recursive: true });
+  const tmp = `${DEV_FILE}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify(db), "utf-8");
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fs.rename(tmp, DEV_FILE);
+    } catch (error) {
+      // Windows: file đích đang được đọc -> EPERM / EBUSY tạm thời.
+      if (attempt >= 8) {
+        await fs.rm(tmp, { force: true });
+        throw error;
+      }
+      await sleep(40 * (attempt + 1));
+    }
   }
 }
 
@@ -68,10 +100,7 @@ function withDev<T>(fn: (db: Record<string, Row[]>) => T | Promise<T>, write: bo
   const run = devQueue.then(async () => {
     const db = await readDev();
     const result = await fn(db);
-    if (write) {
-      await fs.mkdir(path.dirname(DEV_FILE), { recursive: true });
-      await fs.writeFile(DEV_FILE, JSON.stringify(db), "utf-8");
-    }
+    if (write) await writeDev(db);
     return result;
   });
   devQueue = run.catch(() => undefined);

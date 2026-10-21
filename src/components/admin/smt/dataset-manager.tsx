@@ -9,13 +9,15 @@ import { addDays, dmy, pct, todayVn } from "@/lib/smt/types";
 import type { ProductionLog, SmtSettings } from "@/lib/smt/types";
 import { datasetSheet } from "@/lib/smt/workbooks";
 import { downloadXlsx } from "@/lib/smt/xlsx";
+import { deleteOrRequest } from "@/components/smt-workspace/delete-request";
 
 type Row = Record<string, unknown> & { id: string };
 type Option = { value: string; label: string };
 
 // Nhập / sửa / xoá dữ liệu 1 bộ (nhật ký sản xuất, lỗi, cycle time, 4M, feeder...).
 // Định nghĩa cột lấy từ lib/smt/datasets.ts nên form, bảng, mẫu Excel và API luôn khớp nhau.
-export function DatasetManager({ dataset }: { dataset: DatasetKey }) {
+// base: đường dẫn trang danh sách (Admin: /admin/smt/data, Trợ lý: /smt/nhap-lieu).
+export function DatasetManager({ dataset, base = "/admin/smt/data" }: { dataset: DatasetKey; base?: string }) {
   const def = DATASETS[dataset];
   const fields = def.fields.filter((f) => f.type !== "json");
   const hasDate = dataset !== "assets";
@@ -137,11 +139,16 @@ export function DatasetManager({ dataset }: { dataset: DatasetKey }) {
     if (!ids.length || !window.confirm(`Xoá ${ids.length} dòng? Không hoàn tác được.`)) return;
     const qs = new URLSearchParams();
     ids.forEach((id) => qs.append("id", id));
-    const res = await fetch(`/api/admin/smt/data/${dataset}?${qs}`, { method: "DELETE" });
-    const payload = (await res.json()) as { message?: string };
-    if (!res.ok) return setError(payload.message ?? "Xoá thất bại.");
-    setNotice(`Đã xoá ${ids.length} dòng.`);
-    await load();
+    try {
+      // Trợ lý chưa được cho phép -> gửi yêu cầu xin quyền cho admin.
+      const r = await deleteOrRequest(`/api/admin/smt/data/${dataset}?${qs}`, { kind: "dataset", dataset, ids, label: `${def.label}: ${ids.length} dòng`, demo: false });
+      if (r === "deleted") {
+        setNotice(`Đã xoá ${ids.length} dòng.`);
+        await load();
+      } else if (r === "requested") setNotice("Đã gửi yêu cầu xoá cho quản lý duyệt.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Xoá thất bại.");
+    }
   }
 
   // Dán từ Excel: nhận diện dòng tiêu đề (tên cột hoặc nhãn), không có thì theo thứ tự cột của mẫu.
@@ -228,7 +235,7 @@ export function DatasetManager({ dataset }: { dataset: DatasetKey }) {
 
       <nav className="flex flex-wrap gap-2 text-sm" aria-label="Bộ dữ liệu">
         {TABULAR_DATASETS.map((k) => (
-          <Link key={k} href={`/admin/smt/data/${k}`} aria-current={k === dataset ? "page" : undefined} className={`chip ${k === dataset ? "!border-brand-500 bg-brand-50 font-semibold text-brand-700 dark:bg-slate-800 dark:text-brand-200" : ""}`}>
+          <Link key={k} href={`${base}/${k}`} aria-current={k === dataset ? "page" : undefined} className={`chip ${k === dataset ? "!border-brand-500 bg-brand-50 font-semibold text-brand-700 dark:bg-slate-800 dark:text-brand-200" : ""}`}>
             {DATASETS[k].icon} {DATASETS[k].label}
           </Link>
         ))}

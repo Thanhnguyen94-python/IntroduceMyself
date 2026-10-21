@@ -179,7 +179,7 @@ async function nextCode(table: "smt_8d_reports" | "smt_4m_changes", prefix: stri
   return `${stem}${String(max + 1).padStart(2, "0")}`;
 }
 
-export async function insertDatasetRows(key: DatasetKey, inputs: Array<Record<string, unknown>>) {
+export async function insertDatasetRows(key: DatasetKey, inputs: Array<Record<string, unknown>>, author = "") {
   if (!inputs.length) return [];
   if (inputs.length > 2000) throw new SmtValidationError("Tối đa 2.000 dòng mỗi lần nhập.");
   // Kiểm tra hết trước rồi mới ghi: 1 dòng lỗi thì không ghi dòng nào (báo đúng số dòng).
@@ -194,13 +194,13 @@ export async function insertDatasetRows(key: DatasetKey, inputs: Array<Record<st
   }
   const now = new Date().toISOString();
   const out: Row[] = [];
-  for (const row of prepared) out.push(coerce(key, (await insertRow(DATASETS[key].table, { ...row, updated_at: now })) as Row));
+  for (const row of prepared) out.push(coerce(key, (await insertRow(DATASETS[key].table, { ...row, created_by: author, updated_by: author, updated_at: now })) as Row));
   return out;
 }
 
-export async function updateDatasetRow(key: DatasetKey, id: string, patch: Record<string, unknown>) {
+export async function updateDatasetRow(key: DatasetKey, id: string, patch: Record<string, unknown>, author = "") {
   const row = await prepare(key, patch, true, id);
-  const count = await updateRows(DATASETS[key].table, { id, ...LIVE }, { ...row, updated_at: new Date().toISOString() });
+  const count = await updateRows(DATASETS[key].table, { id, ...LIVE }, { ...row, updated_by: author, updated_at: new Date().toISOString() });
   if (!count) return null;
   const fresh = await getRow<Row>(DATASETS[key].table, id);
   return fresh ? coerce(key, fresh) : null;
@@ -210,9 +210,10 @@ export async function deleteDatasetRow(key: DatasetKey, id: string) {
   await deleteRows(DATASETS[key].table, { id, ...LIVE });
 }
 
+// Chỉ 8D thật (trang soạn 8D của Admin / Trợ lý không mở được bản demo).
 export async function getEightD(id: string): Promise<EightDReport | null> {
   const row = await getRow<Row>("smt_8d_reports", id);
-  return row ? (coerce("8d", row) as unknown as EightDReport) : null;
+  return row && !row.is_demo ? (coerce("8d", row) as unknown as EightDReport) : null;
 }
 
 // ---------- 8D content ----------

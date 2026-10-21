@@ -1,3 +1,4 @@
+import { SmtMaintenance } from "@/components/smt/smt-notices";
 import { RangeTabs } from "@/components/smt-workspace/workspace-chrome";
 import { OverviewView } from "@/components/smt-workspace/overview-view";
 import { loadDefectSummary, loadProduction, workspaceContext } from "@/lib/smt/workspace";
@@ -10,7 +11,7 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 
 export default async function SmtOverviewPage({ searchParams }: Props) {
   const ctx = await workspaceContext();
-  if (!ctx.open) return null;
+  if (!ctx.open) return <SmtMaintenance />;
   const range = workspaceRange(ctx, (await searchParams).range);
   const [production, defects] = await Promise.all([loadProduction(ctx, range.from, range.to), loadDefectSummary(ctx, range.from, range.to)]);
   const data = buildOverview(production, defects, ctx.settings, range.from, range.to);

@@ -1,6 +1,8 @@
+import { SmtMaintenance } from "@/components/smt/smt-notices";
 import { AdminOnly } from "@/components/smt-workspace/admin-only";
 import { TeamView } from "@/components/smt-workspace/team-view";
 import { quarterStart } from "@/lib/smt/demo";
+import { can } from "@/lib/smt/permissions";
 import { scoreTeam, weeklyFlow } from "@/lib/smt/team-metrics";
 import { loadTeam, workspaceContext } from "@/lib/smt/workspace";
 import { weekStart } from "@/lib/smt/workspace-metrics";
@@ -15,8 +17,10 @@ const quarterLabel = (start: string) => `Q${Math.floor((Number(start.slice(5, 7)
 
 export default async function SmtTeamPage({ searchParams }: Props) {
   const ctx = await workspaceContext();
-  if (!ctx.open) return null;
-  if (!ctx.demo && !ctx.isAdmin) return <AdminOnly next="/smt/doi-ngu" what={{ vi: "Đánh giá kỹ sư", en: "team scores" }} />;
+  if (!ctx.open) return <SmtMaintenance />;
+  if (!ctx.demo && !ctx.actor) return <AdminOnly next="/smt/doi-ngu" what={{ vi: "Đánh giá kỹ sư", en: "team scores" }} />;
+  // Kỹ sư (dữ liệu thật) chỉ thấy điểm của chính mình; điểm vẫn tính trên cả đội (trung vị khối lượng).
+  const onlyMine = !ctx.demo && !can(ctx.actor, "team.viewAll") ? (ctx.actor?.engineerId ?? "none") : null;
   const team = await loadTeam(ctx);
 
   // Các quý có công việc, mới nhất trước.
@@ -33,14 +37,14 @@ export default async function SmtTeamPage({ searchParams }: Props) {
 
   return (
     <TeamView
-      scores={scoreTeam(team.engineers, team.tasks, from, to)}
-      engineers={team.engineers}
+      scores={scoreTeam(team.engineers, team.tasks, from, to).filter((s) => !onlyMine || s.engineer.id === onlyMine)}
+      engineers={onlyMine ? [] : team.engineers}
       periods={[...quarters.map((x) => ({ id: x, label: quarterLabel(x) })), { id: "all", label: "Toàn bộ" }]}
       period={period}
       from={from}
       to={to}
       flow={weeklyFlow(team.tasks, weekStart(from), to)}
-      canEdit={ctx.canEdit}
+      canEdit={ctx.canEdit && can(ctx.actor, "engineers.manage")}
     />
   );
 }

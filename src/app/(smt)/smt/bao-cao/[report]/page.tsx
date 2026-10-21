@@ -1,3 +1,4 @@
+import { SmtMaintenance } from "@/components/smt/smt-notices";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,7 +23,7 @@ export default async function SmtWorkspaceReportPage({ params, searchParams }: P
   const template = findTemplate((await params).report);
   if (!template) notFound();
   const ctx = await workspaceContext();
-  if (!ctx.open) return null;
+  if (!ctx.open) return <SmtMaintenance />;
   const sp = await searchParams;
   const to = ctx.today;
   const from = addDays(to, -29);

@@ -5,8 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/smt/smt-charts";
 import { EIGHT_D_STATUS, daysBetween, dmy, todayVn } from "@/lib/smt/types";
 import type { EightDReport } from "@/lib/smt/types";
+import { deleteOrRequest } from "@/components/smt-workspace/delete-request";
 
-export function EightDList() {
+// base: Admin /admin/smt/8d, Trợ lý /smt/nhap-lieu/8d.
+export function EightDList({ base = "/admin/smt/8d" }: { base?: string }) {
   const [items, setItems] = useState<EightDReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,8 +41,11 @@ export function EightDList() {
 
   async function remove(r: EightDReport) {
     if (!window.confirm(`Xoá báo cáo ${r.code}? Không hoàn tác được.`)) return;
-    const res = await fetch(`/api/admin/smt/data/8d?id=${r.id}`, { method: "DELETE" });
-    if (res.ok) void load();
+    try {
+      if ((await deleteOrRequest(`/api/admin/smt/data/8d?id=${r.id}`, { kind: "dataset", dataset: "8d", ids: [r.id], label: `8D ${r.code}`, demo: false })) === "deleted") void load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Xoá thất bại.");
+    }
   }
 
   const open = items.filter((r) => r.status !== "closed");
@@ -59,7 +64,7 @@ export function EightDList() {
           <a href="/tai-lieu-ky-thuat/smt-reports/8d?blank=1" target="_blank" rel="noreferrer" className="btn-ghost">
             🖨 Mẫu trống
           </a>
-          <Link href="/admin/smt/8d/new" className="btn-primary">
+          <Link href={`${base}/new`} className="btn-primary">
             + Mở 8D mới
           </Link>
         </div>
@@ -94,7 +99,7 @@ export function EightDList() {
                   {late && <StatusBadge status="critical">Quá hạn {daysBetween(r.due_on!, today)} ngày</StatusBadge>}
                   {r.is_public && <span className="chip">🌐 Công khai</span>}
                 </p>
-                <Link href={`/admin/smt/8d/${r.id}`} className="mt-1 block font-semibold hover:text-brand-600">
+                <Link href={`${base}/${r.id}`} className="mt-1 block font-semibold hover:text-brand-600">
                   {r.title}
                 </Link>
                 <p className="muted text-xs">
@@ -103,7 +108,7 @@ export function EightDList() {
                 </p>
               </div>
               <div className="flex gap-3 text-sm font-semibold">
-                <Link href={`/admin/smt/8d/${r.id}`} className="text-brand-600 dark:text-brand-300">
+                <Link href={`${base}/${r.id}`} className="text-brand-600 dark:text-brand-300">
                   Mở
                 </Link>
                 <button type="button" className="text-red-600" onClick={() => void remove(r)}>

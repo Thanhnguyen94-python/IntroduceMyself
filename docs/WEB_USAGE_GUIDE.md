@@ -328,6 +328,24 @@ Không gian riêng (header riêng, không lẫn trang giới thiệu bản thân
 
 **Bật / tắt:** Admin → **Nội dung & hiển thị** → công tắc **SMT Workspace (/smt)**.
 
+### Tài khoản & phân quyền
+
+| Vai trò | Đăng nhập ở | Được làm |
+|---|---|---|
+| **Admin** (bạn) | `/admin/login` | Mọi thứ; riêng quyền **nghiệm thu / chấm điểm / trả lại việc**, tạo tài khoản, cài đặt line & KPI, duyệt xoá |
+| **Trợ lý** | `/smt/dang-nhap` | Nhập dữ liệu SMT (`/smt/nhap-lieu`), giao / sửa việc, duyệt việc kỹ sư đề xuất, quản lý kỹ sư & kênh chat, đặt lịch báo cáo. Không vào được `/admin`, shop, firmware |
+| **Kỹ sư** | `/smt/dang-nhap` | Xem bảng việc của đội; cập nhật việc **của mình** (bắt đầu, tiến độ, giờ, bị chặn, gửi nghiệm thu); đề xuất việc phát sinh (chờ duyệt mới tính điểm); chỉ thấy điểm của mình; chat |
+
+**Cấp tài khoản:** `/smt/quan-tri` → Tài khoản. Với kỹ sư, tạo **hồ sơ kỹ sư** ở `/smt/doi-ngu` (chế độ Thực tế) trước rồi gắn vào tài khoản. Web hiện **mật khẩu tạm 1 lần**, người dùng phải tự đổi khi đăng nhập lần đầu. **Khoá / đổi quyền / đặt lại mật khẩu** đăng xuất họ khỏi mọi thiết bị ngay.
+
+**Xoá dữ liệu (trợ lý):** lần đầu bấm 🗑 → web hỏi lý do và gửi yêu cầu (email + chuông 🔔 trên header cho admin). Admin duyệt ở `/smt/quan-tri` → Yêu cầu xoá, chọn thời hạn: **Chỉ lần này** (xoá đúng dòng đó), **Trong hôm nay**, **Trong 1 tháng** (được xoá thẳng tới hết hạn, hết hạn phải xin lại). Mọi dòng nhập liệu lưu tên người nhập / sửa.
+
+### Thảo luận & báo cáo ngày / tuần
+
+- `/smt/chat`: kênh Chung, mỗi line 1 kênh, kênh chuyên môn (tự tạo lần đầu theo Cài đặt SMT). Gửi ảnh (tự nén), trả lời tin, đánh dấu **⚠ Vấn đề** (gắn line + mã lỗi) để theo dõi tới khi **✓ Đã xử lý**. Admin / trợ lý có nút **→ Tạo việc** từ tin nhắn.
+- `/smt/bao-cao-tu-dong`: báo cáo tạo theo **giờ chốt** (đặt ở `/smt/quan-tri` → Lịch, vd cuối mỗi ca 06:00 / 14:00 / 22:00) và **báo cáo tuần**. Nội dung: việc giao / nghiệm thu / trả lại / quá hạn, ai không cập nhật, vấn đề còn mở trong chat, sản lượng & line chưa nhập nhật ký. Báo cáo được tạo khi có người mở /smt sau giờ chốt (muốn đúng giờ tuyệt đối: đặt `CRON_SECRET` và cho cron-job.org gọi `/api/smt/reports/run` mỗi 15 phút).
+- **AI (chưa bật):** khi muốn dùng, thêm `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL` trên Vercel (xem `.env.example`), deploy lại, rồi bật "Tóm tắt AI" trong Lịch báo cáo. Không gắn cố định nhà cung cấp nào.
+
 **Line thật:** khai báo ở Admin → ⚙️ Cài đặt SMT. Đặt tên trạm `M-AOI` (trước `Reflow`) và `AXI` để trang tự xếp cấp line; feeder/nozzle gắn với line khi cột **Máy** bắt đầu bằng mã line (vd `L1 · Mounter 2`).
 
 ## Câu hỏi nhanh

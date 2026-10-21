@@ -80,6 +80,7 @@ export function normalizeTask(input: Record<string, unknown>, partial: boolean) 
   // Chưa chấm = null (không được tự gán điểm mặc định, sẽ làm lệch điểm Chất lượng).
   if (has("quality_score")) out.quality_score = input.quality_score === null || input.quality_score === undefined || input.quality_score === "" ? null : int(input.quality_score, 1, 5, 3);
   if (has("rework_count")) out.rework_count = int(input.rework_count, 0, 50, 0);
+  if ("approved" in input) out.approved = input.approved !== false;
   if (!partial && !out.title) throw new SmtValidationError("Nhập tên công việc.");
   return out;
 }
@@ -95,12 +96,13 @@ async function log(demo: boolean, taskId: string, entry: Partial<TaskUpdate>) {
   await insertRow("smt_task_updates", { task_id: taskId, at: todayVn(), kind: "note", status: "", progress: null, hours: 0, author: "", note: "", ...entry, is_demo: demo, updated_at: new Date().toISOString() });
 }
 
-export async function createTask(demo: boolean, input: Record<string, unknown>, author: string) {
-  const row = normalizeTask(input, false);
+// extra: các trường do server quyết định theo quyền (vd việc kỹ sư đề xuất: approved = false, giao cho chính họ).
+export async function createTask(demo: boolean, input: Record<string, unknown>, author: string, extra: Record<string, unknown> = {}) {
+  const row: Record<string, unknown> = { ...normalizeTask(input, false), approved: true, created_by: author, ...extra };
   const code = await nextTaskCode(demo, String(row.assigned_on));
   if (row.status === "doing" && !row.start_on) row.start_on = todayVn();
   const task = (await insertRow("smt_tasks", { ...row, code, is_demo: demo, updated_at: new Date().toISOString() })) as unknown as Task;
-  await log(demo, task.id, { kind: "status", status: String(row.status), note: "Giao việc", author });
+  await log(demo, task.id, { kind: "status", status: String(row.status), note: row.approved === false ? "Đề xuất việc (chờ duyệt)" : "Giao việc", author });
   return task;
 }
 
@@ -121,6 +123,7 @@ export async function updateTask(demo: boolean, id: string, input: Record<string
     if (OPEN_STATUSES.includes(status)) patch.done_on = null;
   }
   await updateRows("smt_tasks", { id, is_demo: demo }, { ...patch, updated_at: new Date().toISOString() });
+  if (patch.approved === true && before.approved === false) await log(demo, id, { kind: "status", status: status, author, note: "Đã duyệt việc đề xuất" });
   if (patch.status && patch.status !== before.status) await log(demo, id, { kind: status === "done" ? "review" : "status", status, progress: (patch.progress as number) ?? null, author, note: note || (status === "done" && patch.quality_score ? `Nghiệm thu: ${patch.quality_score}/5` : "") });
   else if (patch.progress !== undefined && patch.progress !== before.progress) await log(demo, id, { kind: "progress", progress: patch.progress as number, author, note });
   else if (note) await log(demo, id, { kind: "note", author, note });

@@ -16,7 +16,8 @@ const DIFFICULTY_HINT: Record<number, { vi: string; en: string }> = {
   5: { vi: "Mới hoàn toàn / khiếu nại khách hàng lớn", en: "Brand new / major complaint" }
 };
 
-export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { initial: TaskDraft; engineers: Engineer[]; lines: string[]; onCancel: () => void; onSave: (draft: TaskDraft) => Promise<void> }) {
+// proposal = kỹ sư tự đề xuất việc: ẩn người làm / ưu tiên / độ khó (quản lý quyết khi duyệt).
+export function TaskForm({ initial, engineers, lines, proposal = false, onCancel, onSave }: { initial: TaskDraft; engineers: Engineer[]; lines: string[]; proposal?: boolean; onCancel: () => void; onSave: (draft: TaskDraft) => Promise<void> }) {
   const t = useT();
   const [d, setD] = useState<TaskDraft>(initial);
   const [saving, setSaving] = useState(false);
@@ -39,7 +40,8 @@ export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { init
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <h2 className="text-lg font-semibold">{editing ? `${t("Sửa", "Edit")} ${initial.code}` : t("Giao việc mới", "New task")}</h2>
+      <h2 className="text-lg font-semibold">{editing ? `${t("Sửa", "Edit")} ${initial.code}` : proposal ? t("Đề xuất việc phát sinh", "Propose a task") : t("Giao việc mới", "New task")}</h2>
+      {proposal && <p className="muted text-sm">{t("Việc sẽ giao cho bạn, chờ quản lý / trợ lý duyệt (chốt độ khó, ưu tiên) rồi mới tính điểm.", "Assigned to you; counts after a manager approves it.")}</p>}
       <label className={`${field} block`}>
         <span className="font-medium">{t("Tên công việc", "Title")} *</span>
         <input className="input" value={d.title ?? ""} onChange={(e) => set("title", e.target.value)} required maxLength={200} />
@@ -49,7 +51,7 @@ export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { init
         <textarea className="input min-h-[80px]" value={d.description ?? ""} onChange={(e) => set("description", e.target.value)} maxLength={4000} />
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className={field}>
+        {!proposal && (<label className={field}>
           <span className="font-medium">{t("Giao cho", "Assignee")}</span>
           <select className="input" value={d.assignee_id ?? ""} onChange={(e) => set("assignee_id", e.target.value || null)}>
             <option value="">—</option>
@@ -59,7 +61,7 @@ export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { init
               </option>
             ))}
           </select>
-        </label>
+        </label>)}
         <label className={field}>
           <span className="font-medium">Line</span>
           <select className="input" value={d.line ?? ""} onChange={(e) => set("line", e.target.value)}>
@@ -81,6 +83,7 @@ export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { init
             ))}
           </select>
         </label>
+        {!proposal && (<>
         <label className={field}>
           <span className="font-medium">{t("Ưu tiên", "Priority")}</span>
           <select className="input" value={d.priority ?? "medium"} onChange={(e) => set("priority", e.target.value as Task["priority"])}>
@@ -101,6 +104,7 @@ export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { init
           <span className="font-medium">{t("Ngày giao", "Assigned on")}</span>
           <input type="date" className="input" value={d.assigned_on ?? ""} onChange={(e) => set("assigned_on", e.target.value)} />
         </label>
+        </>)}
         <label className={field}>
           <span className="font-medium">{t("Hạn hoàn thành", "Due date")}</span>
           <input type="date" className="input" value={d.due_on ?? ""} onChange={(e) => set("due_on", e.target.value || null)} />
@@ -109,10 +113,12 @@ export function TaskForm({ initial, engineers, lines, onCancel, onSave }: { init
           <span className="font-medium">{t("Ước tính (giờ)", "Estimate (h)")}</span>
           <input type="number" min={0} step={0.5} className="input" value={d.estimate_h ?? 0} onChange={(e) => set("estimate_h", Number(e.target.value))} />
         </label>
-        <label className={field}>
-          <span className="font-medium">{t("Ngày hỏi lại tiến độ", "Follow-up date")}</span>
-          <input type="date" className="input" value={d.follow_up_on ?? ""} onChange={(e) => set("follow_up_on", e.target.value || null)} />
-        </label>
+        {!proposal && (
+          <label className={field}>
+            <span className="font-medium">{t("Ngày hỏi lại tiến độ", "Follow-up date")}</span>
+            <input type="date" className="input" value={d.follow_up_on ?? ""} onChange={(e) => set("follow_up_on", e.target.value || null)} />
+          </label>
+        )}
         <label className={field}>
           <span className="font-medium">{t("Mã liên quan (8D / 4M / WO)", "Related ref (8D / 4M / WO)")}</span>
           <input className="input" value={d.ref_code ?? ""} onChange={(e) => set("ref_code", e.target.value)} maxLength={40} />

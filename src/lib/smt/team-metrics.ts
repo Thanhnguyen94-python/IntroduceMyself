@@ -48,7 +48,8 @@ export function scoreTeam(engineers: Engineer[], tasks: Task[], from: string, to
   const rows = engineers
     .filter((e) => e.active)
     .map((engineer) => {
-      const mine = tasks.filter((t) => t.assignee_id === engineer.id && t.status !== "cancelled");
+      // Việc đề xuất chưa duyệt không tính điểm.
+      const mine = tasks.filter((t) => t.assignee_id === engineer.id && t.status !== "cancelled" && t.approved !== false);
       const done = mine.filter((t) => t.status === "done" && inPeriod(t.done_on));
       const open = mine.filter(isOpen);
       const overdue = open.filter((t) => t.due_on && t.due_on < to);
@@ -96,7 +97,7 @@ export function scoreTeam(engineers: Engineer[], tasks: Task[], from: string, to
 
 // Danh sách "không được quên" của người quản lý.
 export function followUps(tasks: Task[], updates: TaskUpdate[], today: string) {
-  const open = tasks.filter(isOpen);
+  const open = tasks.filter((t) => isOpen(t) && t.approved !== false);
   const lastTouch = new Map<string, string>();
   for (const u of updates) if ((lastTouch.get(u.task_id) ?? "") < u.at) lastTouch.set(u.task_id, u.at);
   const touched = (t: Task) => lastTouch.get(t.id) ?? t.start_on ?? t.assigned_on;

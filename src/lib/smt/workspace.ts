@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { isAdminRequest } from "@/lib/admin-guard";
+import { currentActor } from "@/lib/smt/accounts";
+import { isStaff, type SmtActor } from "@/lib/smt/permissions";
 import { selectRows } from "@/lib/data/table-store";
 import { readSiteVisibility } from "@/lib/site-visibility-store";
 import { isPageEnabled } from "@/lib/site-visibility-types";
@@ -19,15 +20,19 @@ import type { Engineer, Task, TaskUpdate } from "@/lib/smt/team-types";
 // nên bạn chuyển sang Demo để học / thử không làm thay đổi gì với người khác đang xem.
 //  - Khách: mặc định theo Cài đặt SMT → "Trang công khai dùng dữ liệu" (demo / live).
 //           Chỉ xem được Thực tế khi bạn bật "live", và chỉ là số liệu tổng hợp (đã bỏ ghi chú, WO...).
-//  - Admin: mặc định Thực tế, xem được toàn bộ, sửa được công việc ở cả 2 chế độ
-//           (sửa ở Demo chỉ ghi vào dòng is_demo = true -> "sân tập" an toàn).
+//  - Người đã đăng nhập (admin / trợ lý / kỹ sư): mặc định Thực tế, xem số liệu đầy đủ.
+//    Admin & trợ lý sửa được công việc ở cả 2 chế độ (sửa ở Demo chỉ ghi vào dòng is_demo = true ->
+//    "sân tập" an toàn). Kỹ sư chỉ cập nhật việc của mình ở dữ liệu thật (xem permissions.ts).
 
 export const WORKSPACE_KEY = "smt-workspace";
 
 export type WorkspaceCtx = {
   mode: SmtMode;
   demo: boolean;
+  // Người đang đăng nhập (null = khách). isAdmin / staff là viết tắt cho tiện.
+  actor: SmtActor | null;
   isAdmin: boolean;
+  staff: boolean;
   enabled: boolean;
   open: boolean;
   liveAllowed: boolean;
@@ -44,11 +49,13 @@ export type WorkspaceCtx = {
 
 // cache(): layout + page trong cùng 1 request chỉ đọc cookie / cài đặt 1 lần.
 export const workspaceContext = cache(async (): Promise<WorkspaceCtx> => {
-  const [isAdmin, liveSettings, visibility, meta, jar] = await Promise.all([isAdminRequest(), readSmtSettings(), readSiteVisibility(), readDemoMeta(), cookies()]);
+  const [actor, liveSettings, visibility, meta, jar] = await Promise.all([currentActor(), readSmtSettings(), readSiteVisibility(), readDemoMeta(), cookies()]);
+  const isAdmin = actor?.role === "admin";
+  const staff = isStaff(actor);
   const enabled = isPageEnabled(visibility, WORKSPACE_KEY);
-  const liveAllowed = isAdmin || liveSettings.publicSource === "live";
+  const liveAllowed = Boolean(actor) || liveSettings.publicSource === "live";
   const cookie = jar.get(SMT_MODE_COOKIE)?.value;
-  let mode: SmtMode = cookie === "demo" || cookie === "live" ? cookie : isAdmin ? "live" : liveSettings.publicSource;
+  let mode: SmtMode = cookie === "demo" || cookie === "live" ? cookie : actor ? "live" : liveSettings.publicSource;
   const forcedDemo = mode === "live" && !liveAllowed;
   if (forcedDemo) mode = "demo";
   const demo = mode === "demo";
@@ -56,9 +63,12 @@ export const workspaceContext = cache(async (): Promise<WorkspaceCtx> => {
   return {
     mode,
     demo,
+    actor,
     isAdmin,
+    staff,
     enabled,
-    open: enabled || isAdmin,
+    // Trang tắt với khách nhưng đội nội bộ (đã đăng nhập) vẫn dùng được.
+    open: enabled || Boolean(actor),
     liveAllowed,
     forcedDemo,
     settings: demo ? DEMO_SMT_SETTINGS : liveSettings,
@@ -66,7 +76,7 @@ export const workspaceContext = cache(async (): Promise<WorkspaceCtx> => {
     meta,
     today: demo ? (meta?.to ?? todayVn()) : todayVn(),
     stored,
-    canEdit: isAdmin && stored
+    canEdit: staff && stored
   };
 });
 
@@ -81,7 +91,7 @@ export async function loadProduction(ctx: WorkspaceCtx, from: string, to: string
       .map((p) => ({ id: `m-${++seq}`, ...p }));
   }
   const rows = await listDataset<ProductionLog>("production", { from, to, line, demo: ctx.demo, limit: 50_000 });
-  return ctx.isAdmin ? rows : rows.map((p) => ({ ...p, work_order: "", note: "" }));
+  return ctx.actor ? rows : rows.map((p) => ({ ...p, work_order: "", note: "" }));
 }
 
 // Lỗi tổng hợp theo (line, tháng, mã lỗi, công đoạn, trạm phát hiện): nhỏ gọn cho dashboard nhiều tháng.
@@ -118,7 +128,7 @@ export async function loadDefects(ctx: WorkspaceCtx, from: string, to: string, l
       .map((d) => ({ id: `m-${++seq}`, ...d }));
   }
   const rows = await listDataset<DefectLog>("defects", { from, to, line, demo: ctx.demo, limit: 50_000 });
-  return ctx.isAdmin ? rows : rows.map((d) => ({ ...d, part_no: "", root_cause: "", action: "" }));
+  return ctx.actor ? rows : rows.map((d) => ({ ...d, part_no: "", root_cause: "", action: "" }));
 }
 
 // Gói dữ liệu cho 5 mẫu báo cáo (cùng định dạng trang Tài liệu).
@@ -139,7 +149,7 @@ export async function loadReportBundle(ctx: WorkspaceCtx, from: string, to: stri
     };
   }
   const bundle = await loadBundle({ from, to, demo: ctx.demo });
-  return ctx.isAdmin ? bundle : sanitizeBundle(bundle);
+  return ctx.actor ? bundle : sanitizeBundle(bundle);
 }
 
 // ---------- Đội ngũ & công việc ----------
@@ -211,14 +221,14 @@ export async function loadLineData(ctx: WorkspaceCtx, line: string, from: string
   const mine = assets.filter((a) => a.machine.toUpperCase().startsWith(line.toUpperCase()));
   const ids = new Set(mine.map((a) => a.id));
   const logs = mine.length ? (await listDataset<AssetLog>("asset-logs", { from: addDays(healthFrom, -200), to, demo, limit: 50_000 })).filter((l) => ids.has(l.asset_id)) : [];
-  const open = (r: ChangeLog) => ctx.isAdmin || r.is_public;
+  const open = (r: ChangeLog) => Boolean(ctx.actor) || r.is_public;
   return {
     production,
     defects,
     cycleTimes,
     assets: mine,
     assetLogs: logs,
-    changes: changes.filter(open).map((c) => (ctx.isAdmin ? c : { ...c, owner: "", approved_by: "", note: "" })),
-    eightD: eightD.filter((r) => ctx.isAdmin || r.is_public)
+    changes: changes.filter(open).map((c) => (ctx.actor ? c : { ...c, owner: "", approved_by: "", note: "" })),
+    eightD: eightD.filter((r) => Boolean(ctx.actor) || r.is_public)
   };
 }

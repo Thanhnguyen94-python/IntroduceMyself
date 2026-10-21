@@ -1,3 +1,4 @@
+import { SmtMaintenance } from "@/components/smt/smt-notices";
 import Link from "next/link";
 import { L } from "@/components/ui/localized";
 import { REPORT_TEMPLATES } from "@/lib/smt/catalog";
@@ -9,7 +10,7 @@ export const metadata = { title: "Báo cáo" };
 // 5 mẫu báo cáo SMT chạy trên dữ liệu của chế độ đang xem (demo / thực tế).
 export default async function SmtReportsIndexPage() {
   const ctx = await workspaceContext();
-  if (!ctx.open) return null;
+  if (!ctx.open) return <SmtMaintenance />;
   return (
     <div className="space-y-4">
       <div>

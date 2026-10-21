@@ -38,6 +38,7 @@ const groups: Array<{ title: string; items: Array<{ href: string; label: string;
       { href: "/admin/smt/reports", label: "Xuất báo cáo", icon: "📊" },
       { href: "/admin/smt/handbook", label: "Sổ tay SMT", icon: "📘" },
       { href: "/admin/smt/demo", label: "Dữ liệu demo & dung lượng", icon: "🧪" },
+      { href: "/smt/quan-tri", label: "Tài khoản đội & duyệt xoá", icon: "👥" },
       { href: "/admin/smt/settings", label: "Cài đặt SMT", icon: "⚙️" }
     ]
   },

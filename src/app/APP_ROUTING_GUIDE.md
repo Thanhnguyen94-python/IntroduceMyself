@@ -27,7 +27,12 @@ src/app/
 │  ├─ line/ line/[code]/       #    /smt/line[/L05]   sơ đồ trạm, OEE, Yield, Feeder, 8D/4M/việc của line
 │  ├─ bao-cao/[report]/        #    /smt/bao-cao/oee-line-balance... 5 mẫu báo cáo trên dữ liệu đang xem
 │  ├─ cong-viec/               #    /smt/cong-viec    giao việc, Kanban, "cần theo dõi", nghiệm thu / trả lại
-│  └─ doi-ngu/                 #    /smt/doi-ngu      chấm điểm kỹ sư theo quý (công thức hiển thị trên trang)
+│  ├─ doi-ngu/                 #    /smt/doi-ngu      chấm điểm kỹ sư theo quý (công thức hiển thị trên trang)
+│  ├─ chat/                    #    /smt/chat         nhóm thảo luận (đăng nhập), đánh dấu "Vấn đề"
+│  ├─ bao-cao-tu-dong/         #    /smt/bao-cao-tu-dong  báo cáo ngày/tuần theo giờ chốt
+│  ├─ nhap-lieu/               #    /smt/nhap-lieu/<bộ dữ liệu>, /8d   nhập liệu cho Admin + Trợ lý
+│  ├─ quan-tri/                #    /smt/quan-tri     tài khoản, duyệt xoá, lịch báo cáo, kênh chat
+│  └─ dang-nhap/ tai-khoan/    #    đăng nhập Trợ lý / Kỹ sư (cookie smt_session, không vào được /admin)
 ├─ (shop)/shop/                # 3) CỬA HÀNG cho khách mua hàng
 │  ├─ layout.tsx               #    ShopHeader + giỏ hàng + chat "shop", bật/tắt bằng key "showcase"
 │  ├─ page.tsx                 #    /shop                     trang bán hàng (slideshow, lọc, tìm kiếm)
@@ -57,6 +62,8 @@ src/app/
 - `/tong-quan` (link cũ, mã QR trên CV đã in) được redirect về `/`.
 - Dữ liệu SMT có cột `is_demo`: chế độ Demo chỉ đọc/ghi dòng `is_demo = true`, Thực tế chỉ `false`.
   Chế độ là cookie `smt_mode` của từng trình duyệt nên chuyển Demo không ảnh hưởng người khác.
+- Phân quyền /smt (Admin / Trợ lý / Kỹ sư) nằm ở `src/lib/smt/permissions.ts`. API kiểm tra lại quyền ở server.
+  Trợ lý dùng chung API `/api/admin/smt/data/*` và `GET /api/admin/smt/settings` với Admin; mọi API `/api/admin/*` khác chỉ Admin.
 - `/api/smt/templates/<mẫu>` trả file Excel mẫu trống (link công khai, dùng trên trang Tài liệu).
 - `/api/firmware/latest` **không được đổi đường dẫn**: WebUI của robot gọi API này để kiểm tra OTA.
 - Portfolio **không** chứa link nạp firmware, Project Hub hay Cửa hàng.
