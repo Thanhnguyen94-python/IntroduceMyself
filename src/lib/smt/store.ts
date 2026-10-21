@@ -4,12 +4,16 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { StorageUnavailableError, deleteRows, getRow, insertRow, selectRows, updateRows, type Query } from "@/lib/data/table-store";
 import { DEFAULT_SMT_SETTINGS } from "@/lib/smt/defaults";
 import { buildDemoBundle } from "@/lib/smt/demo";
+import { DEMO_SMT_SETTINGS } from "@/lib/smt/demo-config";
+import { readDemoMeta } from "@/lib/smt/demo-meta";
 import { DATASETS, SmtValidationError, normalizeRow, type DatasetKey } from "@/lib/smt/datasets";
 import { addDays, emptyEightDContent, todayVn, SMT_PROCESSES } from "@/lib/smt/types";
 import type { EightDContent, EightDReport, SmtDataBundle, SmtSettings } from "@/lib/smt/types";
 
 // Dữ liệu SMT: 7 bảng smt_* (Supabase) hoặc .data/dev-db.json khi chạy local không có Supabase.
 // Cài đặt: site_content['smt_settings'] (Supabase) hoặc .data/smt-settings.json.
+// Mỗi dòng có cột is_demo: mọi hàm ở đây mặc định chỉ đọc / ghi dữ liệu THẬT (is_demo = false);
+// dữ liệu demo chỉ được đọc khi truyền demo: true (xem demo-store.ts để tạo / xoá demo).
 
 const SETTINGS_KEY = "smt_settings";
 const DEV_SETTINGS_FILE = path.join(process.cwd(), ".data", "smt-settings.json");
@@ -100,7 +104,9 @@ export async function writeSmtSettings(input: Partial<SmtSettings>) {
 }
 
 // ---------- Bộ dữ liệu ----------
-export type ListOptions = { from?: string; to?: string; line?: string; limit?: number };
+export type ListOptions = { from?: string; to?: string; line?: string; limit?: number; demo?: boolean };
+
+const LIVE = { is_demo: false } as const;
 
 // Supabase trả numeric dạng number; riêng dev JSON có thể là chuỗi -> ép kiểu lại cho chắc.
 function coerce(key: DatasetKey, row: Row): Row {
@@ -115,10 +121,10 @@ function coerce(key: DatasetKey, row: Row): Row {
 
 export async function listDataset<T = Row>(key: DatasetKey, opt: ListOptions = {}): Promise<T[]> {
   const def = DATASETS[key];
-  const q: Query = { order: [def.dateField, "desc"], limit: opt.limit ?? 5000 };
+  const q: Query = { order: [def.dateField, "desc"], limit: opt.limit ?? 5000, eq: { is_demo: Boolean(opt.demo) } };
   if (opt.from) q.gte = [def.dateField, opt.from];
   if (opt.to) q.lte = [def.dateField, opt.to];
-  if (opt.line && def.fields.some((f) => f.key === "line")) q.eq = { line: opt.line };
+  if (opt.line && def.fields.some((f) => f.key === "line")) q.eq!.line = opt.line;
   // Danh mục thiết bị: không lọc theo ngày PM (thiết bị chưa PM vẫn phải hiện).
   if (key === "assets") {
     delete q.gte;
@@ -141,14 +147,14 @@ async function prepare(key: DatasetKey, input: Record<string, unknown>, partial:
   if (key === "asset-logs" && typeof row.asset_id === "string") row.asset_id = await resolveAssetId(row.asset_id);
   if (key === "assets" && typeof row.code === "string") {
     row.code = row.code.toUpperCase();
-    const dup = await selectRows<Row>("smt_assets", { eq: { code: row.code as string }, limit: 1 });
+    const dup = await selectRows<Row>("smt_assets", { eq: { code: row.code as string, ...LIVE }, limit: 1 });
     if (dup[0] && dup[0].id !== currentId) throw new SmtValidationError(`Mã thiết bị "${row.code}" đã tồn tại.`);
   }
   if (key === "8d") {
     if ("content" in row) row.content = normalizeEightDContent(row.content);
     if (!partial && !row.code) row.code = await nextCode("smt_8d_reports", "8D", String(row.opened_on ?? todayVn()));
     if (row.code) {
-      const dup = await selectRows<Row>("smt_8d_reports", { eq: { code: row.code as string }, limit: 1 });
+      const dup = await selectRows<Row>("smt_8d_reports", { eq: { code: row.code as string, ...LIVE }, limit: 1 });
       if (dup[0] && dup[0].id !== currentId) throw new SmtValidationError(`Mã 8D "${row.code}" đã tồn tại.`);
     }
     if (row.status === "closed" && !row.closed_on && !partial) row.closed_on = todayVn();
@@ -159,21 +165,21 @@ async function prepare(key: DatasetKey, input: Record<string, unknown>, partial:
 
 // Cho phép nhập mã feeder (FD-001) thay vì id khi dán từ Excel.
 async function resolveAssetId(value: string) {
-  const byId = await selectRows<Row>("smt_assets", { eq: { id: value }, limit: 1 }).catch(() => []);
+  const byId = await selectRows<Row>("smt_assets", { eq: { id: value, ...LIVE }, limit: 1 }).catch(() => []);
   if (byId[0]) return value;
-  const byCode = await selectRows<Row>("smt_assets", { eq: { code: value.toUpperCase() }, limit: 1 });
+  const byCode = await selectRows<Row>("smt_assets", { eq: { code: value.toUpperCase(), ...LIVE }, limit: 1 });
   if (byCode[0]) return byCode[0].id;
   throw new SmtValidationError(`Không tìm thấy feeder / nozzle "${value}". Thêm vào Danh mục trước.`);
 }
 
 async function nextCode(table: "smt_8d_reports" | "smt_4m_changes", prefix: string, date: string) {
   const stem = `${prefix}-${date.slice(2, 4)}${date.slice(5, 7)}-`;
-  const rows = await selectRows<{ code: string }>(table, { columns: "code", limit: 5000 });
+  const rows = await selectRows<{ code: string }>(table, { columns: "code", eq: LIVE, limit: 5000 });
   const max = rows.filter((r) => r.code?.startsWith(stem)).reduce((m, r) => Math.max(m, Number(r.code.slice(stem.length)) || 0), 0);
   return `${stem}${String(max + 1).padStart(2, "0")}`;
 }
 
-export async function insertDatasetRows(key: DatasetKey, inputs: Array<Record<string, unknown>>) {
+export async function insertDatasetRows(key: DatasetKey, inputs: Array<Record<string, unknown>>, author = "") {
   if (!inputs.length) return [];
   if (inputs.length > 2000) throw new SmtValidationError("Tối đa 2.000 dòng mỗi lần nhập.");
   // Kiểm tra hết trước rồi mới ghi: 1 dòng lỗi thì không ghi dòng nào (báo đúng số dòng).
@@ -188,25 +194,26 @@ export async function insertDatasetRows(key: DatasetKey, inputs: Array<Record<st
   }
   const now = new Date().toISOString();
   const out: Row[] = [];
-  for (const row of prepared) out.push(coerce(key, (await insertRow(DATASETS[key].table, { ...row, updated_at: now })) as Row));
+  for (const row of prepared) out.push(coerce(key, (await insertRow(DATASETS[key].table, { ...row, created_by: author, updated_by: author, updated_at: now })) as Row));
   return out;
 }
 
-export async function updateDatasetRow(key: DatasetKey, id: string, patch: Record<string, unknown>) {
+export async function updateDatasetRow(key: DatasetKey, id: string, patch: Record<string, unknown>, author = "") {
   const row = await prepare(key, patch, true, id);
-  const count = await updateRows(DATASETS[key].table, { id }, { ...row, updated_at: new Date().toISOString() });
+  const count = await updateRows(DATASETS[key].table, { id, ...LIVE }, { ...row, updated_by: author, updated_at: new Date().toISOString() });
   if (!count) return null;
   const fresh = await getRow<Row>(DATASETS[key].table, id);
   return fresh ? coerce(key, fresh) : null;
 }
 
 export async function deleteDatasetRow(key: DatasetKey, id: string) {
-  await deleteRows(DATASETS[key].table, { id });
+  await deleteRows(DATASETS[key].table, { id, ...LIVE });
 }
 
+// Chỉ 8D thật (trang soạn 8D của Admin / Trợ lý không mở được bản demo).
 export async function getEightD(id: string): Promise<EightDReport | null> {
   const row = await getRow<Row>("smt_8d_reports", id);
-  return row ? (coerce("8d", row) as unknown as EightDReport) : null;
+  return row && !row.is_demo ? (coerce("8d", row) as unknown as EightDReport) : null;
 }
 
 // ---------- 8D content ----------
@@ -266,41 +273,63 @@ export function normalizeEightDContent(input: unknown): EightDContent {
 }
 
 // ---------- Gói dữ liệu cho báo cáo ----------
-export async function loadBundle(opt: { from: string; to: string }): Promise<SmtDataBundle> {
+export async function loadBundle(opt: { from: string; to: string; demo?: boolean }): Promise<SmtDataBundle> {
+  const demo = Boolean(opt.demo);
+  const range = { from: opt.from, to: opt.to, demo, limit: 50_000 };
   const [production, defects, cycleTimes, changes, assets, assetLogs, eightD] = await Promise.all([
-    listDataset("production", opt),
-    listDataset("defects", opt),
+    listDataset("production", range),
+    listDataset("defects", range),
     // Line balance lấy lần đo mới nhất, kể cả trước kỳ báo cáo.
-    listDataset("cycle-times", { to: opt.to }),
-    listDataset("changes", opt),
-    listDataset("assets"),
-    listDataset("asset-logs", { from: addDays(opt.from, -400), to: opt.to }),
-    listDataset("8d", { limit: 500 })
+    listDataset("cycle-times", { to: opt.to, demo }),
+    listDataset("changes", range),
+    listDataset("assets", { demo }),
+    // Đủ để biết lần PM gần nhất (chu kỳ PM dài nhất thường 90-180 ngày).
+    listDataset("asset-logs", { from: addDays(opt.from, -200), to: opt.to, demo, limit: 50_000 }),
+    listDataset("8d", { limit: 500, demo })
   ]);
   return { production, defects, cycleTimes, changes, assets, assetLogs, eightD } as unknown as SmtDataBundle;
 }
 
 // Dữ liệu cho trang công khai:
-//  - "demo": dữ liệu mô phỏng (mặc định).
+//  - "demo": dữ liệu demo (bản trong database nếu admin đã tạo, nếu chưa thì tính tạm trong bộ nhớ).
 //  - "live": số liệu thật nhưng bỏ ghi chú / work order / nguyên nhân, 8D & 4M chỉ lấy bản ghi is_public.
-export async function loadPublicBundle(settings: SmtSettings): Promise<{ bundle: SmtDataBundle; source: "demo" | "live"; from: string; to: string }> {
+// Trả kèm settings vì demo dùng cấu hình 10 line riêng (demo-config.ts), không phải line thật.
+export async function loadPublicBundle(settings: SmtSettings): Promise<{ bundle: SmtDataBundle; settings: SmtSettings; source: "demo" | "live"; from: string; to: string }> {
+  if (settings.publicSource !== "live") return loadDemoView(settings.publicDays);
   const to = todayVn();
   const from = addDays(to, -(settings.publicDays - 1));
-  if (settings.publicSource !== "live") return { bundle: buildDemoBundle(settings.publicDays, to), source: "demo", from, to };
   try {
-    const b = await loadBundle({ from, to });
-    const bundle: SmtDataBundle = {
-      production: b.production.map((p) => ({ ...p, work_order: "", note: "", downtime_reason: p.downtime_reason })),
-      defects: b.defects.map((d) => ({ ...d, part_no: "", root_cause: "", action: "" })),
-      cycleTimes: b.cycleTimes.map((c) => ({ ...c, note: "" })),
-      changes: b.changes.filter((c) => c.is_public).map((c) => ({ ...c, owner: "", approved_by: "", note: "" })),
-      assets: b.assets.map((a) => ({ ...a, note: "" })),
-      assetLogs: b.assetLogs.map((l) => ({ ...l, technician: "", note: "" })),
-      eightD: b.eightD.filter((r) => r.is_public)
-    };
-    return { bundle, source: "live", from, to };
+    return { bundle: sanitizeBundle(await loadBundle({ from, to })), settings, source: "live", from, to };
   } catch (error) {
     console.error("[smt] public live data failed, fallback demo:", error);
-    return { bundle: buildDemoBundle(settings.publicDays, to), source: "demo", from, to };
+    return loadDemoView(settings.publicDays);
   }
+}
+
+export function sanitizeBundle(b: SmtDataBundle): SmtDataBundle {
+  return {
+    production: b.production.map((p) => ({ ...p, work_order: "", note: "" })),
+    defects: b.defects.map((d) => ({ ...d, part_no: "", root_cause: "", action: "" })),
+    cycleTimes: b.cycleTimes.map((c) => ({ ...c, note: "" })),
+    changes: b.changes.filter((c) => c.is_public).map((c) => ({ ...c, owner: "", approved_by: "", note: "" })),
+    assets: b.assets.map((a) => ({ ...a, note: "" })),
+    assetLogs: b.assetLogs.map((l) => ({ ...l, technician: "", note: "" })),
+    eightD: b.eightD.filter((r) => r.is_public)
+  };
+}
+
+// Kỳ demo kết thúc ở ngày tạo demo (không phải hôm nay) để biểu đồ không bị trống ở cuối.
+export async function loadDemoView(days: number): Promise<{ bundle: SmtDataBundle; settings: SmtSettings; source: "demo"; from: string; to: string }> {
+  const meta = await readDemoMeta();
+  const to = meta?.to ?? todayVn();
+  const from = addDays(to, -(days - 1));
+  const settings = { ...DEMO_SMT_SETTINGS, publicDays: days };
+  if (meta) {
+    try {
+      return { bundle: await loadBundle({ from, to, demo: true }), settings, source: "demo", from, to };
+    } catch (error) {
+      console.error("[smt] demo data in DB failed, fallback memory:", error);
+    }
+  }
+  return { bundle: buildDemoBundle(days, to), settings, source: "demo", from, to };
 }

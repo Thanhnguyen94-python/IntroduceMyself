@@ -72,8 +72,8 @@ function HeroSection({ data }: { data: HomeData }) {
             <Link href="/cv" className="btn-ghost">
               📄 {lang === "vi" ? "CV & PDF" : "CV & PDF"}
             </Link>
-            <Link href="/tong-quan" className="btn-ghost">
-              {lang === "vi" ? "Hồ sơ chi tiết" : "Full profile"}
+            <Link href="/hanh-trinh" className="btn-ghost">
+              {lang === "vi" ? "Hành trình chi tiết" : "Full journey"}
             </Link>
           </div>
           <p className="muted mt-5 text-sm">📍 {profile.location}</p>

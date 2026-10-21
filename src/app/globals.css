@@ -11,11 +11,13 @@
 }
 
 /* Màu biểu đồ: đã chạy validator dataviz cho cả nền sáng và tối.
-   viz-2 = chuỗi thứ 2 (đường tích luỹ Pareto, tổn thất). Màu trạng thái luôn đi kèm icon + chữ. */
+   viz-2 = chuỗi thứ 2 (đường tích luỹ Pareto, tổn thất). Màu trạng thái luôn đi kèm icon + chữ.
+   viz-3 (aqua) dưới 3:1 trên nền sáng -> biểu đồ dùng nó luôn có nhãn trực tiếp + bảng số liệu. */
 :root {
   --viz-1: #2a78d6;
   --viz-1-wash: rgba(42, 120, 214, 0.12);
   --viz-2: #eb6834;
+  --viz-3: #1baf7a;
   --status-good: #0ca30c;
   --status-warning: #fab219;
   --status-critical: #d03b3b;
@@ -25,6 +27,7 @@
   --viz-1: #3987e5;
   --viz-1-wash: rgba(57, 135, 229, 0.16);
   --viz-2: #d95926;
+  --viz-3: #199e70;
   --bg: #0a1222;
   --surface: #111c33;
   --text: #e5eeff;

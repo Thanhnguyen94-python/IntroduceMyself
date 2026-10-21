@@ -175,6 +175,19 @@ function parseSessionToken(token?: string | null) {
   }
 }
 
+// Ký / kiểm tra chuỗi cho phiên khác (vd tài khoản SMT) bằng cùng secret nhưng có "scope" riêng:
+// token SMT không bao giờ dùng được làm cookie admin (chữ ký khác nhau).
+export function signScoped(scope: string, payload: string) {
+  const secret = getSessionSecret();
+  if (!secret) return null;
+  return signPayload(`${scope}|${payload}`, secret);
+}
+
+export function verifyScoped(scope: string, payload: string, signature: string) {
+  const expected = signScoped(scope, payload);
+  return expected !== null && safeCompare(signature, expected);
+}
+
 export function verifyAdminSessionToken(token?: string | null) {
   return parseSessionToken(token) !== null;
 }

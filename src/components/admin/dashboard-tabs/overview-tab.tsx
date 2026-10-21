@@ -35,13 +35,14 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
   }, []);
 
   const toggles: Array<[ManagedPageKey, string]> = [
-    ["overview", "Trang chủ & Tổng quan"],
+    ["overview", "Trang chủ"],
     ["journey", "Hành trình"],
     ["projects", "Dự án (Case Study)"],
     ["showcase", "Cửa hàng (/shop)"],
     ["docs", "Tài liệu"],
     ["smt", "Mẫu báo cáo SMT (/tai-lieu-ky-thuat/smt-reports)"],
     ["handbook", "Sổ tay SMT (/tai-lieu-ky-thuat/so-tay)"],
+    ["smt-workspace", "SMT Workspace (/smt)"],
     ...hubs.map((hub): [ManagedPageKey, string] => [`hub:${hub.slug}`, `Project Hub: ${hub.name} (/${hub.slug})`])
   ];
 

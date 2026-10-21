@@ -24,7 +24,6 @@ export async function PUT(request: Request) {
     const saved = await writeSiteData(payload);
 
     revalidatePath("/");
-    revalidatePath("/tong-quan");
     revalidatePath("/cv");
 
     return NextResponse.json({ ok: true, data: saved });

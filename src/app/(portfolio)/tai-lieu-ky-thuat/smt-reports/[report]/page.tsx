@@ -7,7 +7,7 @@ import { SmtAdminPreview, SmtMaintenance } from "@/components/smt/smt-notices";
 import { findTemplate } from "@/lib/smt/catalog";
 import { smtAccess } from "@/lib/smt/gate";
 import { loadPublicBundle, readSmtSettings } from "@/lib/smt/store";
-import type { DefectLog, ProductionLog, SmtDataBundle } from "@/lib/smt/types";
+import { sliceBundle } from "@/lib/smt/report-slice";
 
 // /tai-lieu-ky-thuat/smt-reports/<mẫu>  ·  ?blank=1 = mẫu trống để in  ·  &print=1 = tự mở hộp thoại in
 export const dynamic = "force-dynamic";
@@ -20,19 +20,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `${template.title.vi} (${template.code})`, description: template.summary.vi };
 }
 
-// Chỉ gửi xuống trình duyệt phần dữ liệu báo cáo đó cần (trang nhẹ hơn, không lộ dữ liệu thừa).
-// Bỏ các cột báo cáo không dùng (id, ca, ghi chú…) để giảm dung lượng HTML.
-function slice(slug: string, b: SmtDataBundle): SmtDataBundle {
-  const empty: SmtDataBundle = { production: [], defects: [], cycleTimes: [], changes: [], assets: [], assetLogs: [], eightD: [] };
-  const production = b.production.map(({ log_date, shift, line, model, planned_min, downtime_min, downtime_reason, ideal_ct_sec, total_qty, good_qty, opportunities }) => ({ log_date, shift, line, model, planned_min, downtime_min, downtime_reason, ideal_ct_sec, total_qty, good_qty, opportunities }) as ProductionLog);
-  const defects = b.defects.map(({ log_date, line, model, defect_code, process, detected_by, location, qty }) => ({ log_date, line, model, defect_code, process, detected_by, location, qty }) as DefectLog);
-  if (slug === "oee-line-balance") return { ...empty, production, cycleTimes: b.cycleTimes };
-  if (slug === "yield-pareto") return { ...empty, production, defects };
-  if (slug === "feeder-nozzle") return { ...empty, assets: b.assets, assetLogs: b.assetLogs };
-  if (slug === "4m1e") return { ...empty, changes: b.changes };
-  return { ...empty, eightD: b.eightD };
-}
-
 export default async function SmtReportPage({ params, searchParams }: Props) {
   const template = findTemplate((await params).report);
   if (!template) notFound();
@@ -41,8 +28,7 @@ export default async function SmtReportPage({ params, searchParams }: Props) {
 
   const sp = await searchParams;
   const blank = sp.blank === "1";
-  const settings = await readSmtSettings();
-  const { bundle, source, from, to } = await loadPublicBundle(settings);
+  const { bundle, settings, source, from, to } = await loadPublicBundle(await readSmtSettings());
 
   return (
     <section className="space-y-4">
@@ -63,7 +49,7 @@ export default async function SmtReportPage({ params, searchParams }: Props) {
           </Link>
         )}
       </nav>
-      <ReportViewer slug={template.slug} bundle={slice(template.slug, bundle)} settings={settings} from={from} to={to} source={source} blank={blank} autoPrint={sp.print === "1"} />
+      <ReportViewer slug={template.slug} bundle={sliceBundle(template.slug, bundle)} settings={settings} from={from} to={to} source={source} blank={blank} autoPrint={sp.print === "1"} />
     </section>
   );
 }

@@ -34,7 +34,7 @@ function filled(c: EightDContent, step: StepKey) {
   return any(map[step]);
 }
 
-export function EightDEditor({ initial }: { initial: EightDReport }) {
+export function EightDEditor({ initial, base = "/admin/smt/8d" }: { initial: EightDReport; base?: string }) {
   const router = useRouter();
   const [r, setR] = useState<EightDReport>(initial);
   const [step, setStep] = useState<StepKey>("D0");
@@ -82,7 +82,7 @@ export function EightDEditor({ initial }: { initial: EightDReport }) {
       if (saved) setR(saved);
       setDirty(false);
       setMessage({ ok: true, text: `Đã lưu ${saved?.code ?? ""}.` });
-      if (!id && saved) router.replace(`/admin/smt/8d/${saved.id}`);
+      if (!id && saved) router.replace(`${base}/${saved.id}`);
     } catch (e) {
       setMessage({ ok: false, text: e instanceof Error ? e.message : "Lưu thất bại." });
     } finally {
@@ -96,7 +96,7 @@ export function EightDEditor({ initial }: { initial: EightDReport }) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <Link href="/admin/smt/8d" className="text-sm text-brand-600 dark:text-brand-300">
+          <Link href={base} className="text-sm text-brand-600 dark:text-brand-300">
             ← Danh sách 8D
           </Link>
           <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-300">{r.id ? `${r.code} · ${r.title || "(chưa có tiêu đề)"}` : "Báo cáo 8D mới"}</h1>

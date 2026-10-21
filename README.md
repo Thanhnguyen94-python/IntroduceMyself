@@ -19,18 +19,20 @@ Trọng tâm:
 - Hosting mục tiêu: Cloudflare Pages.
 
 ## 3) Quy ước đặt tên trang (đã chốt)
-- Trang 1: `Tổng Quan` (`/tong-quan`)
+- Trang 1: `Trang chủ` (`/`) – trang `/tong-quan` cũ đã gộp vào đây (link cũ tự chuyển về `/`)
 - Trang 2: `Hành Trình` (`/hanh-trinh`)
 - Trang 3: `Dự Án` (`/du-an`)
 - Trang 4: `Tài Liệu Kỹ Thuật` (`/tai-lieu-ky-thuat`)
 
 Cập nhật 2026-10-18: `/` là trang chủ Portfolio, các khối (hero, case study, kỹ năng…) bật/tắt và kéo thả thứ tự trong `/admin/layout`.
 
-### 3b) Ba không gian của web
+### 3b) Các không gian của web
 | Không gian | URL | Người dùng |
 |---|---|---|
 | Portfolio | `/`, `/hanh-trinh`, `/du-an`… | Nhà tuyển dụng (không có link nạp FW) |
+| SMT Workspace | `/smt`, `/smt/line/**`, `/smt/bao-cao/**`, `/smt/cong-viec`, `/smt/doi-ngu` | Kỹ sư SMT / quản lý (dữ liệu demo hoặc thực tế) |
 | Project Hub | `/joy`, `/joy/docs/**`, `/joy/flash`, `/joy/updates` | Maker / người dùng robot |
+| Cửa hàng | `/shop/**` | Khách mua hàng |
 | Admin (CMS) | `/admin/**` | Chủ site (đăng nhập) |
 
 Chi tiết: `src/app/APP_ROUTING_GUIDE.md`. Thêm dự án mới: `src/content/CONTENT_ARCHITECTURE.md`.

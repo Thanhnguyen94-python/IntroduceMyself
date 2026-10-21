@@ -348,7 +348,8 @@ function CvInner() {
     backgroundColor: "#1E293B",
     color: "#F1F5F9"
   };
-  const overviewUrl = typeof window !== "undefined" ? `${window.location.origin}/tong-quan` : "/tong-quan";
+  // QR trên CV dẫn về Trang chủ (trang Tổng quan cũ đã gộp vào Trang chủ).
+  const overviewUrl = typeof window !== "undefined" ? `${window.location.origin}/` : "/";
   const overviewQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(overviewUrl)}`;
 
   return (
@@ -601,7 +602,7 @@ function CvInner() {
               <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: template === "midnight" ? "#e2e8f0" : paletteStyle.accentDeep }}>
                 {dataLang === "vi" ? "Xem CV chi tiết tại" : "View detailed CV at"}
               </p>
-              <img src={overviewQrUrl} alt="QR to overview page" className="mx-auto mt-2 h-24 w-24 rounded bg-white p-1" />
+              <img src={overviewQrUrl} alt="QR to home page" className="mx-auto mt-2 h-24 w-24 rounded bg-white p-1" />
               <p className="mt-2 break-all text-[11px] leading-relaxed" style={{ color: template === "midnight" ? "#f8fafc" : "#334155" }}>
                 {overviewUrl}
               </p>
