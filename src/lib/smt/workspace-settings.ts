@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable } from "@/lib/supabase/strict-read";
 
 // Cài đặt riêng của SMT Workspace (admin + trợ lý sửa được): lịch báo cáo tự động, bật tóm tắt AI.
 // Lưu site_content['smt_workspace'] (Supabase) hoặc .data/smt-workspace.json (local).
@@ -49,9 +50,10 @@ export async function readWorkspaceSettings(): Promise<WorkspaceSettings> {
   const supabase = getSupabaseServerClient();
   if (supabase) {
     const { data, error } = await supabase.from("site_content").select("payload").eq("config_key", KEY).maybeSingle();
-    if (error) console.error("[smt] read workspace settings failed:", error.message);
+    assertReadable("site_content/smt_workspace", supabase, error);
     return normalizeWorkspaceSettings((data?.payload as Partial<WorkspaceSettings>) ?? null);
   }
+  assertReadable("site_content/smt_workspace", supabase);
   try {
     return normalizeWorkspaceSettings(JSON.parse(await fs.readFile(DEV_FILE, "utf-8")) as Partial<WorkspaceSettings>);
   } catch {

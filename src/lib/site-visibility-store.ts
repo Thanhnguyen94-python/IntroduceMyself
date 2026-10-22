@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { PORTFOLIO_PAGE_KEYS, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable } from "@/lib/supabase/strict-read";
 import { hubVisibilityKey, listHubs } from "@/lib/hubs/registry";
 
 const visibilityPath = path.join(process.cwd(), "src", "content", "pages", "visibility.json");
@@ -38,6 +39,7 @@ export async function readSiteVisibility(): Promise<SiteVisibilityConfig> {
 
   if (supabase) {
     const { data, error } = await supabase.from("site_visibility").select("page_key,is_enabled");
+    assertReadable("site_visibility", supabase, error);
 
     if (!error && Array.isArray(data) && data.length > 0) {
       const rows = data as SiteVisibilityRow[];
@@ -45,6 +47,7 @@ export async function readSiteVisibility(): Promise<SiteVisibilityConfig> {
       return buildConfig(keys, map);
     }
   }
+  assertReadable("site_visibility", supabase);
 
   try {
     const raw = await fs.readFile(visibilityPath, "utf-8");

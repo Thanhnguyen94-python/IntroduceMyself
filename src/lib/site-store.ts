@@ -3,6 +3,7 @@ import path from "path";
 import type { SiteData } from "@/lib/content/types";
 import { normalizeSiteData } from "@/lib/content/normalizers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable, warnEmpty } from "@/lib/supabase/strict-read";
 
 const sitePath = path.join(process.cwd(), "src", "content", "pages", "site.json");
 
@@ -34,6 +35,7 @@ export async function readSiteData(): Promise<SiteData> {
       .select("config_key,payload")
       .eq("config_key", "primary")
       .maybeSingle();
+    assertReadable("site_content", supabase, error);
 
     if (!error && data && typeof data === "object") {
       const row = data as SiteContentRow;
@@ -42,6 +44,8 @@ export async function readSiteData(): Promise<SiteData> {
       }
     }
   }
+  assertReadable("site_content", supabase);
+  warnEmpty("site_content");
 
   return readSiteDataFromFile();
 }
