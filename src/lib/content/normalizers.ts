@@ -29,6 +29,10 @@ export function normalizeSiteData(raw: SiteData): SiteData {
       vi: raw.highlights?.vi ?? [],
       en: raw.highlights?.en ?? []
     },
+    languages: {
+      vi: raw.languages?.vi ?? [],
+      en: raw.languages?.en ?? []
+    },
     skills: raw.skills ?? []
   };
 }

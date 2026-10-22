@@ -92,12 +92,14 @@
             "vi": [
             "Vinh dự nhận bằng khen và danh hiệu 'Kỹ Sư Xuất Sắc' (Excellent Engineer) do Ban Giám đốc trao tặng nhờ những đóng góp vượt trội.",
             "Được Ban Giám đốc tin tưởng lựa chọn làm đại diện kỹ thuật chuẩn mực của nhà máy trong phóng sự VTV9 và bài viết truyền thông quốc tế (Bài báo WeChat: https://mp.weixin.qq.com/s/3AcDDMNt9fmm52mxFFeAJg).",
-            "Duy trì chỉ số Cpk >1.33 và tỷ lệ Yield sản xuất mẫu đạt 100%, giúp các dòng sản phẩm mới pass qua các đợt Audit khó tính từ Khách hàng."
+            "Duy trì Cpk >1,33 cho các thông số quy trình chính; các lô mẫu NPI phục vụ audit đạt yield yêu cầu, giúp sản phẩm mới được khách hàng phê duyệt.",
+            "Chuyền ít máy mounter nhưng nhiều mã hàng: cân bằng chuyền bằng số liệu Cycle time từng máy (phân bổ linh kiện, tách/gộp chương trình theo nhóm model) và cập nhật CT chuẩn cho Planner để kế hoạch bám sát năng lực thực tế."
             ],
             "en": [
             "Honored with the 'Excellent Engineer Award' by the Board of Directors in recognition of outstanding technical contributions and innovation.",
             "Selected by Executive Management as the key technical persona to represent operational excellence on national television (VTV9) and international corporate media (WeChat Feature: https://mp.weixin.qq.com/s/3AcDDMNt9fmm52mxFFeAJg).",
-            "Sustained Cpk >1.33 and trial yield rate 100%, achieving a 100% pass rate in customer audits for new product qualifications."
+            "Sustained Cpk >1.33 on key process parameters; NPI audit lots met customer yield requirements, securing new-product approval.",
+            "On a line with few mounters but many models: balanced the line from per-machine cycle-time data (component allocation, program split/merge by model family) and kept standard CTs updated for Planning so schedules matched real capacity."
             ]
         }
     },
@@ -163,7 +165,7 @@
             "vi": [
             "Lập trình và triển khai Phần mềm Scan kiểm soát nối liệu, ngăn ngừa lỗi nhầm linh kiện khi chưa có MES.",
             "Thiết kế, chế tạo máy nâng hạ thùng Magazine tự động, giảm tải chấn thương lao động và tối ưu thao tác cho công nhân.",
-            "Chế tạo thiết bị đếm linh kiện cầm tay trực tiếp trên chuyền, cắt giảm 100% thời gian tháo gỡ cuộn liệu khi kiểm kê."
+            "Chế tạo thiết bị đếm linh kiện cầm tay trực tiếp trên chuyền, kiểm kê số lượng ngay trên feeder, không cần tháo cuộn liệu khỏi chuyền."
             ],
             "en": [
             "Developed and programmed software for material splicing verification via scanning, resolving complex issues in the absence of an MES.",
@@ -250,11 +252,11 @@
         },
         "achievements": {
             "vi": [
-            "Duy trì chỉ số cân bằng chuyền (Line Balancing) trung bình toàn bộ sản phẩm đạt >95% (vượt mục tiêu KPI >90%), trong đó các mã tiêu chuẩn đạt tới >98%.",
+            "Chuyền nhiều máy mounter: duy trì hiệu suất cân bằng chuyền trung bình >95% trên toàn bộ mã hàng (KPI >90%), mã tiêu chuẩn đạt >98% – tính theo LB = ΣCT / (số máy × CT máy chậm nhất).",
             "Tối ưu hóa cấu hình chuyền (Line configuration) giúp duy trì hiệu suất cao ngay cả với các dòng sản phẩm đặc thù khó cân bằng."
             ],
             "en": [
-            "Maintained an average Line Balancing efficiency of >95% across all product lines (exceeding the >90% KPI target), with standard models reaching >98%.",
+            "Multi-mounter lines: kept average line-balance efficiency >95% across all models (KPI >90%), >98% on standard models – LB = ΣCT / (machines × bottleneck CT).",
             "Optimized SMT line configurations to sustain high balanced efficiency even for complex, non-standard product builds."
             ]
         },
