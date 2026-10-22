@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import type { ExperienceItem, ProjectItem, SiteData } from "@/lib/content/types";
 import type { HomeSectionId } from "@/lib/home-layout-types";
 import { resolveMedia } from "@/lib/media-url";
@@ -125,17 +126,17 @@ function CaseStudiesSection({ data }: { data: HomeData }) {
           </Link>
         }
       />
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <CaseCarousel count={data.caseStudies.length}>
         {data.caseStudies.map((project, idx) => {
           const cover = coverOf(project);
           const objective = (project.objective[lang] || project.objective.vi || "").split("\n")[0];
           return (
-            <Reveal key={project.id} delay={idx * 80}>
+            <Reveal key={project.id} delay={Math.min(idx, 2) * 80} className="w-full shrink-0 snap-start md:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]">
               <Link href={`/du-an/${project.slug}`} className="card group flex h-full flex-col overflow-hidden p-0">
                 <div className="relative aspect-[16/10] overflow-hidden bg-slate-200 dark:bg-slate-800">
                   {cover && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <img src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                   )}
                   <span className="chip glass absolute left-3 top-3">{categoryLabel[project.category]?.[lang] ?? project.category}</span>
                 </div>
@@ -155,9 +156,81 @@ function CaseStudiesSection({ data }: { data: HomeData }) {
             </Reveal>
           );
         })}
-      </div>
+      </CaseCarousel>
     </section>
   );
+}
+
+const AUTO_MS = 5000;
+
+// Băng chuyền ngang: 1 / 2 / 3 thẻ mỗi khung (mobile / tablet / desktop), tự trượt mỗi 5 giây.
+// Dừng khi rê chuột, chạm, focus bàn phím, tab ẩn hoặc người dùng bật "giảm chuyển động".
+function CaseCarousel({ count, children }: { count: number; children: React.ReactNode }) {
+  const { lang } = useLanguage();
+  const track = useRef<HTMLDivElement | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [edge, setEdge] = useState({ start: true, end: count <= 1 });
+
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const onScroll = () => setEdge({ start: el.scrollLeft <= 8, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 8 });
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [count]);
+
+  const scrollable = !(edge.start && edge.end);
+  useEffect(() => {
+    if (paused || !scrollable || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => document.visibilityState === "visible" && slide(track.current, 1), AUTO_MS);
+    return () => window.clearInterval(timer);
+  }, [paused, scrollable]);
+
+  const vi = lang === "vi";
+  const btn = "btn-ghost !h-9 !w-9 !rounded-full !p-0";
+  return (
+    <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+    >
+      <div
+        ref={track}
+        className="-mx-1 flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-roledescription="carousel"
+        aria-label="Case study"
+      >
+        {children}
+      </div>
+      {scrollable && (
+        <div className="mt-1 flex items-center justify-end gap-2">
+          <button type="button" className={btn} onClick={() => slide(track.current, -1)} aria-label={vi ? "Dự án trước" : "Previous"}>
+            ←
+          </button>
+          <button type="button" className={btn} onClick={() => slide(track.current, 1)} aria-label={vi ? "Dự án tiếp" : "Next"}>
+            →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Trượt 1 thẻ; tới cuối thì quay về đầu (và ngược lại).
+function slide(el: HTMLDivElement | null, dir: 1 | -1) {
+  if (!el) return;
+  const card = el.firstElementChild as HTMLElement | null;
+  const width = (card?.offsetWidth ?? el.clientWidth) + 20;
+  if (dir === 1 && el.scrollLeft + el.clientWidth >= el.scrollWidth - 8) el.scrollTo({ left: 0, behavior: "smooth" });
+  else if (dir === -1 && el.scrollLeft <= 8) el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+  else el.scrollBy({ left: dir * width, behavior: "smooth" });
 }
 
 function HighlightsSection({ data }: { data: HomeData }) {

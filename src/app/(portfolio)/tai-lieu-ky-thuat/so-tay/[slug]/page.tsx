@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { L } from "@/components/ui/localized";
 import { LocalizedHtml } from "@/components/shop/localized-html";
 import { HandbookCalculator } from "@/components/handbook/calculators";
+import { GlossText, GlossaryLayer } from "@/components/handbook/glossary";
 import { PrintButton, ThresholdTable } from "@/components/handbook/entry-parts";
 import { HandbookAdminPreview, HandbookMaintenance } from "@/components/handbook/handbook-notices";
 import { handbookAccess } from "@/lib/handbook/gate";
 import { listEntries } from "@/lib/handbook/store";
+import { glossHtml } from "@/lib/handbook/glossary";
 import { categoryOf } from "@/lib/handbook/types";
 import { renderMarkdown } from "@/lib/hubs/markdown";
 
@@ -35,7 +37,8 @@ export default async function HandbookEntryPage({ params }: Props) {
   if (!entry) notFound();
 
   const cat = categoryOf(entry.category);
-  const body = { vi: renderMarkdown(entry.body.vi).html, en: entry.body.en ? renderMarkdown(entry.body.en).html : "" };
+  // Nút "?" giải thích thuật ngữ: mỗi từ chỉ đánh dấu lần đầu trong phần nội dung.
+  const body = { vi: glossHtml(renderMarkdown(entry.body.vi).html), en: entry.body.en ? glossHtml(renderMarkdown(entry.body.en).html) : "" };
   const siblings = entries.filter((e) => e.category === entry.category);
   const idx = siblings.findIndex((e) => e.slug === entry.slug);
   const prev = siblings[idx - 1];
@@ -69,10 +72,13 @@ export default async function HandbookEntryPage({ params }: Props) {
               <L t={entry.title} />
             </h1>
             <p className="muted max-w-3xl">
-              <L t={entry.summary} />
+              <GlossText t={entry.summary} />
             </p>
           </div>
-          <PrintButton />
+          <div className="flex flex-wrap gap-2">
+            <GlossaryLayer />
+            <PrintButton />
+          </div>
         </div>
         {(entry.formula || entry.unit) && (
           <div className="rounded-xl border-l-4 px-4 py-3" style={{ borderColor: "var(--viz-1)", background: "var(--viz-1-wash)" }}>

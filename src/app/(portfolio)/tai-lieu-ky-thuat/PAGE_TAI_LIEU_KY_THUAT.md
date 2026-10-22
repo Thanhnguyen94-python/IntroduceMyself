@@ -1,18 +1,10 @@
 # Trang Tài Liệu Kỹ Thuật (`/tai-lieu-ky-thuat`)
 
 ## Mục tiêu
-Xây thư viện tài liệu để tự xem lại hoặc chia sẻ tham khảo.
+Thư viện tài liệu để tự xem lại hoặc chia sẻ tham khảo.
 
-## Khối nội dung chính
-1. Danh mục tài liệu theo chủ đề.
-2. Trạng thái Public / Private.
-3. Public: xem/tải trực tiếp.
-4. Private: hiển thị tóm tắt + CTA yêu cầu truy cập.
+## Khối nội dung
+1. Sổ tay tra cứu SMT (`/tai-lieu-ky-thuat/so-tay`) – dữ liệu quản lý ở Admin → Sổ tay SMT.
+2. Bộ mẫu báo cáo SMT (`/tai-lieu-ky-thuat/smt-reports`).
 
-## Nguồn dữ liệu
-- `content/docs/docs.json`.
-
-## Definition of Done
-- Tìm kiếm/lọc cơ bản theo tag hoặc loại.
-- Public tải được file.
-- Private không lộ link file gốc khi chưa xác thực (nếu áp dụng protected mode).
+Danh sách tài liệu cũ (`content/docs/docs.json` + mật khẩu private) đã gỡ: link PDF hỏng, mật khẩu chỉ kiểm tra phía trình duyệt.

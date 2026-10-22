@@ -1,4 +1,4 @@
-import type { DocsData, ExperienceData, ProjectsData, SiteData } from "@/lib/content/types";
+import type { ExperienceData, ProjectsData, SiteData } from "@/lib/content/types";
 
 const LATEST_SCHEMA = 1;
 
@@ -119,16 +119,6 @@ export function normalizeProjectsData(raw: ProjectsData): ProjectsData {
         vi: item.lessonsLearned?.vi ?? [],
         en: item.lessonsLearned?.en ?? []
       }
-    }))
-  };
-}
-
-export function normalizeDocsData(raw: DocsData): DocsData {
-  return {
-    schemaVersion: raw.schemaVersion ?? LATEST_SCHEMA,
-    items: (raw.items ?? []).map((item) => ({
-      ...item,
-      equipmentTags: item.equipmentTags ?? []
     }))
   };
 }

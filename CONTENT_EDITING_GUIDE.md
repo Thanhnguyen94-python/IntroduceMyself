@@ -33,12 +33,9 @@ Tài liệu này giúp bạn biết **muốn sửa mục nào thì vào file nà
 - File giao diện chi tiết: [src/app/du-an/[slug]/page.tsx](src/app/du-an/[slug]/page.tsx)
 
 ## 6) Sửa trang Tài Liệu Kỹ Thuật
-- File dữ liệu: [src/content/docs/docs.json](src/content/docs/docs.json)
-- Sửa tại mỗi `items[]`:
-  - `slug`, `title.vi/en`, `topic`, `visibility`
-  - `summary.vi/en`, `fileUrl`, `equipmentTags[]`
-- File giao diện danh sách: [src/app/tai-lieu-ky-thuat/page.tsx](src/app/tai-lieu-ky-thuat/page.tsx)
-- File giao diện chi tiết: [src/app/tai-lieu-ky-thuat/[slug]/page.tsx](src/app/tai-lieu-ky-thuat/[slug]/page.tsx)
+- Trang gồm 2 khối: **Sổ tay tra cứu SMT** (Admin → Sổ tay SMT) và **Bộ mẫu báo cáo SMT**.
+- Danh sách tài liệu cũ (`docs.json`, ô mật khẩu private) đã gỡ – file PDF không tồn tại và mật khẩu chỉ kiểm tra ở trình duyệt nên không bảo mật thật.
+- File giao diện: [src/app/(portfolio)/tai-lieu-ky-thuat/page.tsx](src/app/(portfolio)/tai-lieu-ky-thuat/page.tsx)
 
 ## 7) Sửa mật khẩu tài liệu private
 - File: [.env.example](.env.example)

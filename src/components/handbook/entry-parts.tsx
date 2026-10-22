@@ -1,6 +1,7 @@
 "use client";
 
 import { StatusBadge, useT } from "@/components/smt/smt-charts";
+import { GlossText } from "@/components/handbook/glossary";
 import type { Threshold } from "@/lib/handbook/types";
 
 // Bảng ngưỡng tham khảo: trạng thái luôn có icon + chữ, không chỉ dựa vào màu.
@@ -24,7 +25,9 @@ export function ThresholdTable({ items }: { items: Threshold[] }) {
                 {x.level === "info" ? <span className="chip">ℹ {label.info}</span> : <StatusBadge status={x.level}>{label[x.level]}</StatusBadge>}
               </td>
               <td className="px-3 py-2 font-semibold">{x.range}</td>
-              <td className="muted px-3 py-2">{x.meaning}</td>
+              <td className="muted px-3 py-2">
+                <GlossText text={x.meaning} />
+              </td>
             </tr>
           ))}
         </tbody>

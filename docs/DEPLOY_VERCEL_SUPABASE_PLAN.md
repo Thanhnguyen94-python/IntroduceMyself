@@ -57,7 +57,6 @@ Kết quả mong muốn: mỗi lần push `main`, Vercel tự build/deploy.
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 - `ADMIN_SESSION_SECRET`
-- `NEXT_PUBLIC_PRIVATE_DOCS_PASSWORD_HASH`
 - (nếu dùng email) `RESEND_API_KEY`, `ORDER_NOTIFY_EMAIL_TO`, `ORDER_NOTIFY_EMAIL_FROM`
 
 ### 3.2 Trên GitHub (Repo -> Settings -> Secrets and variables -> Actions)

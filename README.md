@@ -15,7 +15,6 @@ Trọng tâm:
 - Nguồn dữ liệu chính đặt trong JSON theo domain:
 	- `experience.json`
 	- `projects.json`
-	- `docs.json`
 - Hosting mục tiêu: Cloudflare Pages.
 
 ## 3) Quy ước đặt tên trang (đã chốt)
