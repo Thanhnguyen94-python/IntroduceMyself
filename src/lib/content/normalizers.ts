@@ -13,6 +13,11 @@ function normalizeTextValue(value: unknown): string {
   return "";
 }
 
+// Bỏ dòng trống (ô nhập "mỗi dòng 1 ý" ở Admin).
+function cleanLines(list: string[] | undefined) {
+  return (list ?? []).map((line) => line.trim()).filter(Boolean);
+}
+
 export function normalizeSiteData(raw: SiteData): SiteData {
   return {
     ...raw,
@@ -26,12 +31,12 @@ export function normalizeSiteData(raw: SiteData): SiteData {
       showPersonalInfo: raw.privacy?.showPersonalInfo ?? false
     },
     highlights: {
-      vi: raw.highlights?.vi ?? [],
-      en: raw.highlights?.en ?? []
+      vi: cleanLines(raw.highlights?.vi),
+      en: cleanLines(raw.highlights?.en)
     },
     languages: {
-      vi: raw.languages?.vi ?? [],
-      en: raw.languages?.en ?? []
+      vi: cleanLines(raw.languages?.vi),
+      en: cleanLines(raw.languages?.en)
     },
     skills: raw.skills ?? []
   };
