@@ -37,6 +37,8 @@ export type SiteData = {
     showPersonalInfo: boolean;
   };
   highlights: LocalizedList;
+  // Ngoại ngữ (hiện ở CV)
+  languages?: LocalizedList;
   skills: {
     group: LocalizedText;
     items: string[];

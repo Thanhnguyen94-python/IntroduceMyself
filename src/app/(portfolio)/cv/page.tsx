@@ -18,6 +18,7 @@ type SectionConfig = {
   education: boolean;
   skills: boolean;
   tools: boolean;
+  languages: boolean;
 };
 
 type CustomSectionPlacement =
@@ -151,7 +152,8 @@ function CvInner() {
     work: true,
     education: true,
     skills: true,
-    tools: true
+    tools: true,
+    languages: true
   });
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const [newSectionTitle, setNewSectionTitle] = useState("");
@@ -472,14 +474,15 @@ function CvInner() {
 
               <div className="rounded-xl border p-3" style={{ borderColor: "#334155" }}>
                 <p className="text-sm font-semibold">{dataLang === "vi" ? "Bật/Tắt nội dung" : "Toggle content blocks"}</p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                <div className="mt-2 grid gap-2 sm:grid-cols-4 lg:grid-cols-7">
                   {([
                     ["summary", dataLang === "vi" ? "Mục tiêu" : "Summary"],
                     ["highlights", dataLang === "vi" ? "Điểm mạnh" : "Highlights"],
                     ["work", dataLang === "vi" ? "Kinh nghiệm" : "Work"],
                     ["education", dataLang === "vi" ? "Học vấn" : "Education"],
                     ["skills", dataLang === "vi" ? "Kỹ năng" : "Skills"],
-                    ["tools", dataLang === "vi" ? "Thiết bị" : "Tools"]
+                    ["tools", dataLang === "vi" ? "Thiết bị" : "Tools"],
+                    ["languages", dataLang === "vi" ? "Ngoại ngữ" : "Languages"]
                   ] as const).map(([key, label]) => (
                     <label key={key} className="flex items-center gap-2 rounded border px-2 py-1 text-sm" style={{ borderColor: "#334155" }}>
                       <input
@@ -596,6 +599,17 @@ function CvInner() {
               </div>
             )}
 
+            {sections.languages && pickList(site.languages ?? { vi: [], en: [] }, dataLang).length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-base font-bold" style={{ color: paletteStyle.accent }}>{dataLang === "vi" ? "Ngoại ngữ" : "Languages"}</h2>
+                <ul className="mt-2 space-y-1 text-[11px]" style={{ color: template === "midnight" ? "#fff" : "#0f172a" }}>
+                  {pickList(site.languages ?? { vi: [], en: [] }, dataLang).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {renderSidebarCustomSections("afterTools")}
 
             <div className="mt-6 rounded-lg border p-3 text-center" style={{ borderColor: template === "midnight" ? "rgba(255,255,255,0.25)" : paletteStyle.accentSoft }}>
@@ -650,6 +664,18 @@ function CvInner() {
                           <li key={task}>{task}</li>
                         ))}
                       </ul>
+                      {/* Kết quả có số liệu (tối đa 2 dòng) – để CV thể hiện "cân bằng chuyền bằng số liệu". */}
+                      {pickList(item.achievements, dataLang).length > 0 && (
+                        <ul className="mt-1 space-y-1 pl-5 text-sm text-slate-700">
+                          {pickList(item.achievements, dataLang)
+                            .slice(-2)
+                            .map((line) => (
+                              <li key={line} className="list-['★_']" style={{ color: paletteStyle.accentDeep }}>
+                                <span className="text-slate-700">{line}</span>
+                              </li>
+                            ))}
+                        </ul>
+                      )}
                     </article>
                   ))}
                 </div>
