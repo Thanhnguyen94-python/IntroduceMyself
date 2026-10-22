@@ -130,6 +130,8 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
         </div>
       </div>
 
+      <ProfileTextCard site={site} setSite={setSite} onSaveSite={onSaveSite} savingSite={savingSite} />
+
       <div className="card space-y-3">
         <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">Hiển thị/Ẩn các trang (Portfolio & Project Hub)</h2>
         <div className="grid gap-2 md:grid-cols-2">
@@ -161,5 +163,39 @@ export function OverviewTab({ visibility, setVisibility, site, setSite, onSave, 
         </button>
       </div>
     </section>
+  );
+}
+
+const lines = (text: string) => text.split("\n");
+
+// Slogan (trang chủ), Điểm mạnh và Ngoại ngữ (trang chủ + CV) – mỗi dòng 1 ý.
+function ProfileTextCard({ site, setSite, onSaveSite, savingSite }: Pick<Props, "site" | "setSite" | "onSaveSite" | "savingSite">) {
+  const box = "w-full rounded-lg border px-3 py-2 text-sm";
+  const style = { borderColor: "var(--border)", background: "var(--surface)" };
+  const field = (label: string, value: string, onChange: (v: string) => void, rows: number) => (
+    <label className="space-y-1 text-sm">
+      <span className="font-medium">{label}</span>
+      <textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} className={box} style={style} />
+    </label>
+  );
+  const langs = site.languages ?? { vi: [], en: [] };
+  return (
+    <div className="card space-y-3">
+      <h2 className="text-lg font-semibold text-brand-600 dark:text-brand-300">Slogan, Điểm mạnh & Ngoại ngữ</h2>
+      <p className="text-xs" style={{ color: "var(--muted)" }}>Điểm mạnh / Ngoại ngữ: mỗi dòng 1 ý. Hiện ở Trang chủ và CV.</p>
+      <div className="grid gap-3 md:grid-cols-2">
+        {field("Slogan (VI)", site.profile.slogan?.vi ?? "", (v) => setSite({ ...site, profile: { ...site.profile, slogan: { ...site.profile.slogan, vi: v } } }), 2)}
+        {field("Slogan (EN)", site.profile.slogan?.en ?? "", (v) => setSite({ ...site, profile: { ...site.profile, slogan: { ...site.profile.slogan, en: v } } }), 2)}
+        {field("Điểm mạnh (VI)", site.highlights.vi.join("\n"), (v) => setSite({ ...site, highlights: { ...site.highlights, vi: lines(v) } }), 6)}
+        {field("Highlights (EN)", site.highlights.en.join("\n"), (v) => setSite({ ...site, highlights: { ...site.highlights, en: lines(v) } }), 6)}
+        {field("Ngoại ngữ (VI)", langs.vi.join("\n"), (v) => setSite({ ...site, languages: { ...langs, vi: lines(v) } }), 3)}
+        {field("Languages (EN)", langs.en.join("\n"), (v) => setSite({ ...site, languages: { ...langs, en: lines(v) } }), 3)}
+      </div>
+      <div className="flex justify-end">
+        <button onClick={onSaveSite} disabled={savingSite} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">
+          {savingSite ? "Đang lưu profile..." : "Lưu profile"}
+        </button>
+      </div>
+    </div>
   );
 }
