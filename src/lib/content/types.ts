@@ -86,19 +86,3 @@ export type ProjectsData = {
   schemaVersion: number;
   items: ProjectItem[];
 };
-
-export type DocItem = {
-  id: string;
-  slug: string;
-  title: LocalizedText;
-  topic: string;
-  visibility: "public" | "private";
-  summary: LocalizedText;
-  fileUrl?: string;
-  equipmentTags: string[];
-};
-
-export type DocsData = {
-  schemaVersion: number;
-  items: DocItem[];
-};

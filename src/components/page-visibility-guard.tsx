@@ -5,11 +5,13 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { isPageEnabled, type ManagedPageKey, type SiteVisibilityConfig } from "@/lib/site-visibility-types";
 
 const defaultVisibility: SiteVisibilityConfig = { schemaVersion: 1, pages: {} };
+// Nhớ cấu hình trong phiên: lần chuyển trang sau hiện ngay, vẫn tải lại ngầm để cập nhật.
+let cached: SiteVisibilityConfig | null = null;
 
 export function PageVisibilityGuard({ pageKey, children }: { pageKey: ManagedPageKey; children: React.ReactNode }) {
   const { lang } = useLanguage();
-  const [state, setState] = useState<SiteVisibilityConfig>(defaultVisibility);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<SiteVisibilityConfig>(cached ?? defaultVisibility);
+  const [loading, setLoading] = useState(!cached);
 
   useEffect(() => {
     let mounted = true;
@@ -19,6 +21,7 @@ export function PageVisibilityGuard({ pageKey, children }: { pageKey: ManagedPag
         const response = await fetch("/api/site/visibility", { cache: "no-store" });
         if (!response.ok) return;
         const payload = (await response.json()) as SiteVisibilityConfig;
+        cached = payload;
         if (mounted) {
           setState(payload);
         }
