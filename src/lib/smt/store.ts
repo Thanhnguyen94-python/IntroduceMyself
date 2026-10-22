@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable } from "@/lib/supabase/strict-read";
 import { StorageUnavailableError, deleteRows, getRow, insertRow, selectRows, updateRows, type Query } from "@/lib/data/table-store";
 import { DEFAULT_SMT_SETTINGS } from "@/lib/smt/defaults";
 import { buildDemoBundle } from "@/lib/smt/demo";
@@ -80,9 +81,10 @@ export async function readSmtSettings(): Promise<SmtSettings> {
   const supabase = getSupabaseServerClient();
   if (supabase) {
     const { data, error } = await supabase.from("site_content").select("payload").eq("config_key", SETTINGS_KEY).maybeSingle();
-    if (error) console.error("[smt] read settings failed:", error.message);
+    assertReadable("site_content/smt_settings", supabase, error);
     return normalizeSmtSettings((data?.payload as Partial<SmtSettings>) ?? null);
   }
+  assertReadable("site_content/smt_settings", supabase);
   try {
     return normalizeSmtSettings(JSON.parse(await fs.readFile(DEV_SETTINGS_FILE, "utf-8")) as Partial<SmtSettings>);
   } catch {

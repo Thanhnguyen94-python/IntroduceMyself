@@ -20,6 +20,7 @@ export function HomeLayoutEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
@@ -30,9 +31,12 @@ export function HomeLayoutEditor() {
       fetch("/api/projects", { cache: "no-store" }).then((res) => (res.ok ? res.json() : null))
     ])
       .then(([layoutPayload, projectsPayload]: [HomeLayoutConfig | null, ProjectsData | null]) => {
+        // Tải lỗi thì không cho sửa: lưu bố cục mặc định sẽ ghi đè bố cục thật trên Supabase.
+        if (!layoutPayload || !projectsPayload?.items) return setLoadError(true);
         setLayout(normalizeHomeLayout(layoutPayload));
-        setProjects(projectsPayload?.items ?? []);
+        setProjects(projectsPayload.items);
       })
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -68,6 +72,7 @@ export function HomeLayoutEditor() {
   }
 
   if (loading) return <section className="card">Đang tải bố cục...</section>;
+  if (loadError) return <section className="card text-sm text-red-600">Không tải được bố cục từ Supabase nên chưa mở trình sửa (tránh ghi đè bằng bố cục mặc định). Hãy tải lại trang.</section>;
 
   return (
     <section className="space-y-4">

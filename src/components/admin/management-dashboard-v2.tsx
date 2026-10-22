@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TextareaHTMLAttributes } from "react";
-import { getSiteData } from "@/lib/content/loaders";
 import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData, SiteData } from "@/lib/content/types";
 import type { SiteVisibilityConfig } from "@/lib/site-visibility-types";
 import { normalizeGoogleDriveImageUrl, resolveMedia } from "@/lib/media-url";
@@ -119,7 +118,9 @@ export function ManagementDashboardV2() {
 
   const [journeyItems, setJourneyItems] = useState<ExperienceItem[]>([]);
   const [projectItems, setProjectItems] = useState<ProjectItem[]>([]);
-  const [site, setSite] = useState<SiteData>(() => getSiteData());
+  // Chỉ có giá trị thật sau khi tải từ Supabase; trình sửa không hiện nếu tải lỗi (xem loadError).
+  const [site, setSite] = useState<SiteData>({} as SiteData);
+  const [loadError, setLoadError] = useState(false);
 
   const [visibility, setVisibility] = useState<SiteVisibilityConfig>({
     schemaVersion: 1,
@@ -163,10 +164,17 @@ export function ManagementDashboardV2() {
         const visibilityPayload = (await visibilityRes.json().catch(() => null)) as SiteVisibilityConfig | null;
         const sitePayload = (await siteRes.json().catch(() => null)) as SiteData | null;
 
-        if (journeyPayload?.items) setJourneyItems(journeyPayload.items);
-        if (projectsPayload?.items) setProjectItems(projectsPayload.items);
-        if (visibilityPayload?.pages) setVisibility(visibilityPayload);
-        if (sitePayload?.profile) setSite(sitePayload);
+        // Thiếu bất kỳ phần nào thì không mở trình sửa: lưu lúc đó sẽ ghi đè dữ liệu thật bằng giá trị mặc định.
+        if (!journeyRes.ok || !projectsRes.ok || !visibilityRes.ok || !siteRes.ok || !journeyPayload?.items || !projectsPayload?.items || !visibilityPayload?.pages || !sitePayload?.profile) {
+          setLoadError(true);
+          return;
+        }
+        setJourneyItems(journeyPayload.items);
+        setProjectItems(projectsPayload.items);
+        setVisibility(visibilityPayload);
+        setSite(sitePayload);
+      } catch {
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
@@ -387,6 +395,9 @@ export function ManagementDashboardV2() {
 
   if (loading) {
     return <section className="card">Đang tải dashboard quản trị...</section>;
+  }
+  if (loadError) {
+    return <section className="card text-sm text-red-600">Không tải được dữ liệu từ Supabase nên chưa mở trình sửa – tránh việc bấm Lưu ghi đè dữ liệu thật bằng bản trống / bản cũ. Hãy tải lại trang; nếu vẫn lỗi, kiểm tra kết nối Supabase.</section>;
   }
 
   return (

@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable } from "@/lib/supabase/strict-read";
 import { deleteRows, getRow, insertRow, selectRows, StorageUnavailableError, updateRows } from "@/lib/data/table-store";
 import { normalizeMediaUrl } from "@/lib/smart-media";
 import { DEFAULT_SHOP_SETTINGS } from "@/lib/shop/defaults";
@@ -285,9 +286,10 @@ export async function readShopSettings(): Promise<ShopSettings> {
   const supabase = getSupabaseServerClient();
   if (supabase) {
     const { data, error } = await supabase.from("site_content").select("payload").eq("config_key", SETTINGS_KEY).maybeSingle();
-    if (error) console.error("[shop] read settings failed:", error.message);
+    assertReadable("site_content/shop_settings", supabase, error);
     return normalizeSettings((data?.payload as Partial<ShopSettings>) ?? null);
   }
+  assertReadable("site_content/shop_settings", supabase);
   try {
     return normalizeSettings(JSON.parse(await fs.readFile(DEV_SETTINGS_FILE, "utf-8")) as Partial<ShopSettings>);
   } catch {

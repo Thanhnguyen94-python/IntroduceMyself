@@ -3,6 +3,7 @@ import path from "path";
 import type { ExperienceData, ExperienceItem } from "@/lib/content/types";
 import { normalizeExperienceData } from "@/lib/content/normalizers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable, warnEmpty } from "@/lib/supabase/strict-read";
 
 const journeyPath = path.join(process.cwd(), "src", "content", "experience", "experience.json");
 
@@ -169,11 +170,14 @@ export async function readJourneyData(): Promise<ExperienceData> {
       .from("career_journey")
       .select("id,company,role_vi,role_en,start_date,end_date,is_current,equipment_tags,responsibilities_vi,responsibilities_en,problem_root_cause_action_vi,problem_root_cause_action_en,training_activities_vi,training_activities_en,achievements_vi,achievements_en,improvements_vi,improvements_en,images,sort_order")
       .order("sort_order", { ascending: true });
+    assertReadable("career_journey", supabase, error);
 
     if (!error && Array.isArray(data) && data.length > 0) {
       return fromSupabaseRows(data as JourneyRow[]);
     }
   }
+  assertReadable("career_journey", supabase);
+  warnEmpty("career_journey");
 
   return readJourneyDataFromFile();
 }

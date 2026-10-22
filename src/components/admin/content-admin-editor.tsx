@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import journeyJson from "@/content/experience/experience.json";
-import projectsJson from "@/content/projects/projects.json";
 import { normalizeExperienceData, normalizeProjectsData } from "@/lib/content/normalizers";
 import type { ExperienceData, ExperienceItem, ProjectItem, ProjectsData } from "@/lib/content/types";
 
@@ -66,9 +64,11 @@ function isProjectsData(value: unknown): value is ProjectsData {
 
 export function ContentAdminEditor() {
   const router = useRouter();
-  const [journeyData, setJourneyData] = useState<ExperienceData>(normalizeExperienceData(journeyJson as ExperienceData));
-  const [projectsData, setProjectsData] = useState<ProjectsData>(normalizeProjectsData(projectsJson as unknown as ProjectsData));
+  // Chỉ sửa trên dữ liệu tải từ Supabase (nguồn duy nhất); không khởi tạo bằng JSON trong code.
+  const [journeyData, setJourneyData] = useState<ExperienceData>({ schemaVersion: 1, items: [] });
+  const [projectsData, setProjectsData] = useState<ProjectsData>({ schemaVersion: 1, items: [] });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [journeySaving, setJourneySaving] = useState(false);
   const [projectsSaving, setProjectsSaving] = useState(false);
   const [journeyMessage, setJourneyMessage] = useState("");
@@ -83,14 +83,15 @@ export function ContentAdminEditor() {
         ]);
 
         const journeyPayload = (await journeyResponse.json().catch(() => null)) as unknown;
-        if (journeyResponse.ok && isExperienceData(journeyPayload)) {
-          setJourneyData(normalizeExperienceData(journeyPayload));
-        }
-
         const projectsPayload = (await projectsResponse.json().catch(() => null)) as unknown;
-        if (projectsResponse.ok && isProjectsData(projectsPayload)) {
+        if (journeyResponse.ok && isExperienceData(journeyPayload) && projectsResponse.ok && isProjectsData(projectsPayload)) {
+          setJourneyData(normalizeExperienceData(journeyPayload));
           setProjectsData(normalizeProjectsData(projectsPayload));
+        } else {
+          setLoadError(true);
         }
+      } catch {
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
@@ -159,6 +160,9 @@ export function ContentAdminEditor() {
 
   if (loading) {
     return <section className="card">Đang tải dữ liệu Hành trình và Dự án...</section>;
+  }
+  if (loadError) {
+    return <section className="card text-sm text-red-600">Không tải được dữ liệu từ Supabase nên chưa mở trình sửa – tránh việc bấm Lưu ghi đè dữ liệu thật bằng bản trống / bản cũ. Hãy tải lại trang; nếu vẫn lỗi, kiểm tra kết nối Supabase.</section>;
   }
 
   return (

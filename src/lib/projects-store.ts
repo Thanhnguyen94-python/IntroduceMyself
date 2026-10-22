@@ -3,6 +3,7 @@ import path from "path";
 import type { ProjectItem, ProjectsData } from "@/lib/content/types";
 import { normalizeProjectsData } from "@/lib/content/normalizers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { assertReadable, warnEmpty } from "@/lib/supabase/strict-read";
 
 const projectsPath = path.join(process.cwd(), "src", "content", "projects", "projects.json");
 
@@ -159,11 +160,14 @@ export async function readProjectsData(): Promise<ProjectsData> {
       .from("projects")
       .select("id,slug,title_vi,title_en,category,status,summary_vi,summary_en,objective_vi,objective_en,description_vi,description_en,equipment_tags,gallery,attachments,lessons_learned_vi,lessons_learned_en,sort_order")
       .order("sort_order", { ascending: true });
+    assertReadable("projects", supabase, error);
 
     if (!error && Array.isArray(data) && data.length > 0) {
       return fromSupabaseRows(data as ProjectRow[]);
     }
   }
+  assertReadable("projects", supabase);
+  warnEmpty("projects");
 
   return readProjectsDataFromFile();
 }
